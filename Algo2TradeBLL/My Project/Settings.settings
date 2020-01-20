@@ -1,0 +1,43 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="My" GeneratedClassName="MySettings" UseMySettingsClassName="true">
+  <Profiles />
+  <Settings>
+    <Setting Name="dbConnectionLocalNetwork" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;ConnectionString&gt;server=DESKTOP-RIO;database=local_stock;port=3306;user id=rio;password=speech123;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffectedrows=False;allowuservariables=True&lt;/ConnectionString&gt;
+  &lt;ProviderName&gt;MySql.Data.MySqlClient&lt;/ProviderName&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">server=DESKTOP-RIO;database=local_stock;port=3306;user id=rio;password=speech123;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffectedrows=False;allowuservariables=True</Value>
+    </Setting>
+    <Setting Name="dbConnectionRemote" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;ConnectionString&gt;server=59.90.230.163;database=local_stock;port=3306;user id=rio;password=speech123;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffectedrows=False;allowuservariables=True&lt;/ConnectionString&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">server=59.90.230.163;database=local_stock;port=3306;user id=rio;password=speech123;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffectedrows=False;allowuservariables=True</Value>
+    </Setting>
+    <Setting Name="Server" Type="System.String" Scope="User">
+      <Value Profile="(Default)">59.90.230.163</Value>
+    </Setting>
+    <Setting Name="DatabaseName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">local_stock</Value>
+    </Setting>
+    <Setting Name="port" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3306</Value>
+    </Setting>
+    <Setting Name="UserID" Type="System.String" Scope="User">
+      <Value Profile="(Default)">rio</Value>
+    </Setting>
+    <Setting Name="Password" Type="System.String" Scope="User">
+      <Value Profile="(Default)">speech123</Value>
+    </Setting>
+    <Setting Name="dbConnectionLocal" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;ConnectionString&gt;server=localhost;database=local_stock;port=3306;user id=rio;password=speech123;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffectedrows=False;allowuservariables=True&lt;/ConnectionString&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">server=localhost;database=local_stock;port=3306;user id=rio;password=speech123;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffectedrows=False;allowuservariables=True</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
