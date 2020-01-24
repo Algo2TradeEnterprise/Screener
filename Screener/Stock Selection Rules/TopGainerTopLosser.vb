@@ -61,10 +61,12 @@ Public Class TopGainerTopLosser
                             Dim niftyIntradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.Intraday_Futures, "NIFTY", tradingDate.AddDays(-15), tradingDate)
                             If niftyIntradayPayload IsNot Nothing AndAlso niftyIntradayPayload.Count > 0 Then
                                 If _niftyChangePercentage = 0 Then
-                                    Dim candleToCheck As Payload = Nothing
-                                    If niftyIntradayPayload.ContainsKey(payloadTime) Then
-                                        candleToCheck = niftyIntradayPayload(payloadTime)
-                                    End If
+                                    Dim candleToCheck As Payload = niftyIntradayPayload.Values.Where(Function(x)
+                                                                                                         Return x.PayloadDate <= payloadTime
+                                                                                                     End Function).LastOrDefault
+                                    'If niftyIntradayPayload.ContainsKey(payloadTime) Then
+                                    '    candleToCheck = niftyIntradayPayload(payloadTime)
+                                    'End If
                                     If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
                                         niftyGainLossPercentage = Math.Round(((candleToCheck.Close - previousDayPayload.Close) / previousDayPayload.Close) * 100, 4)
                                     End If
