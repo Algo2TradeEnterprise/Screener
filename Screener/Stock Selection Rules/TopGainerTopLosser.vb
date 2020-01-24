@@ -91,10 +91,12 @@ Public Class TopGainerTopLosser
                         _canceller.Token.ThrowIfCancellationRequested()
                         Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate)
                         If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                            Dim candleToCheck As Payload = Nothing
-                            If intradayPayload.ContainsKey(payloadTime) Then
-                                candleToCheck = intradayPayload(payloadTime)
-                            End If
+                            Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
+                                                                                            Return x.PayloadDate <= payloadTime
+                                                                                        End Function).LastOrDefault
+                            'If intradayPayload.ContainsKey(payloadTime) Then
+                            '    candleToCheck = intradayPayload(payloadTime)
+                            'End If
                             If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
                                 Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
                                 Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
