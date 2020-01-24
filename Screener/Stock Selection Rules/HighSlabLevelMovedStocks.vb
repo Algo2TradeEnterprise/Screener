@@ -59,10 +59,12 @@ Public Class HighSlabLevelMovedStocks
                             Dim enterd As Decimal = Decimal.MinValue
                             For Each runningPayload In intradayPayload
                                 If enterd <> Decimal.MinValue Then
-                                    If runningPayload.Value.High >= enterd + slab Then
+                                    If runningPayload.Value.High >= enterd + slab + buffer Then
+                                        'Console.WriteLine(String.Format("End at :{0}", runningPayload.Value.PayloadDate))
                                         levelCtr += 1
                                         enterd = Decimal.MinValue
-                                    ElseIf runningPayload.Value.Low <= enterd - slab Then
+                                    ElseIf runningPayload.Value.Low <= enterd - slab - buffer Then
+                                        'Console.WriteLine(String.Format("End at :{0}", runningPayload.Value.PayloadDate))
                                         levelCtr += 1
                                         enterd = Decimal.MinValue
                                     End If
@@ -70,11 +72,24 @@ Public Class HighSlabLevelMovedStocks
                                     upperLevel = GetSlabBasedLevel(runningPayload.Value.Open, 1, slab) + buffer
                                     lowerLevel = GetSlabBasedLevel(runningPayload.Value.Open, -1, slab) - buffer
                                     If runningPayload.Value.High >= upperLevel AndAlso runningPayload.Value.Low <= lowerLevel Then
+                                        'Console.WriteLine(String.Format("Start & End at :{0}", runningPayload.Value.PayloadDate))
                                         levelCtr += 1
                                     ElseIf runningPayload.Value.High >= upperLevel Then
-                                        enterd = upperLevel
+                                        'Console.WriteLine(String.Format("Start at :{0}", runningPayload.Value.PayloadDate))
+                                        enterd = upperLevel - buffer
+                                        If runningPayload.Value.High >= enterd + slab + buffer Then
+                                            'Console.WriteLine(String.Format("End at :{0}", runningPayload.Value.PayloadDate))
+                                            levelCtr += 1
+                                            enterd = Decimal.MinValue
+                                        End If
                                     ElseIf runningPayload.Value.Low <= lowerLevel Then
-                                        enterd = lowerLevel
+                                        'Console.WriteLine(String.Format("Start at :{0}", runningPayload.Value.PayloadDate))
+                                        enterd = lowerLevel + buffer
+                                        If runningPayload.Value.Low <= enterd - slab - buffer Then
+                                            'Console.WriteLine(String.Format("End at :{0}", runningPayload.Value.PayloadDate))
+                                            levelCtr += 1
+                                            enterd = Decimal.MinValue
+                                        End If
                                     End If
                                 End If
                             Next
