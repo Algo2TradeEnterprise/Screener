@@ -56,12 +56,26 @@ Public Class HighSlabLevelMovedStocks
                             Dim buffer As Decimal = CalculateBuffer(intradayPayload.FirstOrDefault.Value.Open, Utilities.Numbers.NumberManipulation.RoundOfType.Floor)
                             Dim upperLevel As Decimal = GetSlabBasedLevel(intradayPayload.FirstOrDefault.Value.Open, 1, slab) + buffer
                             Dim lowerLevel As Decimal = GetSlabBasedLevel(intradayPayload.FirstOrDefault.Value.Open, -1, slab) - buffer
+                            Dim enterd As Decimal = Decimal.MinValue
                             For Each runningPayload In intradayPayload
-                                upperLevel = GetSlabBasedLevel(runningPayload.Value.Open, 1, slab) + buffer
-                                lowerLevel = GetSlabBasedLevel(runningPayload.Value.Open, -1, slab) - buffer
-                                If runningPayload.Value.High >= upperLevel AndAlso runningPayload.Value.Low <= lowerLevel Then
-                                    levelCtr += 1
-
+                                If enterd <> Decimal.MinValue Then
+                                    If runningPayload.Value.High >= enterd + slab Then
+                                        levelCtr += 1
+                                        enterd = Decimal.MinValue
+                                    ElseIf runningPayload.Value.Low <= enterd - slab Then
+                                        levelCtr += 1
+                                        enterd = Decimal.MinValue
+                                    End If
+                                Else
+                                    upperLevel = GetSlabBasedLevel(runningPayload.Value.Open, 1, slab) + buffer
+                                    lowerLevel = GetSlabBasedLevel(runningPayload.Value.Open, -1, slab) - buffer
+                                    If runningPayload.Value.High >= upperLevel AndAlso runningPayload.Value.Low <= lowerLevel Then
+                                        levelCtr += 1
+                                    ElseIf runningPayload.Value.High >= upperLevel Then
+                                        enterd = upperLevel
+                                    ElseIf runningPayload.Value.Low <= lowerLevel Then
+                                        enterd = lowerLevel
+                                    End If
                                 End If
                             Next
 
