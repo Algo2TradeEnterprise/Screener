@@ -346,6 +346,8 @@ Public Class frmStockSelection
                     stock = New HighTurnoverStock(_canceller, cmn, stockType)
                 Case 10
                     stock = New TopGainerTopLosserEveryMinute(_canceller, cmn, stockType)
+                Case 11
+                    stock = New HighSlabLevelMovedStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -403,6 +405,9 @@ Public Class frmStockSelection
             Case 10
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with every minute top gainer losser")
+            Case 11
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with high slab lavel moved")
             Case Else
                 Throw New NotImplementedException()
         End Select
