@@ -111,6 +111,7 @@
     <Compile Include="Stock Selection Rules\HighTurnoverStock.vb" />
     <Compile Include="Stock Selection Rules\IntradayVolumeSpike.vb" />
     <Compile Include="Stock Selection Rules\OHLStocks.vb" />
+    <Compile Include="Stock Selection Rules\OpenAtHighLow.vb" />
     <Compile Include="Stock Selection Rules\PreMarketStocks.vb" />
     <Compile Include="Stock Selection Rules\SpotFutureArbritrage.vb" />
     <Compile Include="Stock Selection Rules\TopGainerTopLosser.vb" />

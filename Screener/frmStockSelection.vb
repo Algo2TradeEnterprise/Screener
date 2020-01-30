@@ -348,6 +348,8 @@ Public Class frmStockSelection
                     stock = New TopGainerTopLosserEveryMinute(_canceller, cmn, stockType)
                 Case 11
                     stock = New HighSlabLevelMovedStocks(_canceller, cmn, stockType)
+                Case 12
+                    stock = New OpenAtHighLow(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -408,6 +410,9 @@ Public Class frmStockSelection
             Case 11
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with high slab lavel moved")
+            Case 12
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low")
             Case Else
                 Throw New NotImplementedException()
         End Select
