@@ -61,6 +61,7 @@ Partial Class frmStockSelection
         Me.pnlInstrumentList = New System.Windows.Forms.Panel()
         Me.txtInstrumentList = New System.Windows.Forms.TextBox()
         Me.lblInstrumentList = New System.Windows.Forms.Label()
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks = New System.Windows.Forms.CheckBox()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -348,13 +349,14 @@ Partial Class frmStockSelection
         '
         'pnlTopGainerLooserSettings
         '
+        Me.pnlTopGainerLooserSettings.Controls.Add(Me.chkbTopGainerTopLosserOnlyBankniftyStocks)
         Me.pnlTopGainerLooserSettings.Controls.Add(Me.txtTopGainerLosserNiftyChangePercentage)
         Me.pnlTopGainerLooserSettings.Controls.Add(Me.Label5)
         Me.pnlTopGainerLooserSettings.Controls.Add(Me.dtpkrTopGainerLosserChkTime)
         Me.pnlTopGainerLooserSettings.Controls.Add(Me.Label4)
         Me.pnlTopGainerLooserSettings.Location = New System.Drawing.Point(493, 6)
         Me.pnlTopGainerLooserSettings.Name = "pnlTopGainerLooserSettings"
-        Me.pnlTopGainerLooserSettings.Size = New System.Drawing.Size(257, 73)
+        Me.pnlTopGainerLooserSettings.Size = New System.Drawing.Size(421, 70)
         Me.pnlTopGainerLooserSettings.TabIndex = 61
         '
         'txtTopGainerLosserNiftyChangePercentage
@@ -451,6 +453,16 @@ Partial Class frmStockSelection
         Me.lblInstrumentList.TabIndex = 40
         Me.lblInstrumentList.Text = "Instrument List:"
         '
+        'chkbTopGainerTopLosserOnlyBankniftyStocks
+        '
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.AutoSize = True
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Location = New System.Drawing.Point(232, 45)
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Name = "chkbTopGainerTopLosserOnlyBankniftyStocks"
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Size = New System.Drawing.Size(185, 21)
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.TabIndex = 96
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Text = "Only BANKNIFTY Stocks"
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.UseVisualStyleBackColor = True
+        '
         'frmStockSelection
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
@@ -524,4 +536,5 @@ Partial Class frmStockSelection
     Friend WithEvents pnlInstrumentList As Panel
     Friend WithEvents txtInstrumentList As TextBox
     Friend WithEvents lblInstrumentList As Label
+    Friend WithEvents chkbTopGainerTopLosserOnlyBankniftyStocks As CheckBox
 End Class

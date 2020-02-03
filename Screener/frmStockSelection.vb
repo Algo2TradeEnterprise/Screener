@@ -337,7 +337,7 @@ Public Class frmStockSelection
                 Case 5
                     stock = New TouchPreviousDayLastCandle(_canceller, cmn, stockType)
                 Case 6
-                    stock = New TopGainerTopLosser(_canceller, cmn, stockType, GetDateTimePickerValue_ThreadSafe(dtpkrTopGainerLosserChkTime), GetTextBoxText_ThreadSafe(txtTopGainerLosserNiftyChangePercentage))
+                    stock = New TopGainerTopLosser(_canceller, cmn, stockType, GetDateTimePickerValue_ThreadSafe(dtpkrTopGainerLosserChkTime), GetTextBoxText_ThreadSafe(txtTopGainerLosserNiftyChangePercentage), GetCheckBoxChecked_ThreadSafe(chkbTopGainerTopLosserOnlyBankniftyStocks))
                 Case 7
                     stock = New HighLowGapStock(_canceller, cmn, stockType)
                 Case 8
@@ -400,7 +400,7 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return High ATR Stocks which open above/below previous day high/low and continues the gap after 5 mins")
             Case 8
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Stocks which creats gap between cash and future")
+                lblDescription.Text = String.Format("Return High ATR Stocks which creats minimum 1% gap between cash and future")
             Case 9
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with high turnover (5 day average of volume X close)")

@@ -7,14 +7,19 @@ Public Class TopGainerTopLosser
 
     Private ReadOnly _checkingTime As Date
     Private ReadOnly _niftyChangePercentage As Decimal
+    Private ReadOnly _onlyBankNiftyStocks As Boolean
+    Private ReadOnly _bankniftyStockList As List(Of String)
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
                    ByVal stockType As Integer,
                    ByVal checkingTime As Date,
-                   ByVal niftyChangePercentage As Decimal)
+                   ByVal niftyChangePercentage As Decimal,
+                   ByVal onlyBankNiftyStocks As Boolean)
         MyBase.New(canceller, cmn, stockType)
         _checkingTime = checkingTime
         _niftyChangePercentage = niftyChangePercentage
+        _onlyBankNiftyStocks = onlyBankNiftyStocks
+        _bankniftyStockList = New List(Of String) From {"AXISBANK", "BANKBARODA", "FEDERALBNK", "HDFCBANK", "ICICIBANK", "INDUSINDBK", "KOTAKBANK", "PNB", "RBLBANK", "SBIN"}
     End Sub
 
     Public Overrides Async Function GetStockDataAsync(ByVal startDate As Date, ByVal endDate As Date) As Task(Of DataTable)
@@ -91,19 +96,21 @@ Public Class TopGainerTopLosser
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate)
-                        If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                            Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
-                                                                                            Return x.PayloadDate <= payloadTime
-                                                                                        End Function).LastOrDefault
-                            'If intradayPayload.ContainsKey(payloadTime) Then
-                            '    candleToCheck = intradayPayload(payloadTime)
-                            'End If
-                            If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
-                                Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
-                                Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
-                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                tempStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4)})
+                        If Not _onlyBankNiftyStocks OrElse _bankniftyStockList.Contains(runningStock.ToUpper) Then
+                            Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate)
+                            If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
+                                Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
+                                                                                                Return x.PayloadDate <= payloadTime
+                                                                                            End Function).LastOrDefault
+                                'If intradayPayload.ContainsKey(payloadTime) Then
+                                '    candleToCheck = intradayPayload(payloadTime)
+                                'End If
+                                If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
+                                    Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
+                                    Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
+                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                    tempStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4)})
+                                End If
                             End If
                         End If
                     Next
