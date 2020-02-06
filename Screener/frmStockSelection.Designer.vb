@@ -51,6 +51,7 @@ Partial Class frmStockSelection
         Me.lblProcedure = New System.Windows.Forms.Label()
         Me.saveFile = New System.Windows.Forms.SaveFileDialog()
         Me.pnlTopGainerLooserSettings = New System.Windows.Forms.Panel()
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks = New System.Windows.Forms.CheckBox()
         Me.txtTopGainerLosserNiftyChangePercentage = New System.Windows.Forms.TextBox()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.dtpkrTopGainerLosserChkTime = New System.Windows.Forms.DateTimePicker()
@@ -61,7 +62,6 @@ Partial Class frmStockSelection
         Me.pnlInstrumentList = New System.Windows.Forms.Panel()
         Me.txtInstrumentList = New System.Windows.Forms.TextBox()
         Me.lblInstrumentList = New System.Windows.Forms.Label()
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks = New System.Windows.Forms.CheckBox()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -327,7 +327,7 @@ Partial Class frmStockSelection
         '
         Me.cmbProcedure.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbProcedure.FormattingEnabled = True
-        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low"})
+        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Color Signal"})
         Me.cmbProcedure.Location = New System.Drawing.Point(87, 14)
         Me.cmbProcedure.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbProcedure.Name = "cmbProcedure"
@@ -358,6 +358,16 @@ Partial Class frmStockSelection
         Me.pnlTopGainerLooserSettings.Name = "pnlTopGainerLooserSettings"
         Me.pnlTopGainerLooserSettings.Size = New System.Drawing.Size(421, 70)
         Me.pnlTopGainerLooserSettings.TabIndex = 61
+        '
+        'chkbTopGainerTopLosserOnlyBankniftyStocks
+        '
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.AutoSize = True
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Location = New System.Drawing.Point(232, 45)
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Name = "chkbTopGainerTopLosserOnlyBankniftyStocks"
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Size = New System.Drawing.Size(185, 21)
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.TabIndex = 96
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Text = "Only BANKNIFTY Stocks"
+        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.UseVisualStyleBackColor = True
         '
         'txtTopGainerLosserNiftyChangePercentage
         '
@@ -452,16 +462,6 @@ Partial Class frmStockSelection
         Me.lblInstrumentList.Size = New System.Drawing.Size(104, 17)
         Me.lblInstrumentList.TabIndex = 40
         Me.lblInstrumentList.Text = "Instrument List:"
-        '
-        'chkbTopGainerTopLosserOnlyBankniftyStocks
-        '
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.AutoSize = True
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Location = New System.Drawing.Point(232, 45)
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Name = "chkbTopGainerTopLosserOnlyBankniftyStocks"
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Size = New System.Drawing.Size(185, 21)
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.TabIndex = 96
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.Text = "Only BANKNIFTY Stocks"
-        Me.chkbTopGainerTopLosserOnlyBankniftyStocks.UseVisualStyleBackColor = True
         '
         'frmStockSelection
         '

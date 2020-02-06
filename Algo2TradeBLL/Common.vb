@@ -248,6 +248,79 @@ Public Class Common
         Return ret
     End Function
 
+    Public Shared Function ConvertDayPayloadsToMonth(ByVal payloads As Dictionary(Of Date, Payload)) As Dictionary(Of Date, Payload)
+        Dim ret As Dictionary(Of Date, Payload) = Nothing
+        If payloads IsNot Nothing AndAlso payloads.Count > 0 Then
+            Dim newCandleStarted As Boolean = True
+            Dim runningOutputPayload As Payload = Nothing
+            For Each payload In payloads.Values
+                If runningOutputPayload Is Nothing OrElse
+                    payload.PayloadDate.Month <> runningOutputPayload.PayloadDate.Month OrElse
+                    payload.PayloadDate.Year <> runningOutputPayload.PayloadDate.Year Then
+                    newCandleStarted = True
+                End If
+                If newCandleStarted Then
+                    newCandleStarted = False
+                    Dim prevPayload As Payload = runningOutputPayload
+                    runningOutputPayload = New Payload(Payload.CandleDataSource.Calculated)
+                    runningOutputPayload.PayloadDate = New Date(payload.PayloadDate.Year, payload.PayloadDate.Month, 1)
+                    runningOutputPayload.Open = payload.Open
+                    runningOutputPayload.High = payload.High
+                    runningOutputPayload.Low = payload.Low
+                    runningOutputPayload.Close = payload.Close
+                    runningOutputPayload.Volume = payload.Volume
+                    runningOutputPayload.TradingSymbol = payload.TradingSymbol
+                    runningOutputPayload.PreviousCandlePayload = prevPayload
+
+                    If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+                    ret.Add(runningOutputPayload.PayloadDate, runningOutputPayload)
+                Else
+                    runningOutputPayload.High = Math.Max(runningOutputPayload.High, payload.High)
+                    runningOutputPayload.Low = Math.Min(runningOutputPayload.Low, payload.Low)
+                    runningOutputPayload.Close = payload.Close
+                    runningOutputPayload.Volume = runningOutputPayload.Volume + payload.Volume
+                End If
+            Next
+        End If
+        Return ret
+    End Function
+
+    Public Shared Function ConvertDayPayloadsToWeek(ByVal payloads As Dictionary(Of Date, Payload)) As Dictionary(Of Date, Payload)
+        Dim ret As Dictionary(Of Date, Payload) = Nothing
+        If payloads IsNot Nothing AndAlso payloads.Count > 0 Then
+            Dim newCandleStarted As Boolean = True
+            Dim runningOutputPayload As Payload = Nothing
+            For Each payload In payloads.Values
+                If runningOutputPayload Is Nothing OrElse
+                    payload.PayloadDate.DayOfWeek = DayOfWeek.Monday Then
+                    newCandleStarted = True
+                End If
+                If newCandleStarted Then
+                    newCandleStarted = False
+                    Dim prevPayload As Payload = runningOutputPayload
+                    runningOutputPayload = New Payload(Payload.CandleDataSource.Calculated)
+                    runningOutputPayload.PayloadDate = payload.PayloadDate
+                    runningOutputPayload.Open = payload.Open
+                    runningOutputPayload.High = payload.High
+                    runningOutputPayload.Low = payload.Low
+                    runningOutputPayload.Close = payload.Close
+                    runningOutputPayload.Volume = payload.Volume
+                    runningOutputPayload.TradingSymbol = payload.TradingSymbol
+                    runningOutputPayload.PreviousCandlePayload = prevPayload
+
+                    If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+                    ret.Add(runningOutputPayload.PayloadDate, runningOutputPayload)
+                Else
+                    runningOutputPayload.High = Math.Max(runningOutputPayload.High, payload.High)
+                    runningOutputPayload.Low = Math.Min(runningOutputPayload.Low, payload.Low)
+                    runningOutputPayload.Close = payload.Close
+                    runningOutputPayload.Volume = runningOutputPayload.Volume + payload.Volume
+                End If
+            Next
+        End If
+        Return ret
+    End Function
+
     Public Shared Function ConvertDecimalToPayload(ByVal targetfield As Payload.PayloadFields, ByVal inputpayload As Dictionary(Of Date, Decimal), ByRef outputpayload As Dictionary(Of Date, Payload))
         Dim output As Payload
         outputpayload = New Dictionary(Of Date, Payload)

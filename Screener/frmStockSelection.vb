@@ -350,6 +350,8 @@ Public Class frmStockSelection
                     stock = New HighSlabLevelMovedStocks(_canceller, cmn, stockType)
                 Case 12
                     stock = New OpenAtHighLow(_canceller, cmn, stockType)
+                Case 13
+                    stock = New MultiTFColorSignal(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -413,6 +415,9 @@ Public Class frmStockSelection
             Case 12
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low")
+            Case 13
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks where last Monthly, Weekly, Daily & Hourly candle color is same")
             Case Else
                 Throw New NotImplementedException()
         End Select
