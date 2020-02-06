@@ -51,8 +51,8 @@ Public Class MultiTFColorSignal
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddMonths(-5), tradingDate)
-                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-30), tradingDate)
+                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddMonths(-5), tradingDate.AddDays(-1))
+                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-30), tradingDate.AddDays(-1))
                         If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
                             Dim monthlyPayload As Dictionary(Of Date, Payload) = Common.ConvertDayPayloadsToMonth(eodPayload)
                             Dim weeklyPayload As Dictionary(Of Date, Payload) = Common.ConvertDayPayloadsToWeek(eodPayload)
@@ -63,12 +63,12 @@ Public Class MultiTFColorSignal
                                 If monthlyPayload IsNot Nothing AndAlso monthlyPayload.Count > 0 AndAlso
                                     weeklyPayload IsNot Nothing AndAlso weeklyPayload.Count > 0 AndAlso
                                     hourlyPayload IsNot Nothing AndAlso hourlyPayload.Count > 0 Then
-                                    'If monthlyPayload.LastOrDefault.Value.CandleColor = weeklyPayload.LastOrDefault.Value.CandleColor AndAlso
-                                    '    weeklyPayload.LastOrDefault.Value.CandleColor = eodPayload.LastOrDefault.Value.CandleColor AndAlso
-                                    '    eodPayload.LastOrDefault.Value.CandleColor = hourlyPayload.LastOrDefault.Value.CandleColor Then
-                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                    tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.CandleColor.ToString, weeklyPayload.LastOrDefault.Value.CandleColor.ToString, eodPayload.LastOrDefault.Value.CandleColor.ToString, hourlyPayload.LastOrDefault.Value.CandleColor.ToString})
-                                    'End If
+                                    If monthlyPayload.LastOrDefault.Value.CandleColor = weeklyPayload.LastOrDefault.Value.CandleColor AndAlso
+                                        weeklyPayload.LastOrDefault.Value.CandleColor = eodPayload.LastOrDefault.Value.CandleColor AndAlso
+                                        eodPayload.LastOrDefault.Value.CandleColor = hourlyPayload.LastOrDefault.Value.CandleColor Then
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.CandleColor.ToString, weeklyPayload.LastOrDefault.Value.CandleColor.ToString, eodPayload.LastOrDefault.Value.CandleColor.ToString, hourlyPayload.LastOrDefault.Value.CandleColor.ToString})
+                                    End If
                                 End If
                             End If
                         End If
