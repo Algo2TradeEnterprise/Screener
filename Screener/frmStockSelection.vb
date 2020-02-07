@@ -417,7 +417,7 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low")
             Case 13
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks where last Monthly, Weekly, Daily & Hourly candle color is same")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks where last Monthly, Weekly, Daily, Hourly candle color is same")
             Case Else
                 Throw New NotImplementedException()
         End Select
