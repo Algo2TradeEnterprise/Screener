@@ -292,7 +292,7 @@ Public Class Common
             Dim runningOutputPayload As Payload = Nothing
             For Each payload In payloads.Values
                 If runningOutputPayload Is Nothing OrElse
-                    payload.PayloadDate.DayOfWeek = DayOfWeek.Monday Then
+                    GetStartDateOfTheWeek(payload.PayloadDate, DayOfWeek.Monday) <> runningOutputPayload.PayloadDate Then
                     newCandleStarted = True
                 End If
                 If newCandleStarted Then
@@ -319,6 +319,11 @@ Public Class Common
             Next
         End If
         Return ret
+    End Function
+
+    Public Shared Function GetStartDateOfTheWeek(ByVal dt As Date, ByVal startOfWeek As DayOfWeek) As Date
+        Dim diff As Integer = (7 + (dt.DayOfWeek - startOfWeek)) Mod 7
+        Return dt.AddDays(-1 * diff).Date
     End Function
 
     Public Shared Function ConvertDecimalToPayload(ByVal targetfield As Payload.PayloadFields, ByVal inputpayload As Dictionary(Of Date, Decimal), ByRef outputpayload As Dictionary(Of Date, Payload))

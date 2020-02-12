@@ -19,7 +19,44 @@ Public Class TopGainerTopLosser
         _checkingTime = checkingTime
         _niftyChangePercentage = niftyChangePercentage
         _onlyBankNiftyStocks = onlyBankNiftyStocks
-        _bankniftyStockList = New List(Of String) From {"AXISBANK", "BANKBARODA", "FEDERALBNK", "HDFCBANK", "ICICIBANK", "INDUSINDBK", "KOTAKBANK", "PNB", "RBLBANK", "SBIN"}
+        _bankniftyStockList = New List(Of String) From {"AXISBANK",
+                                                        "BAJAJFINSV",
+                                                        "BAJAJHLDNG",
+                                                        "BAJFINANCE",
+                                                        "BANKBARODA",
+                                                        "BANKINDIA",
+                                                        "CANBK",
+                                                        "CENTRALBK",
+                                                        "CHOLAFIN",
+                                                        "CUB",
+                                                        "EDELWEISS",
+                                                        "FEDERALBNK",
+                                                        "HDFC",
+                                                        "HDFCBANK",
+                                                        "HDFCLIFE",
+                                                        "IBULHSGFIN",
+                                                        "ICICIBANK",
+                                                        "ICICIGI",
+                                                        "ICICIPRULI",
+                                                        "IDFCFIRSTB",
+                                                        "INDIANB",
+                                                        "INDUSINDBK",
+                                                        "IOB",
+                                                        "J&KBANK",
+                                                        "KOTAKBANK",
+                                                        "M&MFIN",
+                                                        "MAHABANK",
+                                                        "PFC",
+                                                        "PNB",
+                                                        "PSB",
+                                                        "RBLBANK",
+                                                        "RECLTD",
+                                                        "SBILIFE",
+                                                        "SBIN",
+                                                        "SRTRANSFIN",
+                                                        "UCOBANK",
+                                                        "UNIONBANK",
+                                                        "YESBANK"}
     End Sub
 
     Public Overrides Async Function GetStockDataAsync(ByVal startDate As Date, ByVal endDate As Date) As Task(Of DataTable)
