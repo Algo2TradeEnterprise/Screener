@@ -29,6 +29,8 @@ Public Class NarrowRangeStocks
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
+        ret.Columns.Add("Inside Bar")
+        ret.Columns.Add("Direction")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -51,7 +53,7 @@ Public Class NarrowRangeStocks
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(_numberOfDays * 2 * -1), tradingDate)
+                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(Math.Max(_numberOfDays * 2, 300) * -1), tradingDate)
                         If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
                             Dim currentDayCandle As Payload = eodPayload.LastOrDefault.Value
                             Dim ctr As Integer = 0
@@ -62,8 +64,27 @@ Public Class NarrowRangeStocks
                                     If currentDayCandle.CandleRange < runningPayload.Value.CandleRange Then
                                         ctr += 1
                                         If ctr >= _numberOfDays - 1 Then
+                                            Dim insideBar As Boolean = currentDayCandle.High < currentDayCandle.PreviousCandlePayload.High AndAlso
+                                                                        currentDayCandle.Low > currentDayCandle.PreviousCandlePayload.Low
+
+                                            Dim sma10Payloads As Dictionary(Of Date, Decimal) = Nothing
+                                            Indicator.SMA.CalculateSMA(10, Payload.PayloadFields.Close, eodPayload, sma10Payloads)
+                                            Dim sma50Payloads As Dictionary(Of Date, Decimal) = Nothing
+                                            Indicator.SMA.CalculateSMA(50, Payload.PayloadFields.Close, eodPayload, sma50Payloads)
+                                            Dim sma200Payloads As Dictionary(Of Date, Decimal) = Nothing
+                                            Indicator.SMA.CalculateSMA(200, Payload.PayloadFields.Close, eodPayload, sma200Payloads)
+
+                                            Dim direction As String = ""
+                                            If sma10Payloads(currentDayCandle.PayloadDate) > sma50Payloads(currentDayCandle.PayloadDate) AndAlso
+                                               sma50Payloads(currentDayCandle.PayloadDate) > sma200Payloads(currentDayCandle.PayloadDate) Then
+                                                direction = "BUY"
+                                            End If
+                                            If sma10Payloads(currentDayCandle.PayloadDate) < sma50Payloads(currentDayCandle.PayloadDate) AndAlso
+                                               sma50Payloads(currentDayCandle.PayloadDate) < sma200Payloads(currentDayCandle.PayloadDate) Then
+                                                direction = "SELL"
+                                            End If
                                             If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                            tempStockList.Add(runningStock, {0})
+                                            tempStockList.Add(runningStock, {insideBar, direction})
                                             Exit For
                                         End If
                                     Else
@@ -89,6 +110,8 @@ Public Class NarrowRangeStocks
                             row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                             row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
+                            row("Inside Bar") = runningStock.Value(0)
+                            row("Direction") = runningStock.Value(1)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
