@@ -201,6 +201,8 @@ Public Class TopGainerTopLosser
                                 stockCounter += 1
                                 If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
                             Next
+
+                            ret = ret.DefaultView.ToTable(True, "Date", "Trading Symbol", "Lot Size", "ATR %", "Blank Candle %", "Day ATR", "Previous Day Open", "Previous Day Low", "Previous Day High", "Previous Day Close", "Slab", "Gain Loss %", "Nifty Gain Loss %")
                         End If
                     End If
                 End If
