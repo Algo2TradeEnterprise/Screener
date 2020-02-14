@@ -352,6 +352,8 @@ Public Class frmStockSelection
                     stock = New OpenAtHighLow(_canceller, cmn, stockType)
                 Case 13
                     stock = New MultiTFColorSignal(_canceller, cmn, stockType)
+                Case 14
+                    stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays))
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -395,6 +397,7 @@ Public Class frmStockSelection
             Case 6
                 dtpkrTopGainerLosserChkTime.Value = New Date(Now.Year, Now.Month, Now.Day, 9, 19, 0)
                 txtTopGainerLosserNiftyChangePercentage.Text = 0
+                chkbTopGainerTopLosserOnlyBankniftyStocks.Checked = False
                 LoadSettings(pnlTopGainerLooserSettings)
                 lblDescription.Text = String.Format("Return ATR stocks with change% till checking time compare to Previous day close")
             Case 7
@@ -418,6 +421,10 @@ Public Class frmStockSelection
             Case 13
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks where last Monthly, Weekly, Daily, Hourly candle color is same")
+            Case 14
+                txtNarrowRangeNmbrOfDays.Text = 7
+                LoadSettings(pnlNarrowRangeSettings)
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks where current day candle range is less than last X(Number Of Days) days candle range")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -428,6 +435,7 @@ Public Class frmStockSelection
         panelList.Add(pnlInstrumentList)
         panelList.Add(pnlTopGainerLooserSettings)
         panelList.Add(pnlIntradayVolumeSpikeSettings)
+        panelList.Add(pnlNarrowRangeSettings)
 
         For Each runningPanel In panelList
             If panelName IsNot Nothing AndAlso runningPanel.Name = panelName.Name Then
