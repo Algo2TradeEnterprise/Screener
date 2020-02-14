@@ -56,42 +56,44 @@ Public Class NarrowRangeStocks
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(Math.Max(_numberOfDays * 2, 300) * -1), tradingDate)
                         If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
                             Dim currentDayCandle As Payload = eodPayload.LastOrDefault.Value
-                            Dim ctr As Integer = 0
-                            For Each runningPayload In eodPayload.OrderByDescending(Function(x)
-                                                                                        Return x.Key
-                                                                                    End Function)
-                                If runningPayload.Value.PayloadDate <> currentDayCandle.PayloadDate Then
-                                    If currentDayCandle.CandleRange < runningPayload.Value.CandleRange Then
-                                        ctr += 1
-                                        If ctr >= _numberOfDays - 1 Then
-                                            Dim insideBar As Boolean = currentDayCandle.High < currentDayCandle.PreviousCandlePayload.High AndAlso
+                            If currentDayCandle.PayloadDate.Date = tradingDate.Date Then
+                                Dim ctr As Integer = 0
+                                For Each runningPayload In eodPayload.OrderByDescending(Function(x)
+                                                                                            Return x.Key
+                                                                                        End Function)
+                                    If runningPayload.Value.PayloadDate <> currentDayCandle.PayloadDate Then
+                                        If currentDayCandle.CandleRange < runningPayload.Value.CandleRange Then
+                                            ctr += 1
+                                            If ctr >= _numberOfDays - 1 Then
+                                                Dim insideBar As Boolean = currentDayCandle.High < currentDayCandle.PreviousCandlePayload.High AndAlso
                                                                         currentDayCandle.Low > currentDayCandle.PreviousCandlePayload.Low
 
-                                            Dim sma10Payloads As Dictionary(Of Date, Decimal) = Nothing
-                                            Indicator.SMA.CalculateSMA(10, Payload.PayloadFields.Close, eodPayload, sma10Payloads)
-                                            Dim sma50Payloads As Dictionary(Of Date, Decimal) = Nothing
-                                            Indicator.SMA.CalculateSMA(50, Payload.PayloadFields.Close, eodPayload, sma50Payloads)
-                                            Dim sma200Payloads As Dictionary(Of Date, Decimal) = Nothing
-                                            Indicator.SMA.CalculateSMA(200, Payload.PayloadFields.Close, eodPayload, sma200Payloads)
+                                                Dim sma10Payloads As Dictionary(Of Date, Decimal) = Nothing
+                                                Indicator.SMA.CalculateSMA(10, Payload.PayloadFields.Close, eodPayload, sma10Payloads)
+                                                Dim sma50Payloads As Dictionary(Of Date, Decimal) = Nothing
+                                                Indicator.SMA.CalculateSMA(50, Payload.PayloadFields.Close, eodPayload, sma50Payloads)
+                                                Dim sma200Payloads As Dictionary(Of Date, Decimal) = Nothing
+                                                Indicator.SMA.CalculateSMA(200, Payload.PayloadFields.Close, eodPayload, sma200Payloads)
 
-                                            Dim direction As String = ""
-                                            If sma10Payloads(currentDayCandle.PayloadDate) > sma50Payloads(currentDayCandle.PayloadDate) AndAlso
+                                                Dim direction As String = ""
+                                                If sma10Payloads(currentDayCandle.PayloadDate) > sma50Payloads(currentDayCandle.PayloadDate) AndAlso
                                                sma50Payloads(currentDayCandle.PayloadDate) > sma200Payloads(currentDayCandle.PayloadDate) Then
-                                                direction = "BUY"
-                                            End If
-                                            If sma10Payloads(currentDayCandle.PayloadDate) < sma50Payloads(currentDayCandle.PayloadDate) AndAlso
+                                                    direction = "BUY"
+                                                End If
+                                                If sma10Payloads(currentDayCandle.PayloadDate) < sma50Payloads(currentDayCandle.PayloadDate) AndAlso
                                                sma50Payloads(currentDayCandle.PayloadDate) < sma200Payloads(currentDayCandle.PayloadDate) Then
-                                                direction = "SELL"
+                                                    direction = "SELL"
+                                                End If
+                                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                                tempStockList.Add(runningStock, {insideBar, direction})
+                                                Exit For
                                             End If
-                                            If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                            tempStockList.Add(runningStock, {insideBar, direction})
+                                        Else
                                             Exit For
                                         End If
-                                    Else
-                                        Exit For
                                     End If
-                                End If
-                            Next
+                                Next
+                            End If
                         End If
                     Next
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
