@@ -481,9 +481,10 @@ Public Class ATRStockSelection
 
 
     Public Async Function IsTradableDay(ByVal tradingDate As Date) As Task(Of Boolean)
+        Await Task.Delay(0).ConfigureAwait(False)
         Dim ret As Boolean = False
-        Dim intradayHistoricalData As Dictionary(Of Date, Payload) = Await _common.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Cash, "JINDALSTEL", tradingDate, tradingDate).ConfigureAwait(False)
-        If intradayHistoricalData IsNot Nothing AndAlso intradayHistoricalData.Count > 0 Then
+        Dim historicalData As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_POSITIONAL, "JINDALSTEL", tradingDate, tradingDate)
+        If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
             ret = True
         End If
         Return ret
