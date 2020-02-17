@@ -241,7 +241,9 @@ Public Class ATRStockSelection
                                 tasks = priceFilterdCurrentNFOInstruments.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                                Try
                                                                                                                    _cts.Token.ThrowIfCancellationRequested()
-                                                                                                                   Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await _common.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, x.CashInstrumentName, previousTradingDay.AddDays(-300), previousTradingDay).ConfigureAwait(False)
+                                                                                                                   Await Task.Delay(0).ConfigureAwait(False)
+                                                                                                                   'Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await _common.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, x.CashInstrumentName, previousTradingDay.AddDays(-300), previousTradingDay).ConfigureAwait(False)
+                                                                                                                   Dim eodHistoricalData As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_POSITIONAL, x.CashInstrumentName, previousTradingDay.AddDays(-300), previousTradingDay)
                                                                                                                    _cts.Token.ThrowIfCancellationRequested()
                                                                                                                    If eodHistoricalData IsNot Nothing AndAlso eodHistoricalData.Count > 100 Then
                                                                                                                        _cts.Token.ThrowIfCancellationRequested()
@@ -395,7 +397,9 @@ Public Class ATRStockSelection
                                 tasks = priceFilterdCurrentNFOInstruments.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                                Try
                                                                                                                    _cts.Token.ThrowIfCancellationRequested()
-                                                                                                                   Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await _common.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, x.CashInstrumentName, previousTradingDay.AddDays(-300), previousTradingDay).ConfigureAwait(False)
+                                                                                                                   Await Task.Delay(0).ConfigureAwait(False)
+                                                                                                                   'Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await _common.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, x.CashInstrumentName, previousTradingDay.AddDays(-300), previousTradingDay).ConfigureAwait(False)
+                                                                                                                   Dim eodHistoricalData As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_POSITIONAL, x.CashInstrumentName, previousTradingDay.AddDays(-300), previousTradingDay)
                                                                                                                    _cts.Token.ThrowIfCancellationRequested()
                                                                                                                    If eodHistoricalData IsNot Nothing AndAlso eodHistoricalData.Count > 100 Then
                                                                                                                        _cts.Token.ThrowIfCancellationRequested()
