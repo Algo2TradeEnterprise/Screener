@@ -311,20 +311,20 @@ Public Class frmStockSelection
             Dim stock As StockSelection = Nothing
             Select Case procedureToRun
                 Case 0
-                    Throw New NotImplementedException
                     Dim instrumentNames As String = Nothing
-                    Dim instrumentList As Dictionary(Of String, Decimal()) = Nothing
+                    Dim instrumentList As List(Of String) = Nothing
                     If procedureToRun = 0 Then
                         instrumentNames = GetTextBoxText_ThreadSafe(txtInstrumentList)
                         Dim instruments() As String = instrumentNames.Trim.Split(vbCrLf)
                         For Each runningInstrument In instruments
                             Dim instrument As String = runningInstrument.Trim
-                            If instrumentList Is Nothing Then instrumentList = New Dictionary(Of String, Decimal())
-                            instrumentList.Add(instrument.Trim.ToUpper, {0, 0})
+                            If instrumentList Is Nothing Then instrumentList = New List(Of String)
+                            instrumentList.Add(instrument.Trim.ToUpper)
                         Next
                         If instrumentList Is Nothing OrElse instrumentList.Count = 0 Then
                             Throw New ApplicationException("No instrument available in user given list")
                         End If
+                        stock = New UserGivenStocks(_canceller, cmn, stockType, instrumentList)
                     End If
                 Case 1
                     stock = New HighATRStocks(_canceller, cmn, stockType)
