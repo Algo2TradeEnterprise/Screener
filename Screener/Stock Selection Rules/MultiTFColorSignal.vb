@@ -63,12 +63,34 @@ Public Class MultiTFColorSignal
                                 If monthlyPayload IsNot Nothing AndAlso monthlyPayload.Count > 0 AndAlso
                                     weeklyPayload IsNot Nothing AndAlso weeklyPayload.Count > 0 AndAlso
                                     hourlyPayload IsNot Nothing AndAlso hourlyPayload.Count > 0 Then
-                                    If monthlyPayload.LastOrDefault.Value.CandleColor = weeklyPayload.LastOrDefault.Value.CandleColor AndAlso
-                                        weeklyPayload.LastOrDefault.Value.CandleColor = eodPayload.LastOrDefault.Value.CandleColor AndAlso
-                                        eodPayload.LastOrDefault.Value.CandleColor = hourlyPayload.LastOrDefault.Value.CandleColor Then
-                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.CandleColor.ToString, weeklyPayload.LastOrDefault.Value.CandleColor.ToString, eodPayload.LastOrDefault.Value.CandleColor.ToString, hourlyPayload.LastOrDefault.Value.CandleColor.ToString})
+                                    'If monthlyPayload.LastOrDefault.Value.CandleColor = weeklyPayload.LastOrDefault.Value.CandleColor AndAlso
+                                    '    weeklyPayload.LastOrDefault.Value.CandleColor = eodPayload.LastOrDefault.Value.CandleColor AndAlso
+                                    '    eodPayload.LastOrDefault.Value.CandleColor = hourlyPayload.LastOrDefault.Value.CandleColor Then
+                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                    If tradingDate.DayOfWeek = DayOfWeek.Friday OrElse tradingDate.DayOfWeek = DayOfWeek.Saturday Then
+                                        If tradingDate.Day > 24 Then
+                                            tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.CandleColor.Name,
+                                                              weeklyPayload.LastOrDefault.Value.CandleColor.Name,
+                                                              eodPayload.LastOrDefault.Value.CandleColor.Name,
+                                                              hourlyPayload.LastOrDefault.Value.CandleColor.Name})
+                                        Else
+                                            tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                                              weeklyPayload.LastOrDefault.Value.CandleColor.Name,
+                                                              eodPayload.LastOrDefault.Value.CandleColor.Name,
+                                                              hourlyPayload.LastOrDefault.Value.CandleColor.Name})
+                                        End If
+                                    ElseIf tradingDate.Day > 24 Then
+                                        tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.CandleColor.Name,
+                                                          weeklyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                                          eodPayload.LastOrDefault.Value.CandleColor.Name,
+                                                          hourlyPayload.LastOrDefault.Value.CandleColor.Name})
+                                    Else
+                                        tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                                          weeklyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                                          eodPayload.LastOrDefault.Value.CandleColor.Name,
+                                                          hourlyPayload.LastOrDefault.Value.CandleColor.Name})
                                     End If
+                                    'End If
                                 End If
                             End If
                         End If
