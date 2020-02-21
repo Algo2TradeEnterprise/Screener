@@ -66,6 +66,13 @@ Public Class MultiTFColorSignal
                                     'If monthlyPayload.LastOrDefault.Value.CandleColor = weeklyPayload.LastOrDefault.Value.CandleColor AndAlso
                                     '    weeklyPayload.LastOrDefault.Value.CandleColor = eodPayload.LastOrDefault.Value.CandleColor AndAlso
                                     '    eodPayload.LastOrDefault.Value.CandleColor = hourlyPayload.LastOrDefault.Value.CandleColor Then
+                                    Dim monthPayload As Payload = monthlyPayload.LastOrDefault.Value
+                                    Dim weekPayload As Payload = weeklyPayload.LastOrDefault.Value
+                                    Dim currentMonth As Date = New Date(tradingDate.Year, tradingDate.Month, 1)
+                                    Dim currentWeek As Date = Common.GetStartDateOfTheWeek(tradingDate, DayOfWeek.Monday)
+                                    If monthPayload.PayloadDate = currentMonth Then monthPayload = monthlyPayload.LastOrDefault.Value.PreviousCandlePayload
+                                    If weekPayload.PayloadDate = currentWeek Then weekPayload = weeklyPayload.LastOrDefault.Value.PreviousCandlePayload
+
                                     If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                     If tradingDate.DayOfWeek = DayOfWeek.Friday OrElse tradingDate.DayOfWeek = DayOfWeek.Saturday Then
                                         If tradingDate.Day > 24 Then
@@ -73,20 +80,29 @@ Public Class MultiTFColorSignal
                                                               weeklyPayload.LastOrDefault.Value.CandleColor.Name,
                                                               eodPayload.LastOrDefault.Value.CandleColor.Name,
                                                               hourlyPayload.LastOrDefault.Value.CandleColor.Name})
+                                            If monthlyPayload.LastOrDefault.Value.CandleColor <> monthlyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor Then
+                                                Console.WriteLine(String.Format("Monthly Color change:{0},{1}", runningStock, tradingDate.ToString("yyyy-MM-dd")))
+                                            End If
                                         Else
-                                            tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                            tempStockList.Add(runningStock, {monthPayload.CandleColor.Name,
                                                               weeklyPayload.LastOrDefault.Value.CandleColor.Name,
                                                               eodPayload.LastOrDefault.Value.CandleColor.Name,
                                                               hourlyPayload.LastOrDefault.Value.CandleColor.Name})
                                         End If
+                                        If weeklyPayload.LastOrDefault.Value.CandleColor <> weeklyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor Then
+                                            Console.WriteLine(String.Format("Weekly Color change:{0},{1}", runningStock, tradingDate.ToString("yyyy-MM-dd")))
+                                        End If
                                     ElseIf tradingDate.Day > 24 Then
                                         tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.CandleColor.Name,
-                                                          weeklyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                                          weekPayload.CandleColor.Name,
                                                           eodPayload.LastOrDefault.Value.CandleColor.Name,
                                                           hourlyPayload.LastOrDefault.Value.CandleColor.Name})
+                                        If monthlyPayload.LastOrDefault.Value.CandleColor <> monthlyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor Then
+                                            Console.WriteLine(String.Format("Monthly Color change:{0},{1}", runningStock, tradingDate.ToString("yyyy-MM-dd")))
+                                        End If
                                     Else
-                                        tempStockList.Add(runningStock, {monthlyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
-                                                          weeklyPayload.LastOrDefault.Value.PreviousCandlePayload.CandleColor.Name,
+                                        tempStockList.Add(runningStock, {monthPayload.CandleColor.Name,
+                                                          weekPayload.CandleColor.Name,
                                                           eodPayload.LastOrDefault.Value.CandleColor.Name,
                                                           hourlyPayload.LastOrDefault.Value.CandleColor.Name})
                                     End If
