@@ -266,8 +266,9 @@ Public Class TopGainerTopLosser
         Dim ret As Decimal = Decimal.MinValue
         Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, stock, tradingDate.AddDays(-15), tradingDate)
         If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
+            Dim payloadTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, time.Hour, time.Minute, 0)
             Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
-                                                                            Return x.PayloadDate <= time
+                                                                            Return x.PayloadDate <= payloadTime
                                                                         End Function).LastOrDefault
             If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
                 ret = ((candleToCheck.Close - previousClose) / previousClose) * 100
