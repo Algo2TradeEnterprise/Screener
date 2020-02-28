@@ -168,32 +168,6 @@ Public Class TopGainerTopLosser
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                 tempStockList.Add(runningStock, {Math.Round(currentDayGainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4), currentStatus, nextDayStatus})
                             End If
-                            'Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate)
-                            'If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                            '    Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
-                            '                                                                    Return x.PayloadDate <= payloadTime
-                            '                                                                End Function).LastOrDefault
-                            '    If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
-                            '        Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
-                            '        Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
-                            '        Dim currentStatus As String = Nothing
-                            '        Dim nextDayStatus As String = Nothing
-                            '        If gainLossPercentage > 0 Then
-                            '            currentStatus = "Up"
-                            '        ElseIf gainLossPercentage < 0 Then
-                            '            currentStatus = "Down"
-                            '        Else
-                            '            currentStatus = "Flat"
-                            '        End If
-
-                            '        If nextTradingDay <> Date.MinValue Then
-
-                            '        End If
-
-                            '        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                            '        tempStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4), currentStatus, nextDayStatus})
-                            '    End If
-                            'End If
                         End If
                     Next
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then

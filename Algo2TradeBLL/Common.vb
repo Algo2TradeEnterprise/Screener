@@ -664,21 +664,21 @@ Public Class Common
 
         Select Case tableName
             Case DataBaseTable.Intraday_Cash
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_cash` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_cash` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.Intraday_Currency
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_currency` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_currency` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.Intraday_Commodity
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_commodity` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_commodity` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.Intraday_Futures
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_futures` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_futures` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.EOD_Cash
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_cash` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_cash` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.EOD_Currency
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_currency` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_currency` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.EOD_Commodity
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_commodity` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_commodity` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
             Case DataBaseTable.EOD_Futures
-                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_futures` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_futures` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>@sd", conn)
         End Select
 
         OnHeartbeat(String.Format("Getting next trading day from DataBase for {0}", currentDate.ToShortDateString))
