@@ -75,6 +75,8 @@ Public Class TopGainerTopLosser
         ret.Columns.Add("Slab")
         ret.Columns.Add("Gain Loss %")
         ret.Columns.Add("Nifty Gain Loss %")
+        ret.Columns.Add("Current Day Status")
+        ret.Columns.Add("Next Day Status")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -130,25 +132,68 @@ Public Class TopGainerTopLosser
                         End If
                     End If
                     _canceller.Token.ThrowIfCancellationRequested()
+                    Dim nextTradingDay As Date = _cmn.GetNextTradingDay(_intradayTable, tradingDate)
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
                         If Not _onlyBankNiftyStocks OrElse _bankniftyStockList.Contains(runningStock.ToUpper) Then
-                            Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate)
-                            If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                                Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
-                                                                                                Return x.PayloadDate <= payloadTime
-                                                                                            End Function).LastOrDefault
-                                'If intradayPayload.ContainsKey(payloadTime) Then
-                                '    candleToCheck = intradayPayload(payloadTime)
-                                'End If
-                                If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
-                                    Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
-                                    Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
-                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                    tempStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4)})
+                            Dim currentDayGainLossPercentage As Decimal = GetGainLossPercentage(tradingDate, runningStock, payloadTime, atrStockList(runningStock).PreviousDayClose)
+                            If currentDayGainLossPercentage <> Decimal.MinValue Then
+                                Dim currentStatus As String = Nothing
+                                Dim nextDayStatus As String = Nothing
+                                If currentDayGainLossPercentage > 0 Then
+                                    currentStatus = "Up"
+                                ElseIf currentDayGainLossPercentage < 0 Then
+                                    currentStatus = "Down"
+                                Else
+                                    currentStatus = "Flat"
                                 End If
+
+                                If nextTradingDay <> Date.MinValue Then
+                                    Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate, tradingDate)
+                                    If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
+                                        Dim nextDayGainLossPercentage As Decimal = GetGainLossPercentage(nextTradingDay, runningStock, payloadTime, eodPayload.LastOrDefault.Value.Close)
+                                        If nextDayGainLossPercentage <> Decimal.MinValue Then
+                                            If nextDayGainLossPercentage > 0 Then
+                                                nextDayStatus = "Up"
+                                            ElseIf nextDayGainLossPercentage < 0 Then
+                                                nextDayStatus = "Down"
+                                            Else
+                                                nextDayStatus = "Flat"
+                                            End If
+                                        End If
+                                    End If
+                                End If
+
+                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                tempStockList.Add(runningStock, {Math.Round(currentDayGainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4), currentStatus, nextDayStatus})
                             End If
+                            'Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate)
+                            'If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
+                            '    Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
+                            '                                                                    Return x.PayloadDate <= payloadTime
+                            '                                                                End Function).LastOrDefault
+                            '    If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
+                            '        Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
+                            '        Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
+                            '        Dim currentStatus As String = Nothing
+                            '        Dim nextDayStatus As String = Nothing
+                            '        If gainLossPercentage > 0 Then
+                            '            currentStatus = "Up"
+                            '        ElseIf gainLossPercentage < 0 Then
+                            '            currentStatus = "Down"
+                            '        Else
+                            '            currentStatus = "Flat"
+                            '        End If
+
+                            '        If nextTradingDay <> Date.MinValue Then
+
+                            '        End If
+
+                            '        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                            '        tempStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4), currentStatus, nextDayStatus})
+                            '    End If
+                            'End If
                         End If
                     Next
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
@@ -171,6 +216,8 @@ Public Class TopGainerTopLosser
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Gain Loss %") = runningStock.Value(0)
                             row("Nifty Gain Loss %") = runningStock.Value(1)
+                            row("Current Day Status") = runningStock.Value(2)
+                            row("Next Day Status") = runningStock.Value(3)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
@@ -196,6 +243,8 @@ Public Class TopGainerTopLosser
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Gain Loss %") = runningStock.Value(0)
                                 row("Nifty Gain Loss %") = runningStock.Value(1)
+                                row("Current Day Status") = runningStock.Value(2)
+                                row("Next Day Status") = runningStock.Value(3)
 
                                 ret.Rows.Add(row)
                                 stockCounter += 1
@@ -210,6 +259,20 @@ Public Class TopGainerTopLosser
                 tradingDate = tradingDate.AddDays(1)
             End While
         End Using
+        Return ret
+    End Function
+
+    Private Function GetGainLossPercentage(ByVal tradingDate As Date, ByVal stock As String, ByVal time As Date, ByVal previousClose As Decimal) As Decimal
+        Dim ret As Decimal = Decimal.MinValue
+        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, stock, tradingDate.AddDays(-15), tradingDate)
+        If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
+            Dim candleToCheck As Payload = intradayPayload.Values.Where(Function(x)
+                                                                            Return x.PayloadDate <= time
+                                                                        End Function).LastOrDefault
+            If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
+                ret = ((candleToCheck.Close - previousClose) / previousClose) * 100
+            End If
+        End If
         Return ret
     End Function
 End Class

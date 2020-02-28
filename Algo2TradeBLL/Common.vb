@@ -656,6 +656,46 @@ Public Class Common
         Return ret
     End Function
 
+    Public Function GetNextTradingDay(ByVal tableName As DataBaseTable, ByVal currentDate As Date) As Date
+        Dim ret As Date = Date.MinValue
+        Dim dt As DataTable = Nothing
+        Dim conn As MySqlConnection = OpenDBConnection()
+        Dim cm As MySqlCommand = Nothing
+
+        Select Case tableName
+            Case DataBaseTable.Intraday_Cash
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_cash` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.Intraday_Currency
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_currency` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.Intraday_Commodity
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_commodity` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.Intraday_Futures
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `intraday_prices_futures` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.EOD_Cash
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_cash` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.EOD_Currency
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_currency` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.EOD_Commodity
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_commodity` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+            Case DataBaseTable.EOD_Futures
+                cm = New MySqlCommand("SELECT MIN(`SnapshotDate`) FROM `eod_prices_futures` WHERE `SnapshotDate`<@ed AND `SnapshotDate`>=@sd", conn)
+        End Select
+
+        OnHeartbeat(String.Format("Getting next trading day from DataBase for {0}", currentDate.ToShortDateString))
+
+        cm.Parameters.AddWithValue("@ed", currentDate.Date.AddDays(15).ToString("yyyy-MM-dd"))
+        cm.Parameters.AddWithValue("@sd", currentDate.Date.ToString("yyyy-MM-dd"))
+        Dim adapter As New MySqlDataAdapter(cm)
+        adapter.SelectCommand.CommandTimeout = 300
+        dt = New DataTable()
+        adapter.Fill(dt)
+        If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+            ret = dt.Rows(0).Item(0)
+        End If
+
+        Return ret
+    End Function
+
     Public Function GetCurrentTradingSymbolWithInstrumentToken(ByVal tableName As DataBaseTable, ByVal tradingDate As Date, ByVal rawInstrumentName As String) As Tuple(Of String, String)
         Dim ret As Tuple(Of String, String) = Nothing
         Dim dt As DataTable = Nothing
