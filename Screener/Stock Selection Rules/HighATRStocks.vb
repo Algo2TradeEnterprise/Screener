@@ -24,6 +24,7 @@ Public Class HighATRStocks
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
+        ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -57,6 +58,7 @@ Public Class HighATRStocks
                         row("Previous Day Low") = runningStock.Value.PreviousDayLow
                         row("Previous Day High") = runningStock.Value.PreviousDayHigh
                         row("Previous Day Close") = runningStock.Value.PreviousDayClose
+                        row("Current Day Close") = runningStock.Value.CurrentDayClose
                         row("Slab") = runningStock.Value.Slab
                         ret.Rows.Add(row)
                         stockCounter += 1

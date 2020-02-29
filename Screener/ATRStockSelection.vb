@@ -45,6 +45,10 @@ Public Class ATRStockSelection
         Public Property LastDayLow As Decimal
         Public Property LastDayHigh As Decimal
         Public Property LastDayClose As Decimal
+        Public Property CurrentDayOpen As Decimal
+        Public Property CurrentDayLow As Decimal
+        Public Property CurrentDayHigh As Decimal
+        Public Property CurrentDayClose As Decimal
         Public ReadOnly Property RawInstrumentName As String
             Get
                 If TradingSymbol.Contains("FUT") Then
@@ -213,20 +217,28 @@ Public Class ATRStockSelection
                     Dim priceFilterdCurrentNFOInstruments As List(Of ActiveInstrumentData) = Nothing
                     For Each runningInstrument In currentNFOInstruments
                         _cts.Token.ThrowIfCancellationRequested()
-                        Dim previousDayPayloads As Dictionary(Of Date, Payload) = _common.GetRawPayload(tableType, runningInstrument.RawInstrumentName, previousTradingDay.AddDays(-10), previousTradingDay)
+                        Dim previousDayPayloads As Dictionary(Of Date, Payload) = _common.GetRawPayload(tableType, runningInstrument.RawInstrumentName, previousTradingDay.AddDays(-10), tradingDate)
                         Dim lastDayPayload As Payload = Nothing
+                        Dim currentDayPayload As Payload = Nothing
                         If previousDayPayloads IsNot Nothing AndAlso previousDayPayloads.Count > 0 Then
-                            lastDayPayload = previousDayPayloads.LastOrDefault.Value
+                            currentDayPayload = previousDayPayloads.LastOrDefault.Value
+                            If currentDayPayload.PreviousCandlePayload IsNot Nothing Then
+                                lastDayPayload = currentDayPayload.PreviousCandlePayload
+                            End If
                         End If
                         If lastDayPayload IsNot Nothing AndAlso lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
                             Dim rawCashInstrument As Tuple(Of String, String) = _common.GetCurrentTradingSymbolWithInstrumentToken(Common.DataBaseTable.EOD_Cash, previousTradingDay, runningInstrument.RawInstrumentName)
                             If rawCashInstrument IsNot Nothing Then
-                                runningInstrument.CashInstrumentToken = rawCashInstrument.Item2
                                 runningInstrument.CashInstrumentName = rawCashInstrument.Item1
+                                runningInstrument.CashInstrumentToken = rawCashInstrument.Item2
                                 runningInstrument.LastDayOpen = lastDayPayload.Open
                                 runningInstrument.LastDayLow = lastDayPayload.Low
                                 runningInstrument.LastDayHigh = lastDayPayload.High
                                 runningInstrument.LastDayClose = lastDayPayload.Close
+                                runningInstrument.CurrentDayOpen = currentDayPayload.Open
+                                runningInstrument.CurrentDayLow = currentDayPayload.Low
+                                runningInstrument.CurrentDayHigh = currentDayPayload.High
+                                runningInstrument.CurrentDayClose = currentDayPayload.Close
                                 If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
                                 priceFilterdCurrentNFOInstruments.Add(runningInstrument)
                             End If
@@ -267,7 +279,7 @@ Public Class ATRStockSelection
                                                                                                                                '    _cts.Token.ThrowIfCancellationRequested()
                                                                                                                                '    If avgVolume >= (My.Settings.PotentialAmount / 100) * lastDayClosePrice Then
                                                                                                                                If highATRStocks Is Nothing Then highATRStocks = New Concurrent.ConcurrentDictionary(Of String, Decimal())
-                                                                                                                               highATRStocks.TryAdd(x.CashInstrumentName, {atrPercentage, ATRPayload(eodHistoricalData.LastOrDefault.Key), x.LastDayOpen, x.LastDayLow, x.LastDayHigh, x.LastDayClose})
+                                                                                                                               highATRStocks.TryAdd(x.CashInstrumentName, {atrPercentage, ATRPayload(eodHistoricalData.LastOrDefault.Key), x.LastDayOpen, x.LastDayLow, x.LastDayHigh, x.LastDayClose, x.CurrentDayOpen, x.CurrentDayLow, x.CurrentDayHigh, x.CurrentDayClose})
                                                                                                                                '    End If
                                                                                                                                'End If
                                                                                                                            End If
@@ -311,7 +323,11 @@ Public Class ATRStockSelection
                                          .PreviousDayOpen = runningStock.Value(2),
                                          .PreviousDayLow = runningStock.Value(3),
                                          .PreviousDayHigh = runningStock.Value(4),
-                                         .PreviousDayClose = runningStock.Value(5)})
+                                         .PreviousDayClose = runningStock.Value(5),
+                                         .CurrentDayOpen = runningStock.Value(6),
+                                         .CurrentDayLow = runningStock.Value(7),
+                                         .CurrentDayHigh = runningStock.Value(8),
+                                         .CurrentDayClose = runningStock.Value(9)})
                             End If
                         Next
                     End If
@@ -369,20 +385,28 @@ Public Class ATRStockSelection
                     Dim priceFilterdCurrentNFOInstruments As List(Of ActiveInstrumentData) = Nothing
                     For Each runningInstrument In currentInstruments
                         _cts.Token.ThrowIfCancellationRequested()
-                        Dim previousDayPayloads As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_Cash, runningInstrument.RawInstrumentName, previousTradingDay.AddDays(-10), previousTradingDay)
+                        Dim previousDayPayloads As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_Cash, runningInstrument.RawInstrumentName, previousTradingDay.AddDays(-10), tradingDate)
                         Dim lastDayPayload As Payload = Nothing
+                        Dim currentDayPayload As Payload = Nothing
                         If previousDayPayloads IsNot Nothing AndAlso previousDayPayloads.Count > 0 Then
-                            lastDayPayload = previousDayPayloads.LastOrDefault.Value
+                            currentDayPayload = previousDayPayloads.LastOrDefault.Value
+                            If currentDayPayload.PreviousCandlePayload IsNot Nothing Then
+                                lastDayPayload = currentDayPayload.PreviousCandlePayload
+                            End If
                         End If
                         If lastDayPayload IsNot Nothing AndAlso lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
                             Dim rawCashInstrument As Tuple(Of String, String) = _common.GetCurrentTradingSymbolWithInstrumentToken(Common.DataBaseTable.EOD_Cash, previousTradingDay, runningInstrument.RawInstrumentName)
                             If rawCashInstrument IsNot Nothing Then
-                                runningInstrument.CashInstrumentToken = rawCashInstrument.Item2
                                 runningInstrument.CashInstrumentName = rawCashInstrument.Item1
+                                runningInstrument.CashInstrumentToken = rawCashInstrument.Item2
                                 runningInstrument.LastDayOpen = lastDayPayload.Open
                                 runningInstrument.LastDayLow = lastDayPayload.Low
                                 runningInstrument.LastDayHigh = lastDayPayload.High
                                 runningInstrument.LastDayClose = lastDayPayload.Close
+                                runningInstrument.CurrentDayOpen = currentDayPayload.Open
+                                runningInstrument.CurrentDayLow = currentDayPayload.Low
+                                runningInstrument.CurrentDayHigh = currentDayPayload.High
+                                runningInstrument.CurrentDayClose = currentDayPayload.Close
                                 If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
                                 priceFilterdCurrentNFOInstruments.Add(runningInstrument)
                             End If
@@ -423,7 +447,7 @@ Public Class ATRStockSelection
                                                                                                                                '    _cts.Token.ThrowIfCancellationRequested()
                                                                                                                                '    If avgVolume >= (My.Settings.PotentialAmount / 100) * lastDayClosePrice Then
                                                                                                                                If highATRStocks Is Nothing Then highATRStocks = New Concurrent.ConcurrentDictionary(Of String, Decimal())
-                                                                                                                               highATRStocks.TryAdd(x.CashInstrumentName, {atrPercentage, ATRPayload(eodHistoricalData.LastOrDefault.Key), x.LastDayOpen, x.LastDayLow, x.LastDayHigh, x.LastDayClose})
+                                                                                                                               highATRStocks.TryAdd(x.CashInstrumentName, {atrPercentage, ATRPayload(eodHistoricalData.LastOrDefault.Key), x.LastDayOpen, x.LastDayLow, x.LastDayHigh, x.LastDayClose, x.CurrentDayOpen, x.CurrentDayLow, x.CurrentDayHigh, x.CurrentDayClose})
                                                                                                                                '    End If
                                                                                                                                'End If
                                                                                                                            End If
@@ -468,7 +492,11 @@ Public Class ATRStockSelection
                                          .PreviousDayOpen = runningStock.Value(2),
                                          .PreviousDayLow = runningStock.Value(3),
                                          .PreviousDayHigh = runningStock.Value(4),
-                                         .PreviousDayClose = runningStock.Value(5)})
+                                         .PreviousDayClose = runningStock.Value(5),
+                                         .CurrentDayOpen = runningStock.Value(6),
+                                         .CurrentDayLow = runningStock.Value(7),
+                                         .CurrentDayHigh = runningStock.Value(8),
+                                         .CurrentDayClose = runningStock.Value(9)})
                             End If
                         Next
                     End If

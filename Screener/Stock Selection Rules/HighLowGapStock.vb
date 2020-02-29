@@ -24,6 +24,7 @@ Public Class HighLowGapStock
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
+        ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Supporting")
 
@@ -94,6 +95,7 @@ Public Class HighLowGapStock
                             row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
                             row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                             row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
+                            row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Supporting") = runningStock.Value(0)
 

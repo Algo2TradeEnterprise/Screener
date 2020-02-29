@@ -72,6 +72,7 @@ Public Class TopGainerTopLosser
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
+        ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Gain Loss %")
         ret.Columns.Add("Nifty Gain Loss %")
@@ -187,6 +188,7 @@ Public Class TopGainerTopLosser
                             row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
                             row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                             row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
+                            row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Gain Loss %") = runningStock.Value(0)
                             row("Nifty Gain Loss %") = runningStock.Value(1)
@@ -214,6 +216,7 @@ Public Class TopGainerTopLosser
                                 row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
                                 row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                                 row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
+                                row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Gain Loss %") = runningStock.Value(0)
                                 row("Nifty Gain Loss %") = runningStock.Value(1)

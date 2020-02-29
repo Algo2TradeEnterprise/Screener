@@ -8,6 +8,10 @@
     Public Property PreviousDayLow As Decimal
     Public Property PreviousDayHigh As Decimal
     Public Property PreviousDayClose As Decimal
+    Public Property CurrentDayOpen As Decimal
+    Public Property CurrentDayLow As Decimal
+    Public Property CurrentDayHigh As Decimal
+    Public Property CurrentDayClose As Decimal
     Public Property Slab As Decimal
     Public Property CurrentContractExpiry As Date
     Public Property PreviousContractTradingSymbol As String
