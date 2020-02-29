@@ -689,7 +689,7 @@ Public Class Common
         adapter.SelectCommand.CommandTimeout = 300
         dt = New DataTable()
         adapter.Fill(dt)
-        If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+        If dt IsNot Nothing AndAlso dt.Rows.Count > 0 AndAlso Not IsDBNull(dt.Rows(0).Item(0)) Then
             ret = dt.Rows(0).Item(0)
         End If
 
