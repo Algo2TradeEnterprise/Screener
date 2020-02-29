@@ -98,6 +98,10 @@ Public Class ATRStockSelection
                                  .PreviousDayLow = stockList(stock).PreviousDayLow,
                                  .PreviousDayHigh = stockList(stock).PreviousDayHigh,
                                  .PreviousDayClose = stockList(stock).PreviousDayClose,
+                                 .CurrentDayOpen = stockList(stock).CurrentDayOpen,
+                                 .CurrentDayLow = stockList(stock).CurrentDayLow,
+                                 .CurrentDayHigh = stockList(stock).CurrentDayHigh,
+                                 .CurrentDayClose = stockList(stock).CurrentDayClose,
                                  .Slab = CalculateSlab(.PreviousDayClose, .ATRPercentage)}
                                 atrStockList.Add(stock, instrumentData)
                             End If
