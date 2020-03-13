@@ -353,7 +353,7 @@ Public Class frmStockSelection
                 Case 13
                     stock = New MultiTFColorSignal(_canceller, cmn, stockType)
                 Case 14
-                    stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays))
+                    stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays), GetCheckBoxChecked_ThreadSafe(chkbNarrowRangeDownwardsChecking))
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 

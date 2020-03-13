@@ -65,6 +65,7 @@ Partial Class frmStockSelection
         Me.pnlNarrowRangeSettings = New System.Windows.Forms.Panel()
         Me.txtNarrowRangeNmbrOfDays = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
+        Me.chkbNarrowRangeDownwardsChecking = New System.Windows.Forms.CheckBox()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -469,6 +470,7 @@ Partial Class frmStockSelection
         '
         'pnlNarrowRangeSettings
         '
+        Me.pnlNarrowRangeSettings.Controls.Add(Me.chkbNarrowRangeDownwardsChecking)
         Me.pnlNarrowRangeSettings.Controls.Add(Me.txtNarrowRangeNmbrOfDays)
         Me.pnlNarrowRangeSettings.Controls.Add(Me.Label1)
         Me.pnlNarrowRangeSettings.Location = New System.Drawing.Point(493, 6)
@@ -492,6 +494,16 @@ Partial Class frmStockSelection
         Me.Label1.Size = New System.Drawing.Size(117, 17)
         Me.Label1.TabIndex = 6
         Me.Label1.Text = "Number Of Days:"
+        '
+        'chkbNarrowRangeDownwardsChecking
+        '
+        Me.chkbNarrowRangeDownwardsChecking.AutoSize = True
+        Me.chkbNarrowRangeDownwardsChecking.Location = New System.Drawing.Point(11, 38)
+        Me.chkbNarrowRangeDownwardsChecking.Name = "chkbNarrowRangeDownwardsChecking"
+        Me.chkbNarrowRangeDownwardsChecking.Size = New System.Drawing.Size(174, 21)
+        Me.chkbNarrowRangeDownwardsChecking.TabIndex = 8
+        Me.chkbNarrowRangeDownwardsChecking.Text = "Check Down Trend NR"
+        Me.chkbNarrowRangeDownwardsChecking.UseVisualStyleBackColor = True
         '
         'frmStockSelection
         '
@@ -573,4 +585,5 @@ Partial Class frmStockSelection
     Friend WithEvents pnlNarrowRangeSettings As Panel
     Friend WithEvents txtNarrowRangeNmbrOfDays As TextBox
     Friend WithEvents Label1 As Label
+    Friend WithEvents chkbNarrowRangeDownwardsChecking As CheckBox
 End Class
