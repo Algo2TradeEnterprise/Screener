@@ -27,6 +27,7 @@ Public Class TopGainerTopLosserOfEverySlab
         ret.Columns.Add("Slab")
         ret.Columns.Add("Gain Loss %")
         ret.Columns.Add("Time")
+        ret.Columns.Add("Remark")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -93,7 +94,7 @@ Public Class TopGainerTopLosserOfEverySlab
                                                                                                          Return CDec(x.Value(0))
                                                                                                      End Function)
                                     If todayGainerLooserStockList Is Nothing Then todayGainerLooserStockList = New Dictionary(Of String, String())
-                                    todayGainerLooserStockList.Add(runningStock.Key, runningStock.Value)
+                                    todayGainerLooserStockList.Add(runningStock.Key, {runningStock.Value(0), runningStock.Value(1), "Gainer"})
                                     counter += 1
                                     If counter = 5 Then Exit For
                                 Next
@@ -104,7 +105,7 @@ Public Class TopGainerTopLosserOfEverySlab
                                                                                            End Function)
                                     If todayGainerLooserStockList Is Nothing Then todayGainerLooserStockList = New Dictionary(Of String, String())
                                     If Not todayGainerLooserStockList.ContainsKey(runningStock.Key) Then
-                                        todayGainerLooserStockList.Add(runningStock.Key, runningStock.Value)
+                                        todayGainerLooserStockList.Add(runningStock.Key, {runningStock.Value(0), runningStock.Value(1), "Losser"})
                                     End If
                                     counter += 1
                                     If counter = 5 Then Exit For
@@ -143,6 +144,7 @@ Public Class TopGainerTopLosserOfEverySlab
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Gain Loss %") = runningStock.Value(0)
                                 row("Time") = runningStock.Value(1)
+                                row("Remark") = runningStock.Value(2)
 
                                 ret.Rows.Add(row)
                             Next
