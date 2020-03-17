@@ -117,12 +117,16 @@ Public Class ATRStockSelection
                         If filteredInstruments IsNot Nothing AndAlso filteredInstruments.Count > 0 Then
                             For Each stockData In filteredInstruments
                                 _cts.Token.ThrowIfCancellationRequested()
-                                Dim stockPayload As Dictionary(Of Date, Payload) = GetStockPayload(eodTableType, tradingDate, stockData.Value, immediatePreviousDay)
-                                If stockPayload IsNot Nothing AndAlso stockPayload.Count > 0 Then
-                                    stockData.Value.BlankCandlePercentage = CalculateBlankVolumePercentage(stockPayload)
+                                If My.Settings.MaxBlankCandlePercentage = 100 Then
+                                    stockData.Value.BlankCandlePercentage = 0
                                 Else
-                                    stockData.Value.IsTradable = False
-                                    stockData.Value.BlankCandlePercentage = Decimal.MinValue
+                                    Dim stockPayload As Dictionary(Of Date, Payload) = GetStockPayload(eodTableType, tradingDate, stockData.Value, immediatePreviousDay)
+                                    If stockPayload IsNot Nothing AndAlso stockPayload.Count > 0 Then
+                                        stockData.Value.BlankCandlePercentage = CalculateBlankVolumePercentage(stockPayload)
+                                    Else
+                                        stockData.Value.IsTradable = False
+                                        stockData.Value.BlankCandlePercentage = Decimal.MinValue
+                                    End If
                                 End If
                             Next
                             Dim stocksLessThanMaxBlankCandlePercentage As IEnumerable(Of KeyValuePair(Of String, InstrumentDetails)) =

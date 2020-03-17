@@ -354,6 +354,8 @@ Public Class frmStockSelection
                     stock = New MultiTFColorSignal(_canceller, cmn, stockType)
                 Case 14
                     stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays), GetCheckBoxChecked_ThreadSafe(chkbNarrowRangeDownwardsChecking))
+                Case 15
+                    stock = New TopGainerTopLosserOfEverySlab(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -425,6 +427,9 @@ Public Class frmStockSelection
                 txtNarrowRangeNmbrOfDays.Text = 7
                 LoadSettings(pnlNarrowRangeSettings)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks where current day candle range is less than last X(Number Of Days) days candle range")
+            Case 15
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
             Case Else
                 Throw New NotImplementedException()
         End Select

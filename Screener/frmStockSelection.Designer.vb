@@ -63,9 +63,9 @@ Partial Class frmStockSelection
         Me.txtInstrumentList = New System.Windows.Forms.TextBox()
         Me.lblInstrumentList = New System.Windows.Forms.Label()
         Me.pnlNarrowRangeSettings = New System.Windows.Forms.Panel()
+        Me.chkbNarrowRangeDownwardsChecking = New System.Windows.Forms.CheckBox()
         Me.txtNarrowRangeNmbrOfDays = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.chkbNarrowRangeDownwardsChecking = New System.Windows.Forms.CheckBox()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -332,7 +332,7 @@ Partial Class frmStockSelection
         '
         Me.cmbProcedure.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbProcedure.FormattingEnabled = True
-        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Color Signal", "Narrow Range Stocks"})
+        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Color Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab"})
         Me.cmbProcedure.Location = New System.Drawing.Point(87, 14)
         Me.cmbProcedure.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbProcedure.Name = "cmbProcedure"
@@ -478,6 +478,16 @@ Partial Class frmStockSelection
         Me.pnlNarrowRangeSettings.Size = New System.Drawing.Size(322, 70)
         Me.pnlNarrowRangeSettings.TabIndex = 62
         '
+        'chkbNarrowRangeDownwardsChecking
+        '
+        Me.chkbNarrowRangeDownwardsChecking.AutoSize = True
+        Me.chkbNarrowRangeDownwardsChecking.Location = New System.Drawing.Point(11, 38)
+        Me.chkbNarrowRangeDownwardsChecking.Name = "chkbNarrowRangeDownwardsChecking"
+        Me.chkbNarrowRangeDownwardsChecking.Size = New System.Drawing.Size(174, 21)
+        Me.chkbNarrowRangeDownwardsChecking.TabIndex = 8
+        Me.chkbNarrowRangeDownwardsChecking.Text = "Check Down Trend NR"
+        Me.chkbNarrowRangeDownwardsChecking.UseVisualStyleBackColor = True
+        '
         'txtNarrowRangeNmbrOfDays
         '
         Me.txtNarrowRangeNmbrOfDays.Location = New System.Drawing.Point(136, 11)
@@ -494,16 +504,6 @@ Partial Class frmStockSelection
         Me.Label1.Size = New System.Drawing.Size(117, 17)
         Me.Label1.TabIndex = 6
         Me.Label1.Text = "Number Of Days:"
-        '
-        'chkbNarrowRangeDownwardsChecking
-        '
-        Me.chkbNarrowRangeDownwardsChecking.AutoSize = True
-        Me.chkbNarrowRangeDownwardsChecking.Location = New System.Drawing.Point(11, 38)
-        Me.chkbNarrowRangeDownwardsChecking.Name = "chkbNarrowRangeDownwardsChecking"
-        Me.chkbNarrowRangeDownwardsChecking.Size = New System.Drawing.Size(174, 21)
-        Me.chkbNarrowRangeDownwardsChecking.TabIndex = 8
-        Me.chkbNarrowRangeDownwardsChecking.Text = "Check Down Trend NR"
-        Me.chkbNarrowRangeDownwardsChecking.UseVisualStyleBackColor = True
         '
         'frmStockSelection
         '
