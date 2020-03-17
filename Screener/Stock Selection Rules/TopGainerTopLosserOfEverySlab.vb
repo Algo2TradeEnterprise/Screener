@@ -86,39 +86,40 @@ Public Class TopGainerTopLosserOfEverySlab
                                 End If
                             Next
 
-
                             Dim todayGainerLooserStockList As Dictionary(Of String, String()) = Nothing
-                            Dim counter As Integer = 0
-                            For Each runningStock In tempGainerLooserStockList.OrderByDescending(Function(x)
-                                                                                                     Return CDec(x.Value(0))
-                                                                                                 End Function)
-                                If todayGainerLooserStockList Is Nothing Then todayGainerLooserStockList = New Dictionary(Of String, String())
-                                todayGainerLooserStockList.Add(runningStock.Key, runningStock.Value)
-                                counter += 1
-                                If counter = 5 Then Exit For
-                            Next
-
-                            counter = 0
-                            For Each runningStock In tempGainerLooserStockList.OrderBy(Function(x)
-                                                                                           Return CDec(x.Value(0))
-                                                                                       End Function)
-                                If todayGainerLooserStockList Is Nothing Then todayGainerLooserStockList = New Dictionary(Of String, String())
-                                If Not todayGainerLooserStockList.ContainsKey(runningStock.Key) Then
+                            If tempGainerLooserStockList IsNot Nothing AndAlso tempGainerLooserStockList.Count > 0 Then
+                                Dim counter As Integer = 0
+                                For Each runningStock In tempGainerLooserStockList.OrderByDescending(Function(x)
+                                                                                                         Return CDec(x.Value(0))
+                                                                                                     End Function)
+                                    If todayGainerLooserStockList Is Nothing Then todayGainerLooserStockList = New Dictionary(Of String, String())
                                     todayGainerLooserStockList.Add(runningStock.Key, runningStock.Value)
-                                End If
-                                counter += 1
-                                If counter = 5 Then Exit For
-                            Next
-
-                            If payloadTime <> startTime AndAlso todayGainerLooserStockList IsNot Nothing AndAlso todayGainerLooserStockList.Count > 0 Then
-                                For Each runningStock In todayGainerLooserStockList
-                                    If previousGainerLooserStockList Is Nothing OrElse Not previousGainerLooserStockList.ContainsKey(runningStock.Key) Then
-                                        If gainerLooserStockList Is Nothing Then gainerLooserStockList = New Dictionary(Of String, String())
-                                        If Not gainerLooserStockList.ContainsKey(runningStock.Key) Then
-                                            gainerLooserStockList.Add(runningStock.Key, runningStock.Value)
-                                        End If
-                                    End If
+                                    counter += 1
+                                    If counter = 5 Then Exit For
                                 Next
+
+                                counter = 0
+                                For Each runningStock In tempGainerLooserStockList.OrderBy(Function(x)
+                                                                                               Return CDec(x.Value(0))
+                                                                                           End Function)
+                                    If todayGainerLooserStockList Is Nothing Then todayGainerLooserStockList = New Dictionary(Of String, String())
+                                    If Not todayGainerLooserStockList.ContainsKey(runningStock.Key) Then
+                                        todayGainerLooserStockList.Add(runningStock.Key, runningStock.Value)
+                                    End If
+                                    counter += 1
+                                    If counter = 5 Then Exit For
+                                Next
+
+                                If payloadTime <> startTime AndAlso todayGainerLooserStockList IsNot Nothing AndAlso todayGainerLooserStockList.Count > 0 Then
+                                    For Each runningStock In todayGainerLooserStockList
+                                        If previousGainerLooserStockList Is Nothing OrElse Not previousGainerLooserStockList.ContainsKey(runningStock.Key) Then
+                                            If gainerLooserStockList Is Nothing Then gainerLooserStockList = New Dictionary(Of String, String())
+                                            If Not gainerLooserStockList.ContainsKey(runningStock.Key) Then
+                                                gainerLooserStockList.Add(runningStock.Key, runningStock.Value)
+                                            End If
+                                        End If
+                                    Next
+                                End If
                             End If
                             previousGainerLooserStockList = todayGainerLooserStockList
 
