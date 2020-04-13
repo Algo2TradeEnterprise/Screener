@@ -66,12 +66,16 @@ Partial Class frmStockSelection
         Me.chkbNarrowRangeDownwardsChecking = New System.Windows.Forms.CheckBox()
         Me.txtNarrowRangeNmbrOfDays = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
+        Me.pnlCPRNarrowRangeSettings = New System.Windows.Forms.Panel()
+        Me.txtMinimumCPRRangePer = New System.Windows.Forms.TextBox()
+        Me.Label6 = New System.Windows.Forms.Label()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
         Me.pnlIntradayVolumeSpikeSettings.SuspendLayout()
         Me.pnlInstrumentList.SuspendLayout()
         Me.pnlNarrowRangeSettings.SuspendLayout()
+        Me.pnlCPRNarrowRangeSettings.SuspendLayout()
         Me.SuspendLayout()
         '
         'Panel1
@@ -332,7 +336,7 @@ Partial Class frmStockSelection
         '
         Me.cmbProcedure.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbProcedure.FormattingEnabled = True
-        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Color Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab"})
+        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Color Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab", "CPR Narrow Range Stocks"})
         Me.cmbProcedure.Location = New System.Drawing.Point(87, 14)
         Me.cmbProcedure.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbProcedure.Name = "cmbProcedure"
@@ -505,11 +509,38 @@ Partial Class frmStockSelection
         Me.Label1.TabIndex = 6
         Me.Label1.Text = "Number Of Days:"
         '
+        'pnlCPRNarrowRangeSettings
+        '
+        Me.pnlCPRNarrowRangeSettings.Controls.Add(Me.txtMinimumCPRRangePer)
+        Me.pnlCPRNarrowRangeSettings.Controls.Add(Me.Label6)
+        Me.pnlCPRNarrowRangeSettings.Location = New System.Drawing.Point(493, 6)
+        Me.pnlCPRNarrowRangeSettings.Name = "pnlCPRNarrowRangeSettings"
+        Me.pnlCPRNarrowRangeSettings.Size = New System.Drawing.Size(322, 70)
+        Me.pnlCPRNarrowRangeSettings.TabIndex = 63
+        '
+        'txtMinimumCPRRangePer
+        '
+        Me.txtMinimumCPRRangePer.Location = New System.Drawing.Point(174, 13)
+        Me.txtMinimumCPRRangePer.Name = "txtMinimumCPRRangePer"
+        Me.txtMinimumCPRRangePer.Size = New System.Drawing.Size(100, 22)
+        Me.txtMinimumCPRRangePer.TabIndex = 7
+        Me.txtMinimumCPRRangePer.Text = "0"
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Location = New System.Drawing.Point(8, 13)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(161, 17)
+        Me.Label6.TabIndex = 6
+        Me.Label6.Text = "Minimum CPR Range %:"
+        '
         'frmStockSelection
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1300, 661)
+        Me.Controls.Add(Me.pnlCPRNarrowRangeSettings)
         Me.Controls.Add(Me.pnlNarrowRangeSettings)
         Me.Controls.Add(Me.pnlTopGainerLooserSettings)
         Me.Controls.Add(Me.pnlIntradayVolumeSpikeSettings)
@@ -538,6 +569,8 @@ Partial Class frmStockSelection
         Me.pnlInstrumentList.PerformLayout()
         Me.pnlNarrowRangeSettings.ResumeLayout(False)
         Me.pnlNarrowRangeSettings.PerformLayout()
+        Me.pnlCPRNarrowRangeSettings.ResumeLayout(False)
+        Me.pnlCPRNarrowRangeSettings.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -586,4 +619,7 @@ Partial Class frmStockSelection
     Friend WithEvents txtNarrowRangeNmbrOfDays As TextBox
     Friend WithEvents Label1 As Label
     Friend WithEvents chkbNarrowRangeDownwardsChecking As CheckBox
+    Friend WithEvents pnlCPRNarrowRangeSettings As Panel
+    Friend WithEvents txtMinimumCPRRangePer As TextBox
+    Friend WithEvents Label6 As Label
 End Class

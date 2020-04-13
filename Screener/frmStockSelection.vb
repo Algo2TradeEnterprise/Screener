@@ -356,6 +356,8 @@ Public Class frmStockSelection
                     stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays), GetCheckBoxChecked_ThreadSafe(chkbNarrowRangeDownwardsChecking))
                 Case 15
                     stock = New TopGainerTopLosserOfEverySlab(_canceller, cmn, stockType)
+                Case 16
+                    stock = New CPRNarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtMinimumCPRRangePer))
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -430,6 +432,10 @@ Public Class frmStockSelection
             Case 15
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
+            Case 16
+                txtMinimumCPRRangePer.Text = 25
+                LoadSettings(pnlCPRNarrowRangeSettings)
+                lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -441,6 +447,7 @@ Public Class frmStockSelection
         panelList.Add(pnlTopGainerLooserSettings)
         panelList.Add(pnlIntradayVolumeSpikeSettings)
         panelList.Add(pnlNarrowRangeSettings)
+        panelList.Add(pnlCPRNarrowRangeSettings)
 
         For Each runningPanel In panelList
             If panelName IsNot Nothing AndAlso runningPanel.Name = panelName.Name Then
