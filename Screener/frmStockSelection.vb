@@ -435,7 +435,7 @@ Public Class frmStockSelection
             Case 16
                 txtMinimumCPRRangePer.Text = 100
                 LoadSettings(pnlCPRNarrowRangeSettings)
-                lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average")
+                lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average. If you want to trade today give today's date.")
             Case Else
                 Throw New NotImplementedException()
         End Select
