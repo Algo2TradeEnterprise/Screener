@@ -90,9 +90,9 @@ Public Class CPRNarrowRangeStocks
                     Next
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
-                        For Each runningStock In tempStockList.OrderByDescending(Function(x)
-                                                                                     Return CDec(x.Value(0))
-                                                                                 End Function)
+                        For Each runningStock In tempStockList.OrderBy(Function(x)
+                                                                           Return CDec(x.Value(0))
+                                                                       End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
                             row("Date") = tradingDate.ToString("dd-MM-yyyy")

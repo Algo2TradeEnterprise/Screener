@@ -433,7 +433,7 @@ Public Class frmStockSelection
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
             Case 16
-                txtMinimumCPRRangePer.Text = 25
+                txtMinimumCPRRangePer.Text = 100
                 LoadSettings(pnlCPRNarrowRangeSettings)
                 lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average")
             Case Else
