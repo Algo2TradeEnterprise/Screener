@@ -351,7 +351,7 @@ Public Class frmStockSelection
                 Case 12
                     stock = New OpenAtHighLow(_canceller, cmn, stockType)
                 Case 13
-                    stock = New MultiTFColorSignal(_canceller, cmn, stockType)
+                    stock = New MultiTFColorSignal(_canceller, cmn, stockType, GetComboBoxIndex_ThreadSafe(cmbMultiTF))
                 Case 14
                     stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays), GetCheckBoxChecked_ThreadSafe(chkbNarrowRangeDownwardsChecking))
                 Case 15
@@ -423,7 +423,12 @@ Public Class frmStockSelection
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low")
             Case 13
-                LoadSettings(Nothing)
+                For i = 1 To 7
+                    Dim dataType As MultiTFColorSignal.TypeOfData = i
+                    If Val(dataType.ToString) <> i Then cmbMultiTF.Items.Add(dataType.ToString)
+                Next
+                cmbMultiTF.SelectedIndex = 0
+                LoadSettings(pnlMultiTFSettings)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks where last Monthly, Weekly, Daily, Hourly candle color is same")
             Case 14
                 txtNarrowRangeNmbrOfDays.Text = 7
@@ -439,6 +444,14 @@ Public Class frmStockSelection
             Case Else
                 Throw New NotImplementedException()
         End Select
+
+        Select Case index
+            Case 13
+                cmbStockType.SelectedIndex = 0
+                SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
+            Case Else
+                SetObjectEnableDisable_ThreadSafe(cmbStockType, True)
+        End Select
     End Sub
 
     Private Sub LoadSettings(ByVal panelName As Panel)
@@ -448,6 +461,7 @@ Public Class frmStockSelection
         panelList.Add(pnlIntradayVolumeSpikeSettings)
         panelList.Add(pnlNarrowRangeSettings)
         panelList.Add(pnlCPRNarrowRangeSettings)
+        panelList.Add(pnlMultiTFSettings)
 
         For Each runningPanel In panelList
             If panelName IsNot Nothing AndAlso runningPanel.Name = panelName.Name Then

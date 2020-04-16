@@ -1,8 +1,6 @@
 ﻿Imports System.Threading
 Namespace Indicator
     Public Module TrendIntensityIndex
-        Dim cts As CancellationTokenSource
-        Dim cmn As Common = New Common(cts)
         Public Sub CalculateTII(ByVal field As Payload.PayloadFields, ByVal period As Integer, ByVal signalPeriod As Integer, ByVal inputPayload As Dictionary(Of Date, Payload), ByRef TIIPayload As Dictionary(Of Date, Decimal), ByRef signalLinePayload As Dictionary(Of Date, Decimal))
             If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
                 If inputPayload.Count < period * 2 Then Throw New ApplicationException("Can't Calculate TII")
@@ -19,8 +17,8 @@ Namespace Indicator
                     posDevPayload.Add(runningPayload, posDev)
                     If negDevPayload Is Nothing Then negDevPayload = New Dictionary(Of Date, Decimal)
                     negDevPayload.Add(runningPayload, negDev)
-                    Dim previousNInputFieldPosDev As List(Of KeyValuePair(Of DateTime, Decimal)) = cmn.GetSubPayload(posDevPayload, runningPayload, halfPeriod, True)
-                    Dim previousNInputFieldNegDev As List(Of KeyValuePair(Of DateTime, Decimal)) = cmn.GetSubPayload(negDevPayload, runningPayload, halfPeriod, True)
+                    Dim previousNInputFieldPosDev As List(Of KeyValuePair(Of DateTime, Decimal)) = Common.GetSubPayload(posDevPayload, runningPayload, halfPeriod, True)
+                    Dim previousNInputFieldNegDev As List(Of KeyValuePair(Of DateTime, Decimal)) = Common.GetSubPayload(negDevPayload, runningPayload, halfPeriod, True)
                     Dim sdPos As Decimal = 0
                     Dim sdNeg As Decimal = 0
                     If previousNInputFieldPosDev IsNot Nothing AndAlso previousNInputFieldNegDev IsNot Nothing AndAlso
@@ -38,7 +36,7 @@ Namespace Indicator
                     TIIPayload.Add(runningPayload, Math.Round(tii, 4))
                 Next
                 Dim emaInputPayload As Dictionary(Of Date, Payload) = Nothing
-                cmn.ConvetDecimalToPayload(Payload.PayloadFields.Additional_Field, TIIPayload, emaInputPayload)
+                Common.ConvertDecimalToPayload(Payload.PayloadFields.Additional_Field, TIIPayload, emaInputPayload)
                 Indicator.EMA.CalculateEMA(signalPeriod, Payload.PayloadFields.Additional_Field, emaInputPayload, signalLinePayload)
             End If
         End Sub

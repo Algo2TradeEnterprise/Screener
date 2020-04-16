@@ -2,7 +2,6 @@
 Namespace Indicator
     Public Module DonchianChannel
         ReadOnly cts As New CancellationTokenSource
-        Dim cmn As Common = New Common(cts)
         Public Sub CalculateDonchianChannel(ByVal highPeriod As Integer, ByVal lowPeriod As Integer,
                                             ByVal inputPayload As Dictionary(Of Date, Payload),
                                             ByRef outputHighPayload As Dictionary(Of Date, Decimal),

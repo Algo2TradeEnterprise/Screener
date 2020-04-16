@@ -69,6 +69,9 @@ Partial Class frmStockSelection
         Me.pnlCPRNarrowRangeSettings = New System.Windows.Forms.Panel()
         Me.txtMinimumCPRRangePer = New System.Windows.Forms.TextBox()
         Me.Label6 = New System.Windows.Forms.Label()
+        Me.pnlMultiTFSettings = New System.Windows.Forms.Panel()
+        Me.cmbMultiTF = New System.Windows.Forms.ComboBox()
+        Me.Label7 = New System.Windows.Forms.Label()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -76,6 +79,7 @@ Partial Class frmStockSelection
         Me.pnlInstrumentList.SuspendLayout()
         Me.pnlNarrowRangeSettings.SuspendLayout()
         Me.pnlCPRNarrowRangeSettings.SuspendLayout()
+        Me.pnlMultiTFSettings.SuspendLayout()
         Me.SuspendLayout()
         '
         'Panel1
@@ -535,11 +539,39 @@ Partial Class frmStockSelection
         Me.Label6.TabIndex = 6
         Me.Label6.Text = "Minimum CPR Range %:"
         '
+        'pnlMultiTFSettings
+        '
+        Me.pnlMultiTFSettings.Controls.Add(Me.cmbMultiTF)
+        Me.pnlMultiTFSettings.Controls.Add(Me.Label7)
+        Me.pnlMultiTFSettings.Location = New System.Drawing.Point(493, 6)
+        Me.pnlMultiTFSettings.Name = "pnlMultiTFSettings"
+        Me.pnlMultiTFSettings.Size = New System.Drawing.Size(322, 70)
+        Me.pnlMultiTFSettings.TabIndex = 65
+        '
+        'cmbMultiTF
+        '
+        Me.cmbMultiTF.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cmbMultiTF.FormattingEnabled = True
+        Me.cmbMultiTF.Location = New System.Drawing.Point(59, 11)
+        Me.cmbMultiTF.Name = "cmbMultiTF"
+        Me.cmbMultiTF.Size = New System.Drawing.Size(145, 24)
+        Me.cmbMultiTF.TabIndex = 7
+        '
+        'Label7
+        '
+        Me.Label7.AutoSize = True
+        Me.Label7.Location = New System.Drawing.Point(8, 13)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(44, 17)
+        Me.Label7.TabIndex = 6
+        Me.Label7.Text = "Type:"
+        '
         'frmStockSelection
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1300, 661)
+        Me.Controls.Add(Me.pnlMultiTFSettings)
         Me.Controls.Add(Me.pnlCPRNarrowRangeSettings)
         Me.Controls.Add(Me.pnlNarrowRangeSettings)
         Me.Controls.Add(Me.pnlTopGainerLooserSettings)
@@ -571,6 +603,8 @@ Partial Class frmStockSelection
         Me.pnlNarrowRangeSettings.PerformLayout()
         Me.pnlCPRNarrowRangeSettings.ResumeLayout(False)
         Me.pnlCPRNarrowRangeSettings.PerformLayout()
+        Me.pnlMultiTFSettings.ResumeLayout(False)
+        Me.pnlMultiTFSettings.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -622,4 +656,7 @@ Partial Class frmStockSelection
     Friend WithEvents pnlCPRNarrowRangeSettings As Panel
     Friend WithEvents txtMinimumCPRRangePer As TextBox
     Friend WithEvents Label6 As Label
+    Friend WithEvents pnlMultiTFSettings As Panel
+    Friend WithEvents cmbMultiTF As ComboBox
+    Friend WithEvents Label7 As Label
 End Class

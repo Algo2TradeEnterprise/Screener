@@ -49,7 +49,7 @@ Public Class OpenAtHighLow
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(-10), tradingDate)
-                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
+                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
                             Dim slab As Decimal = atrStockList(runningStock).Slab
                             Dim tradingDayPayload As Payload = eodPayload.Values.LastOrDefault
 

@@ -2,8 +2,6 @@
 
 Namespace Indicator
     Public Module SMI
-        Dim cts As CancellationTokenSource
-        Dim cmn As Common = New Common(cts)
         Public Sub CalculateSMI(ByVal K_Periods As Integer, ByVal K_Smoothing As Integer, ByVal K_DoubleSmoothing As Integer, ByVal D_Periods As Integer, ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputSMIsignalPayload As Dictionary(Of Date, Decimal), ByRef outputEMASMIsignalPayload As Dictionary(Of Date, Decimal))
             Dim SMIIntermediatePayload As New Dictionary(Of Date, Payload)
             If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
@@ -37,9 +35,9 @@ Namespace Indicator
                 EMA.CalculateEMA(K_Smoothing, Payload.PayloadFields.C_AVG_HL, SMIIntermediatePayload, rdiffEMAOutput)
 
                 Dim diffEMAOutputPayload As New Dictionary(Of Date, Payload)
-                cmn.ConvertDecimalToPayload(Payload.PayloadFields.H_L, diffEMAOutput, diffEMAOutputPayload)
+                Common.ConvertDecimalToPayload(Payload.PayloadFields.H_L, diffEMAOutput, diffEMAOutputPayload)
                 Dim rdiffEMAOutputPayload As New Dictionary(Of Date, Payload)
-                cmn.ConvertDecimalToPayload(Payload.PayloadFields.C_AVG_HL, rdiffEMAOutput, rdiffEMAOutputPayload)
+                Common.ConvertDecimalToPayload(Payload.PayloadFields.C_AVG_HL, rdiffEMAOutput, rdiffEMAOutputPayload)
 
                 'For Each item In diffEMAOutput.Keys
                 '    Console.WriteLine(diffEMAOutput(item))
@@ -58,7 +56,7 @@ Namespace Indicator
                 Next
 
                 Dim SMIPayload As New Dictionary(Of Date, Payload)
-                cmn.ConvertDecimalToPayload(Payload.PayloadFields.SMI_EMA, outputSMIsignalPayload, SMIPayload)
+                Common.ConvertDecimalToPayload(Payload.PayloadFields.SMI_EMA, outputSMIsignalPayload, SMIPayload)
 
                 EMA.CalculateEMA(D_Periods, Payload.PayloadFields.SMI_EMA, SMIPayload, outputEMASMIsignalPayload)
 

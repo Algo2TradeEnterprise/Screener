@@ -37,7 +37,7 @@ Namespace Indicator
                                                                                                                  End Function)
 
                     If previousNInputData.Count > 2 Then
-                        sd = cmn.CalculateStandardDeviationPA(previousNInputData)
+                        sd = Common.CalculateStandardDeviationPA(previousNInputData)
                     Else
                         sd = 0
                     End If

@@ -27,46 +27,6 @@
                 Next
             End If
         End Sub
-        'Private Function IsFractalHighSatisfied(ByVal candidateCandle As Payload) As Boolean
-        '    Dim ret As Boolean = False
-        '    If candidateCandle IsNot Nothing AndAlso
-        '        candidateCandle.PreviousCandlePayload IsNot Nothing AndAlso
-        '        candidateCandle.PreviousCandlePayload.PreviousCandlePayload IsNot Nothing Then
-        '        If candidateCandle.PreviousCandlePayload.High < candidateCandle.High AndAlso
-        '            candidateCandle.PreviousCandlePayload.PreviousCandlePayload.High < candidateCandle.High Then
-        '            ret = True
-        '        ElseIf candidateCandle.PreviousCandlePayload.High = candidateCandle.High Then
-        '            ret = IsFractalHighSatisfied(candidateCandle.PreviousCandlePayload)
-        '        ElseIf candidateCandle.PreviousCandlePayload.High > candidateCandle.High Then
-        '            ret = False
-        '        ElseIf candidateCandle.PreviousCandlePayload.PreviousCandlePayload.High = candidateCandle.High Then
-        '            ret = IsFractalHighSatisfied(candidateCandle.PreviousCandlePayload.PreviousCandlePayload)
-        '        ElseIf candidateCandle.PreviousCandlePayload.PreviousCandlePayload.High > candidateCandle.High Then
-        '            ret = False
-        '        End If
-        '    End If
-        '    Return ret
-        'End Function
-        'Private Function IsFractalLowSatisfied(ByVal candidateCandle As Payload) As Boolean
-        '    Dim ret As Boolean = False
-        '    If candidateCandle IsNot Nothing AndAlso
-        '        candidateCandle.PreviousCandlePayload IsNot Nothing AndAlso
-        '        candidateCandle.PreviousCandlePayload.PreviousCandlePayload IsNot Nothing Then
-        '        If candidateCandle.PreviousCandlePayload.Low > candidateCandle.Low AndAlso
-        '            candidateCandle.PreviousCandlePayload.PreviousCandlePayload.Low > candidateCandle.Low Then
-        '            ret = True
-        '        ElseIf candidateCandle.PreviousCandlePayload.Low = candidateCandle.Low Then
-        '            ret = IsFractalLowSatisfied(candidateCandle.PreviousCandlePayload)
-        '        ElseIf candidateCandle.PreviousCandlePayload.Low < candidateCandle.Low Then
-        '            ret = False
-        '        ElseIf candidateCandle.PreviousCandlePayload.PreviousCandlePayload.Low = candidateCandle.Low Then
-        '            ret = IsFractalLowSatisfied(candidateCandle.PreviousCandlePayload.PreviousCandlePayload)
-        '        ElseIf candidateCandle.PreviousCandlePayload.PreviousCandlePayload.Low < candidateCandle.Low Then
-        '            ret = False
-        '        End If
-        '    End If
-        '    Return ret
-        'End Function
         Private Function IsFractalHighSatisfied(ByVal candidateCandle As Payload, ByVal checkOnlyPrevious As Boolean) As Boolean
             Dim ret As Boolean = False
             If candidateCandle IsNot Nothing AndAlso

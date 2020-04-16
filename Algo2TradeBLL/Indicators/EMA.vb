@@ -3,7 +3,6 @@
 Namespace Indicator
     Public Module EMA
         Dim cts As CancellationTokenSource
-        Dim cmn As Common = New Common(cts)
         Public Sub CalculateEMA(ByVal emaPeriod As Integer, ByVal emaField As Payload.PayloadFields, ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Decimal))
             If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
                 Dim finalPriceToBeAdded As Decimal = 0
@@ -71,7 +70,7 @@ Namespace Indicator
                         End Select
                         finalPriceToBeAdded = totalOfAllPrices / (previousNInputFieldPayload.Count + 1)
                     Else
-                        Dim previousInputFieldData = cmn.GetPayloadAtPositionOrPositionMinus1(runningInputPayload.Key, outputPayload)
+                        Dim previousInputFieldData = Common.GetPayloadAtPositionOrPositionMinus1(runningInputPayload.Key, outputPayload)
                         If previousInputFieldData.Key <> DateTime.MinValue Then
                             Dim previousInputFieldValue As Decimal = previousInputFieldData.Value
                             Select Case emaField

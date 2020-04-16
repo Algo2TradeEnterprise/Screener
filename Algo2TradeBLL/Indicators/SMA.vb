@@ -3,7 +3,6 @@
 Namespace Indicator
     Public Module SMA
         ReadOnly cts As New CancellationTokenSource
-        Dim cmn As Common = New Common(cts)
         Public Sub CalculateSMA(ByVal smaPeriod As Integer, ByVal smaField As Payload.PayloadFields, ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Decimal))
             If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
                 Dim finalPriceToBeAdded As Decimal = 0

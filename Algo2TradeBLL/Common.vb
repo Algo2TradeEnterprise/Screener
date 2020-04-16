@@ -474,6 +474,17 @@ Public Class Common
         Return ret
     End Function
 
+    Public Shared Function GetEquationOfTrendLine(ByVal x1 As Decimal, ByVal y1 As Decimal, ByVal x2 As Decimal, ByVal y2 As Decimal) As TrendLineVeriables
+        Dim ret As TrendLineVeriables = Nothing
+        If (x2 - x1) <> 0 Then
+            ret = New TrendLineVeriables With {
+                .M = (y2 - y1) / (x2 - x1),
+                .C = y1 - (.M * x1),
+                .X = x2
+            }
+        End If
+        Return ret
+    End Function
 #End Region
 
 #Region "Public Functions"
