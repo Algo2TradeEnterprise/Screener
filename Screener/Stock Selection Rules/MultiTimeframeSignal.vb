@@ -63,10 +63,13 @@ Public Class MultiTimeframeSignal
                 If atrStockList IsNot Nothing AndAlso atrStockList.Count > 0 Then
                     _canceller.Token.ThrowIfCancellationRequested()
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
+                    Dim counter As Integer = 0
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
+                        counter += 1
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddMonths(-30), tradingDate.AddDays(-1))
                         Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-50), tradingDate.AddDays(-1))
+                        OnHeartbeat(String.Format("Getting signal for {0} #{1}/{2}", runningStock, counter, atrStockList.Count))
                         If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
                             Dim weeklyPayload As Dictionary(Of Date, Payload) = Common.ConvertDayPayloadsToWeek(eodPayload)
 
