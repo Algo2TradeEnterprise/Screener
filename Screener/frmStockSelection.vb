@@ -351,7 +351,7 @@ Public Class frmStockSelection
                 Case 12
                     stock = New OpenAtHighLow(_canceller, cmn, stockType)
                 Case 13
-                    stock = New MultiTFColorSignal(_canceller, cmn, stockType, GetComboBoxIndex_ThreadSafe(cmbMultiTF))
+                    stock = New MultiTimeframeSignal(_canceller, cmn, stockType, GetComboBoxIndex_ThreadSafe(cmbMultiTFIndicator))
                 Case 14
                     stock = New NarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtNarrowRangeNmbrOfDays), GetCheckBoxChecked_ThreadSafe(chkbNarrowRangeDownwardsChecking))
                 Case 15
@@ -424,12 +424,12 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low")
             Case 13
                 For i = 1 To 7
-                    Dim dataType As MultiTFColorSignal.TypeOfData = i
-                    If Val(dataType.ToString) <> i Then cmbMultiTF.Items.Add(dataType.ToString)
+                    Dim indicatorType As MultiTimeframeSignal.TypeOfIndicator = i
+                    If Val(indicatorType.ToString) <> i Then cmbMultiTFIndicator.Items.Add(indicatorType.ToString)
                 Next
-                cmbMultiTF.SelectedIndex = 0
+                cmbMultiTFIndicator.SelectedIndex = 1
                 LoadSettings(pnlMultiTFSettings)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks where last Monthly, Weekly, Daily, Hourly candle color is same")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with last Week, Day, Hour, 15 Minutes candle value for respective indicator")
             Case 14
                 txtNarrowRangeNmbrOfDays.Text = 7
                 LoadSettings(pnlNarrowRangeSettings)

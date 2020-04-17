@@ -2,26 +2,26 @@
 Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class MultiTFColorSignal
+Public Class MultiTimeframeSignal
     Inherits StockSelection
 
-    Enum TypeOfData
-        COLOR = 1
-        SUPERTREND
-        TII
-        EMA_13
-        'SWING_HIGH_LOW
-        'FRACTAL
+    Enum TypeOfIndicator
+        TII = 1
+        COLOR
         AROON
+        EMA_13
+        FRACTAL
+        SUPERTREND
+        SWING_HIGH_LOW
     End Enum
 
-    Private _dataType As TypeOfData
+    Private ReadOnly _indicatorType As TypeOfIndicator
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
                    ByVal stockType As Integer,
-                   ByVal dataType As Integer)
+                   ByVal indicatorType As Integer)
         MyBase.New(canceller, cmn, stockType)
-        _dataType = dataType + 1
+        _indicatorType = indicatorType + 1
     End Sub
 
     Public Overrides Async Function GetStockDataAsync(ByVal startDate As Date, ByVal endDate As Date) As Task(Of DataTable)
@@ -80,14 +80,14 @@ Public Class MultiTFColorSignal
                                     Dim lastHourPayload As Payload = hourlyPayload.LastOrDefault.Value.PreviousCandlePayload
                                     Dim lastMinPayload As Payload = xMinutePayload.LastOrDefault.Value
 
-                                    If _dataType = TypeOfData.COLOR Then
+                                    If _indicatorType = TypeOfIndicator.COLOR Then
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                         tempStockList.Add(runningStock,
                                                           {lastWeekPayload.CandleColor.Name,
                                                            lastDayPayload.CandleColor.Name,
                                                            lastHourPayload.CandleColor.Name,
                                                            lastMinPayload.CandleColor.Name})
-                                    ElseIf _dataType = TypeOfData.SUPERTREND Then
+                                    ElseIf _indicatorType = TypeOfIndicator.SUPERTREND Then
                                         Dim weeklySupertrend As Dictionary(Of Date, Color) = Nothing
                                         Dim dailySupertrend As Dictionary(Of Date, Color) = Nothing
                                         Dim hourlySupertrend As Dictionary(Of Date, Color) = Nothing
@@ -104,7 +104,7 @@ Public Class MultiTFColorSignal
                                                            dailySupertrend(lastDayPayload.PayloadDate).Name,
                                                            hourlySupertrend(lastHourPayload.PayloadDate).Name,
                                                            xMinuteSupertrend(lastMinPayload.PayloadDate).Name})
-                                    ElseIf _dataType = TypeOfData.TII Then
+                                    ElseIf _indicatorType = TypeOfIndicator.TII Then
                                         Dim weeklyTII As Dictionary(Of Date, Decimal) = Nothing
                                         Dim weeklySignal As Dictionary(Of Date, Decimal) = Nothing
                                         Dim dailyTII As Dictionary(Of Date, Decimal) = Nothing
@@ -146,7 +146,7 @@ Public Class MultiTFColorSignal
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                         tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
-                                    ElseIf _dataType = TypeOfData.EMA_13 Then
+                                    ElseIf _indicatorType = TypeOfIndicator.EMA_13 Then
                                         Dim weeklyEMA As Dictionary(Of Date, Decimal) = Nothing
                                         Dim dailyEMA As Dictionary(Of Date, Decimal) = Nothing
                                         Dim hourlyEMA As Dictionary(Of Date, Decimal) = Nothing
@@ -184,7 +184,7 @@ Public Class MultiTFColorSignal
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                         tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
-                                    ElseIf _dataType = TypeOfData.AROON Then
+                                    ElseIf _indicatorType = TypeOfIndicator.AROON Then
                                         Dim weeklyHighDonchian As Dictionary(Of Date, Decimal) = Nothing
                                         Dim weeklyLowDonchian As Dictionary(Of Date, Decimal) = Nothing
                                         Dim dailyHighDonchian As Dictionary(Of Date, Decimal) = Nothing

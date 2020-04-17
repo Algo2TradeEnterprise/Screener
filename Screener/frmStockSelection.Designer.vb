@@ -70,7 +70,7 @@ Partial Class frmStockSelection
         Me.txtMinimumCPRRangePer = New System.Windows.Forms.TextBox()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.pnlMultiTFSettings = New System.Windows.Forms.Panel()
-        Me.cmbMultiTF = New System.Windows.Forms.ComboBox()
+        Me.cmbMultiTFIndicator = New System.Windows.Forms.ComboBox()
         Me.Label7 = New System.Windows.Forms.Label()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -541,30 +541,30 @@ Partial Class frmStockSelection
         '
         'pnlMultiTFSettings
         '
-        Me.pnlMultiTFSettings.Controls.Add(Me.cmbMultiTF)
+        Me.pnlMultiTFSettings.Controls.Add(Me.cmbMultiTFIndicator)
         Me.pnlMultiTFSettings.Controls.Add(Me.Label7)
         Me.pnlMultiTFSettings.Location = New System.Drawing.Point(493, 6)
         Me.pnlMultiTFSettings.Name = "pnlMultiTFSettings"
         Me.pnlMultiTFSettings.Size = New System.Drawing.Size(322, 70)
         Me.pnlMultiTFSettings.TabIndex = 65
         '
-        'cmbMultiTF
+        'cmbMultiTFIndicator
         '
-        Me.cmbMultiTF.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.cmbMultiTF.FormattingEnabled = True
-        Me.cmbMultiTF.Location = New System.Drawing.Point(59, 11)
-        Me.cmbMultiTF.Name = "cmbMultiTF"
-        Me.cmbMultiTF.Size = New System.Drawing.Size(145, 24)
-        Me.cmbMultiTF.TabIndex = 7
+        Me.cmbMultiTFIndicator.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cmbMultiTFIndicator.FormattingEnabled = True
+        Me.cmbMultiTFIndicator.Location = New System.Drawing.Point(84, 11)
+        Me.cmbMultiTFIndicator.Name = "cmbMultiTFIndicator"
+        Me.cmbMultiTFIndicator.Size = New System.Drawing.Size(145, 24)
+        Me.cmbMultiTFIndicator.TabIndex = 7
         '
         'Label7
         '
         Me.Label7.AutoSize = True
         Me.Label7.Location = New System.Drawing.Point(8, 13)
         Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(44, 17)
+        Me.Label7.Size = New System.Drawing.Size(66, 17)
         Me.Label7.TabIndex = 6
-        Me.Label7.Text = "Type:"
+        Me.Label7.Text = "Indicator:"
         '
         'frmStockSelection
         '
@@ -657,6 +657,6 @@ Partial Class frmStockSelection
     Friend WithEvents txtMinimumCPRRangePer As TextBox
     Friend WithEvents Label6 As Label
     Friend WithEvents pnlMultiTFSettings As Panel
-    Friend WithEvents cmbMultiTF As ComboBox
+    Friend WithEvents cmbMultiTFIndicator As ComboBox
     Friend WithEvents Label7 As Label
 End Class
