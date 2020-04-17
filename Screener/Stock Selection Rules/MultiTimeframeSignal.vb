@@ -287,37 +287,57 @@ Public Class MultiTimeframeSignal
                                             weeklyHighFractal(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastWeekPayload.Close > weeklyHighFractal(lastWeekPayload.PayloadDate).CurrentValue Then
                                             weeklyTrend = Color.Green
-                                        ElseIf weeklyLowFractal(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If weeklyLowFractal(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
                                             weeklyLowFractal(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastWeekPayload.Close < weeklyLowFractal(lastWeekPayload.PayloadDate).CurrentValue Then
-                                            weeklyTrend = Color.Red
+                                            If weeklyTrend = Color.Green Then
+                                                weeklyTrend = Color.White
+                                            Else
+                                                weeklyTrend = Color.Red
+                                            End If
                                         End If
                                         If dailyHighFractal(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
                                             dailyHighFractal(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastDayPayload.Close > dailyHighFractal(lastDayPayload.PayloadDate).CurrentValue Then
                                             dailyTrend = Color.Green
-                                        ElseIf dailyLowFractal(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If dailyLowFractal(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
                                             dailyLowFractal(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastDayPayload.Close < dailyLowFractal(lastDayPayload.PayloadDate).CurrentValue Then
-                                            dailyTrend = Color.Red
+                                            If dailyTrend = Color.Green Then
+                                                dailyTrend = Color.White
+                                            Else
+                                                dailyTrend = Color.Red
+                                            End If
                                         End If
                                         If hourlyHighFractal(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
                                             hourlyHighFractal(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastHourPayload.Close > hourlyHighFractal(lastHourPayload.PayloadDate).CurrentValue Then
                                             hourlyTrend = Color.Green
-                                        ElseIf hourlyLowFractal(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If hourlyLowFractal(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
                                             hourlyLowFractal(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastHourPayload.Close < hourlyLowFractal(lastHourPayload.PayloadDate).CurrentValue Then
-                                            hourlyTrend = Color.Red
+                                            If hourlyTrend = Color.Green Then
+                                                hourlyTrend = Color.White
+                                            Else
+                                                hourlyTrend = Color.Red
+                                            End If
                                         End If
                                         If xMinuteHighFractal(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
                                             xMinuteHighFractal(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastMinPayload.Close > xMinuteHighFractal(lastMinPayload.PayloadDate).CurrentValue Then
                                             xMinuteTrend = Color.Green
-                                        ElseIf xMinuteLowFractal(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If xMinuteLowFractal(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
                                             xMinuteLowFractal(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastMinPayload.Close < xMinuteLowFractal(lastMinPayload.PayloadDate).CurrentValue Then
-                                            xMinuteTrend = Color.Red
+                                            If xMinuteTrend = Color.Green Then
+                                                xMinuteTrend = Color.White
+                                            Else
+                                                xMinuteTrend = Color.Red
+                                            End If
                                         End If
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
@@ -346,37 +366,57 @@ Public Class MultiTimeframeSignal
                                             weeklyHighSwing(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastWeekPayload.Close > weeklyHighSwing(lastWeekPayload.PayloadDate).CurrentValue Then
                                             weeklyTrend = Color.Green
-                                        ElseIf weeklyLowSwing(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If weeklyLowSwing(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
                                             weeklyLowSwing(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastWeekPayload.Close < weeklyLowSwing(lastWeekPayload.PayloadDate).CurrentValue Then
-                                            weeklyTrend = Color.Red
+                                            If weeklyTrend = Color.Green Then
+                                                weeklyTrend = Color.White
+                                            Else
+                                                weeklyTrend = Color.Red
+                                            End If
                                         End If
                                         If dailyHighSwing(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
                                             dailyHighSwing(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastDayPayload.Close > dailyHighSwing(lastDayPayload.PayloadDate).CurrentValue Then
                                             dailyTrend = Color.Green
-                                        ElseIf dailyLowSwing(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If dailyLowSwing(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
                                             dailyLowSwing(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastDayPayload.Close < dailyLowSwing(lastDayPayload.PayloadDate).CurrentValue Then
-                                            dailyTrend = Color.Red
+                                            If dailyTrend = Color.Green Then
+                                                dailyTrend = Color.White
+                                            Else
+                                                dailyTrend = Color.Red
+                                            End If
                                         End If
                                         If hourlyHighSwing(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
                                             hourlyHighSwing(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastHourPayload.Close > hourlyHighSwing(lastHourPayload.PayloadDate).CurrentValue Then
                                             hourlyTrend = Color.Green
-                                        ElseIf hourlyLowSwing(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If hourlyLowSwing(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
                                             hourlyLowSwing(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastHourPayload.Close < hourlyLowSwing(lastHourPayload.PayloadDate).CurrentValue Then
-                                            hourlyTrend = Color.Red
+                                            If hourlyTrend = Color.Green Then
+                                                hourlyTrend = Color.White
+                                            Else
+                                                hourlyTrend = Color.Red
+                                            End If
                                         End If
                                         If xMinuteHighSwing(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
                                             xMinuteHighSwing(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastMinPayload.Close > xMinuteHighSwing(lastMinPayload.PayloadDate).CurrentValue Then
                                             xMinuteTrend = Color.Green
-                                        ElseIf xMinuteLowSwing(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
+                                        End If
+                                        If xMinuteLowSwing(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
                                             xMinuteLowSwing(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
                                             lastMinPayload.Close < xMinuteLowSwing(lastMinPayload.PayloadDate).CurrentValue Then
-                                            xMinuteTrend = Color.Red
+                                            If xMinuteTrend = Color.Green Then
+                                                xMinuteTrend = Color.White
+                                            Else
+                                                xMinuteTrend = Color.Red
+                                            End If
                                         End If
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())

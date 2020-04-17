@@ -339,19 +339,19 @@ Partial Class frmStockSelection
         'cmbProcedure
         '
         Me.cmbProcedure.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.cmbProcedure.Font = New System.Drawing.Font("Consolas", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cmbProcedure.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.cmbProcedure.FormattingEnabled = True
         Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab", "CPR Narrow Range Stocks"})
         Me.cmbProcedure.Location = New System.Drawing.Point(87, 14)
         Me.cmbProcedure.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbProcedure.Name = "cmbProcedure"
-        Me.cmbProcedure.Size = New System.Drawing.Size(389, 28)
+        Me.cmbProcedure.Size = New System.Drawing.Size(389, 26)
         Me.cmbProcedure.TabIndex = 54
         '
         'lblProcedure
         '
         Me.lblProcedure.AutoSize = True
-        Me.lblProcedure.Location = New System.Drawing.Point(8, 21)
+        Me.lblProcedure.Location = New System.Drawing.Point(8, 17)
         Me.lblProcedure.Margin = New System.Windows.Forms.Padding(4, 0, 4, 0)
         Me.lblProcedure.Name = "lblProcedure"
         Me.lblProcedure.Size = New System.Drawing.Size(78, 17)
