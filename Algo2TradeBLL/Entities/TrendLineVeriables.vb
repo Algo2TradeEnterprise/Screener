@@ -4,7 +4,7 @@
     Public X As Decimal = Decimal.MinValue
     Public Point1 As Date
     Public Point2 As Date
-    Public ReadOnly Property CurrentValue
+    Public ReadOnly Property CurrentValue As Decimal
         Get
             If Me.M <> Decimal.MinValue AndAlso Me.C <> Decimal.MinValue AndAlso Me.X <> Decimal.MinValue Then
                 Return ((Me.M * Me.X) + Me.C)

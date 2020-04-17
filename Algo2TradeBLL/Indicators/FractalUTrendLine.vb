@@ -8,7 +8,7 @@
                     Dim lowLine As TrendLineVeriables = New TrendLineVeriables
 
                     Dim lastHighUCandle As Tuple(Of Payload, Date) = GetFractalUFormingCandleAndMiddleCandle(inputPayload, fractalHighPayload, runningPayload.Key, 1)
-                    If lastHighUCandle IsNot Nothing AndAlso lastHighUCandle.Item1 IsNot Nothing AndAlso lastHighUCandle.Item1.PayloadDate.Date = runningPayload.Key.Date Then
+                    If lastHighUCandle IsNot Nothing AndAlso lastHighUCandle.Item1 IsNot Nothing Then
                         Dim firstHighUCandle As Tuple(Of Payload, Date) = GetFractalUFormingCandleAndMiddleCandle(inputPayload, fractalHighPayload, lastHighUCandle.Item1.PayloadDate, 1)
                         If firstHighUCandle IsNot Nothing AndAlso firstHighUCandle.Item1 IsNot Nothing AndAlso firstHighUCandle.Item1.High <= lastHighUCandle.Item1.High Then
                             firstHighUCandle = Nothing
@@ -44,7 +44,7 @@
                     End If
 
                     Dim lastLowUCandle As Tuple(Of Payload, Date) = GetFractalUFormingCandleAndMiddleCandle(inputPayload, fractalLowPayload, runningPayload.Key, -1)
-                    If lastLowUCandle IsNot Nothing AndAlso lastLowUCandle.Item1 IsNot Nothing AndAlso lastLowUCandle.Item1.PayloadDate.Date = runningPayload.Key.Date Then
+                    If lastLowUCandle IsNot Nothing AndAlso lastLowUCandle.Item1 IsNot Nothing Then
                         Dim firstLowUCandle As Tuple(Of Payload, Date) = GetFractalUFormingCandleAndMiddleCandle(inputPayload, fractalLowPayload, lastLowUCandle.Item1.PayloadDate, -1)
                         If firstLowUCandle IsNot Nothing AndAlso firstLowUCandle.Item1 IsNot Nothing AndAlso firstLowUCandle.Item1.Low >= lastLowUCandle.Item1.Low Then
                             firstLowUCandle = Nothing

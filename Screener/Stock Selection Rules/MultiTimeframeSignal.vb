@@ -259,77 +259,61 @@ Public Class MultiTimeframeSignal
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                         tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
                                     ElseIf _indicatorType = TypeOfIndicator.FRACTAL Then
-                                        Dim weeklyHighFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim weeklyLowFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim dailyHighFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim dailyLowFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim hourlyHighFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim hourlyLowFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim xMinuteHighFractal As Dictionary(Of Date, Decimal) = Nothing
-                                        Dim xMinuteLowFractal As Dictionary(Of Date, Decimal) = Nothing
+                                        Dim weeklyHighFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim weeklyLowFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim dailyHighFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim dailyLowFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim hourlyHighFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim hourlyLowFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim xMinuteHighFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim xMinuteLowFractal As Dictionary(Of Date, TrendLineVeriables) = Nothing
 
-                                        Indicator.FractalBands.CalculateFractal(weeklyPayload, weeklyHighFractal, weeklyLowFractal)
-                                        Indicator.FractalBands.CalculateFractal(eodPayload, dailyHighFractal, dailyLowFractal)
-                                        Indicator.FractalBands.CalculateFractal(hourlyPayload, hourlyHighFractal, hourlyLowFractal)
-                                        Indicator.FractalBands.CalculateFractal(xMinutePayload, xMinuteHighFractal, xMinuteLowFractal)
+                                        Indicator.FractalUTrendLine.CalculateFractalUTrendLine(weeklyPayload, weeklyHighFractal, weeklyLowFractal, Nothing, Nothing)
+                                        Indicator.FractalUTrendLine.CalculateFractalUTrendLine(eodPayload, dailyHighFractal, dailyLowFractal, Nothing, Nothing)
+                                        Indicator.FractalUTrendLine.CalculateFractalUTrendLine(hourlyPayload, hourlyHighFractal, hourlyLowFractal, Nothing, Nothing)
+                                        Indicator.FractalUTrendLine.CalculateFractalUTrendLine(xMinutePayload, xMinuteHighFractal, xMinuteLowFractal, Nothing, Nothing)
 
                                         Dim weeklyTrend As Color = Color.White
                                         Dim dailyTrend As Color = Color.White
                                         Dim hourlyTrend As Color = Color.White
                                         Dim xMinuteTrend As Color = Color.White
 
-                                        For Each runningPayload In weeklyPayload.OrderByDescending(Function(x)
-                                                                                                       Return x.Key
-                                                                                                   End Function)
-                                            If runningPayload.Key <= lastWeekPayload.PayloadDate Then
-                                                If runningPayload.Value.High > weeklyHighFractal(runningPayload.Value.PayloadDate) Then
-                                                    weeklyTrend = Color.Green
-                                                    Exit For
-                                                ElseIf runningPayload.Value.Low < weeklyLowFractal(runningPayload.Value.PayloadDate) Then
-                                                    weeklyTrend = Color.Red
-                                                    Exit For
-                                                End If
-                                            End If
-                                        Next
-                                        For Each runningPayload In eodPayload.OrderByDescending(Function(x)
-                                                                                                    Return x.Key
-                                                                                                End Function)
-                                            If runningPayload.Key <= lastDayPayload.PayloadDate Then
-                                                If runningPayload.Value.High > dailyHighFractal(runningPayload.Value.PayloadDate) Then
-                                                    dailyTrend = Color.Green
-                                                    Exit For
-                                                ElseIf runningPayload.Value.Low < dailyLowFractal(runningPayload.Value.PayloadDate) Then
-                                                    dailyTrend = Color.Red
-                                                    Exit For
-                                                End If
-                                            End If
-                                        Next
-                                        For Each runningPayload In hourlyPayload.OrderByDescending(Function(x)
-                                                                                                       Return x.Key
-                                                                                                   End Function)
-                                            If runningPayload.Key <= lastHourPayload.PayloadDate Then
-                                                If runningPayload.Value.High > hourlyHighFractal(runningPayload.Value.PayloadDate) Then
-                                                    hourlyTrend = Color.Green
-                                                    Exit For
-                                                ElseIf runningPayload.Value.Low < hourlyLowFractal(runningPayload.Value.PayloadDate) Then
-                                                    hourlyTrend = Color.Red
-                                                    Exit For
-                                                End If
-                                            End If
-                                        Next
-                                        For Each runningPayload In xMinutePayload.OrderByDescending(Function(x)
-                                                                                                        Return x.Key
-                                                                                                    End Function)
-                                            If runningPayload.Key <= lastMinPayload.PayloadDate Then
-                                                If runningPayload.Value.High > xMinuteHighFractal(runningPayload.Value.PayloadDate) Then
-                                                    xMinuteTrend = Color.Green
-                                                    Exit For
-                                                ElseIf runningPayload.Value.Low < xMinuteLowFractal(runningPayload.Value.PayloadDate) Then
-                                                    xMinuteTrend = Color.Red
-                                                    Exit For
-                                                End If
-                                            End If
-                                        Next
+                                        If weeklyHighFractal(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
+                                            weeklyHighFractal(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastWeekPayload.Close > weeklyHighFractal(lastWeekPayload.PayloadDate).CurrentValue Then
+                                            weeklyTrend = Color.Green
+                                        ElseIf weeklyLowFractal(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
+                                            weeklyLowFractal(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastWeekPayload.Close < weeklyLowFractal(lastWeekPayload.PayloadDate).CurrentValue Then
+                                            weeklyTrend = Color.Red
+                                        End If
+                                        If dailyHighFractal(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
+                                            dailyHighFractal(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastDayPayload.Close > dailyHighFractal(lastDayPayload.PayloadDate).CurrentValue Then
+                                            dailyTrend = Color.Green
+                                        ElseIf dailyLowFractal(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
+                                            dailyLowFractal(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastDayPayload.Close < dailyLowFractal(lastDayPayload.PayloadDate).CurrentValue Then
+                                            dailyTrend = Color.Red
+                                        End If
+                                        If hourlyHighFractal(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
+                                            hourlyHighFractal(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastHourPayload.Close > hourlyHighFractal(lastHourPayload.PayloadDate).CurrentValue Then
+                                            hourlyTrend = Color.Green
+                                        ElseIf hourlyLowFractal(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
+                                            hourlyLowFractal(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastHourPayload.Close < hourlyLowFractal(lastHourPayload.PayloadDate).CurrentValue Then
+                                            hourlyTrend = Color.Red
+                                        End If
+                                        If xMinuteHighFractal(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
+                                            xMinuteHighFractal(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastMinPayload.Close > xMinuteHighFractal(lastMinPayload.PayloadDate).CurrentValue Then
+                                            xMinuteTrend = Color.Green
+                                        ElseIf xMinuteLowFractal(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
+                                            xMinuteLowFractal(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastMinPayload.Close < xMinuteLowFractal(lastMinPayload.PayloadDate).CurrentValue Then
+                                            xMinuteTrend = Color.Red
+                                        End If
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                         tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
