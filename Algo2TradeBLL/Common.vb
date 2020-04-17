@@ -299,7 +299,7 @@ Public Class Common
                     newCandleStarted = False
                     Dim prevPayload As Payload = runningOutputPayload
                     runningOutputPayload = New Payload(Payload.CandleDataSource.Calculated)
-                    runningOutputPayload.PayloadDate = payload.PayloadDate
+                    runningOutputPayload.PayloadDate = GetStartDateOfTheWeek(payload.PayloadDate, DayOfWeek.Monday)
                     runningOutputPayload.Open = payload.Open
                     runningOutputPayload.High = payload.High
                     runningOutputPayload.Low = payload.Low

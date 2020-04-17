@@ -42,6 +42,7 @@ Public Class MultiTimeframeSignal
         ret.Columns.Add("Daily")
         ret.Columns.Add("Hourly")
         ret.Columns.Add("15 Minutes")
+        ret.Columns.Add("Overall")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -98,12 +99,13 @@ Public Class MultiTimeframeSignal
                                         Indicator.Supertrend.CalculateSupertrend(7, 3, hourlyPayload, Nothing, hourlySupertrend)
                                         Indicator.Supertrend.CalculateSupertrend(7, 3, xMinutePayload, Nothing, xMinuteSupertrend)
 
+                                        Dim weeklyTrend As Color = weeklySupertrend(lastWeekPayload.PayloadDate)
+                                        Dim dailyTrend As Color = dailySupertrend(lastDayPayload.PayloadDate)
+                                        Dim hourlyTrend As Color = hourlySupertrend(lastHourPayload.PayloadDate)
+                                        Dim xMinuteTrend As Color = xMinuteSupertrend(lastMinPayload.PayloadDate)
+
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock,
-                                                          {weeklySupertrend(lastWeekPayload.PayloadDate).Name,
-                                                           dailySupertrend(lastDayPayload.PayloadDate).Name,
-                                                           hourlySupertrend(lastHourPayload.PayloadDate).Name,
-                                                           xMinuteSupertrend(lastMinPayload.PayloadDate).Name})
+                                        tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
                                     ElseIf _indicatorType = TypeOfIndicator.TII Then
                                         Dim weeklyTII As Dictionary(Of Date, Decimal) = Nothing
                                         Dim weeklySignal As Dictionary(Of Date, Decimal) = Nothing
@@ -123,24 +125,24 @@ Public Class MultiTimeframeSignal
                                         Dim dailyTrend As Color = Color.White
                                         Dim hourlyTrend As Color = Color.White
                                         Dim xMinuteTrend As Color = Color.White
-                                        If weeklyTII(lastWeekPayload.PayloadDate) >= 80 Then
+                                        If weeklyTII(lastWeekPayload.PayloadDate) >= 100 Then
                                             weeklyTrend = Color.Green
-                                        ElseIf weeklyTII(lastWeekPayload.PayloadDate) <= 20 Then
+                                        ElseIf weeklyTII(lastWeekPayload.PayloadDate) <= 0 Then
                                             weeklyTrend = Color.Red
                                         End If
-                                        If dailyTII(lastDayPayload.PayloadDate) >= 80 Then
+                                        If dailyTII(lastDayPayload.PayloadDate) >= 100 Then
                                             dailyTrend = Color.Green
-                                        ElseIf dailyTII(lastDayPayload.PayloadDate) <= 20 Then
+                                        ElseIf dailyTII(lastDayPayload.PayloadDate) <= 0 Then
                                             dailyTrend = Color.Red
                                         End If
-                                        If hourlyTII(lastHourPayload.PayloadDate) >= 80 Then
+                                        If hourlyTII(lastHourPayload.PayloadDate) >= 100 Then
                                             hourlyTrend = Color.Green
-                                        ElseIf hourlyTII(lastHourPayload.PayloadDate) <= 20 Then
+                                        ElseIf hourlyTII(lastHourPayload.PayloadDate) <= 0 Then
                                             hourlyTrend = Color.Red
                                         End If
-                                        If xMinuteTII(lastMinPayload.PayloadDate) >= 80 Then
+                                        If xMinuteTII(lastMinPayload.PayloadDate) >= 100 Then
                                             xMinuteTrend = Color.Green
-                                        ElseIf xMinuteTII(lastMinPayload.PayloadDate) <= 20 Then
+                                        ElseIf xMinuteTII(lastMinPayload.PayloadDate) <= 0 Then
                                             xMinuteTrend = Color.Red
                                         End If
 
@@ -317,6 +319,65 @@ Public Class MultiTimeframeSignal
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                         tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
+                                    ElseIf _indicatorType = TypeOfIndicator.SWING_HIGH_LOW Then
+                                        Dim weeklyHighSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim weeklyLowSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim dailyHighSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim dailyLowSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim hourlyHighSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim hourlyLowSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim xMinuteHighSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+                                        Dim xMinuteLowSwing As Dictionary(Of Date, TrendLineVeriables) = Nothing
+
+                                        Indicator.SwingHighLowTrendLine.CalculateSwingHighLowTrendLine(weeklyPayload, weeklyHighSwing, weeklyLowSwing, Nothing, Nothing)
+                                        Indicator.SwingHighLowTrendLine.CalculateSwingHighLowTrendLine(eodPayload, dailyHighSwing, dailyLowSwing, Nothing, Nothing)
+                                        Indicator.SwingHighLowTrendLine.CalculateSwingHighLowTrendLine(hourlyPayload, hourlyHighSwing, hourlyLowSwing, Nothing, Nothing)
+                                        Indicator.SwingHighLowTrendLine.CalculateSwingHighLowTrendLine(xMinutePayload, xMinuteHighSwing, xMinuteLowSwing, Nothing, Nothing)
+
+                                        Dim weeklyTrend As Color = Color.White
+                                        Dim dailyTrend As Color = Color.White
+                                        Dim hourlyTrend As Color = Color.White
+                                        Dim xMinuteTrend As Color = Color.White
+
+                                        If weeklyHighSwing(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
+                                            weeklyHighSwing(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastWeekPayload.Close > weeklyHighSwing(lastWeekPayload.PayloadDate).CurrentValue Then
+                                            weeklyTrend = Color.Green
+                                        ElseIf weeklyLowSwing(lastWeekPayload.PayloadDate) IsNot Nothing AndAlso
+                                            weeklyLowSwing(lastWeekPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastWeekPayload.Close < weeklyLowSwing(lastWeekPayload.PayloadDate).CurrentValue Then
+                                            weeklyTrend = Color.Red
+                                        End If
+                                        If dailyHighSwing(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
+                                            dailyHighSwing(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastDayPayload.Close > dailyHighSwing(lastDayPayload.PayloadDate).CurrentValue Then
+                                            dailyTrend = Color.Green
+                                        ElseIf dailyLowSwing(lastDayPayload.PayloadDate) IsNot Nothing AndAlso
+                                            dailyLowSwing(lastDayPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastDayPayload.Close < dailyLowSwing(lastDayPayload.PayloadDate).CurrentValue Then
+                                            dailyTrend = Color.Red
+                                        End If
+                                        If hourlyHighSwing(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
+                                            hourlyHighSwing(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastHourPayload.Close > hourlyHighSwing(lastHourPayload.PayloadDate).CurrentValue Then
+                                            hourlyTrend = Color.Green
+                                        ElseIf hourlyLowSwing(lastHourPayload.PayloadDate) IsNot Nothing AndAlso
+                                            hourlyLowSwing(lastHourPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastHourPayload.Close < hourlyLowSwing(lastHourPayload.PayloadDate).CurrentValue Then
+                                            hourlyTrend = Color.Red
+                                        End If
+                                        If xMinuteHighSwing(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
+                                            xMinuteHighSwing(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastMinPayload.Close > xMinuteHighSwing(lastMinPayload.PayloadDate).CurrentValue Then
+                                            xMinuteTrend = Color.Green
+                                        ElseIf xMinuteLowSwing(lastMinPayload.PayloadDate) IsNot Nothing AndAlso
+                                            xMinuteLowSwing(lastMinPayload.PayloadDate).CurrentValue <> Decimal.MinValue AndAlso
+                                            lastMinPayload.Close < xMinuteLowSwing(lastMinPayload.PayloadDate).CurrentValue Then
+                                            xMinuteTrend = Color.Red
+                                        End If
+
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(runningStock, {weeklyTrend.Name, dailyTrend.Name, hourlyTrend.Name, xMinuteTrend.Name})
                                     End If
                                 End If
                             End If
@@ -326,6 +387,18 @@ Public Class MultiTimeframeSignal
                         Dim stockCounter As Integer = 0
                         For Each runningStock In tempStockList
                             _canceller.Token.ThrowIfCancellationRequested()
+
+                            Dim weeklyTrend As String = runningStock.Value(0)
+                            Dim dailyTrend As String = runningStock.Value(1)
+                            Dim hourlyTrend As String = runningStock.Value(2)
+                            Dim xMinuteTrend As String = runningStock.Value(3)
+                            Dim overallTrend As String = "White"
+                            If weeklyTrend.Trim.ToUpper = dailyTrend.Trim.ToUpper AndAlso
+                                dailyTrend.Trim.ToUpper = hourlyTrend.Trim.ToUpper AndAlso
+                                hourlyTrend.Trim.ToUpper = xMinuteTrend.Trim.ToUpper Then
+                                overallTrend = xMinuteTrend
+                            End If
+
                             Dim row As DataRow = ret.NewRow
                             row("Date") = tradingDate.ToString("dd-MM-yyyy")
                             row("Trading Symbol") = atrStockList(runningStock.Key).TradingSymbol
@@ -338,10 +411,11 @@ Public Class MultiTimeframeSignal
                             row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                             row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
-                            row("Weekly") = runningStock.Value(0)
-                            row("Daily") = runningStock.Value(1)
-                            row("Hourly") = runningStock.Value(2)
-                            row("15 Minutes") = runningStock.Value(3)
+                            row("Weekly") = weeklyTrend
+                            row("Daily") = dailyTrend
+                            row("Hourly") = hourlyTrend
+                            row("15 Minutes") = xMinuteTrend
+                            row("Overall") = overallTrend
 
                             ret.Rows.Add(row)
                             stockCounter += 1
