@@ -77,7 +77,7 @@ Public Class MultiTimeframeSignal
                                     Dim currentWeek As Date = Common.GetStartDateOfTheWeek(tradingDate, DayOfWeek.Monday)
                                     If lastWeekPayload.PayloadDate = currentWeek Then lastWeekPayload = weeklyPayload.LastOrDefault.Value.PreviousCandlePayload
                                     Dim lastDayPayload As Payload = eodPayload.LastOrDefault.Value
-                                    Dim lastHourPayload As Payload = hourlyPayload.LastOrDefault.Value.PreviousCandlePayload
+                                    Dim lastHourPayload As Payload = hourlyPayload.LastOrDefault.Value
                                     Dim lastMinPayload As Payload = xMinutePayload.LastOrDefault.Value
 
                                     If _indicatorType = TypeOfIndicator.COLOR Then
@@ -85,7 +85,7 @@ Public Class MultiTimeframeSignal
                                         tempStockList.Add(runningStock,
                                                           {lastWeekPayload.CandleColor.Name,
                                                            lastDayPayload.CandleColor.Name,
-                                                           lastHourPayload.CandleColor.Name,
+                                                           lastHourPayload.PreviousCandlePayload.CandleColor.Name,
                                                            lastMinPayload.CandleColor.Name})
                                     ElseIf _indicatorType = TypeOfIndicator.SUPERTREND Then
                                         Dim weeklySupertrend As Dictionary(Of Date, Color) = Nothing
