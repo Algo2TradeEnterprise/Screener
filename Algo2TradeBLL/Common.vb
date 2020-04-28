@@ -723,7 +723,7 @@ Public Class Common
                 cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_currency` WHERE `TRADING_SYMBOL` REGEXP @trd AND `SEGMENT`='CDS-FUT' AND `AS_ON_DATE`=@sd", conn)
                 cm.Parameters.AddWithValue("@trd", String.Format("^{0}[0-9][0-9]*", rawInstrumentName))
             Case DataBaseTable.Intraday_Commodity, DataBaseTable.EOD_Commodity
-                cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_commodity` WHERE `TRADING_SYMBOL` REGEXP @trd AND `SEGMENT`='MCX' AND `AS_ON_DATE`=@sd", conn)
+                cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_commodity` WHERE `TRADING_SYMBOL` REGEXP @trd AND (`SEGMENT`='MCX' OR `SEGMENT`='MCX-FUT') AND `AS_ON_DATE`=@sd", conn)
                 cm.Parameters.AddWithValue("@trd", String.Format("^{0}[0-9][0-9]*", rawInstrumentName))
             Case DataBaseTable.Intraday_Futures, DataBaseTable.EOD_Futures
                 cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_futures` WHERE `TRADING_SYMBOL` REGEXP @trd AND `SEGMENT`='NFO-FUT' AND `AS_ON_DATE`=@sd", conn)
