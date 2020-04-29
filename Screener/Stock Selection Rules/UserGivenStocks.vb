@@ -1,6 +1,8 @@
 ﻿Imports System.IO
+Imports System.Net.Http
 Imports System.Threading
 Imports Algo2TradeBLL
+Imports Utilities.Network
 
 Public Class UserGivenStocks
     Inherits StockSelection
@@ -29,6 +31,11 @@ Public Class UserGivenStocks
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
 
+        Dim commodityMultiplierMap As Dictionary(Of String, Object) = Nothing
+        If _eodTable = Common.DataBaseTable.EOD_Commodity Then
+            commodityMultiplierMap = Await GetCommodityMultiplier().ConfigureAwait(False)
+        End If
+
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
             If _stockList IsNot Nothing AndAlso _stockList.Count > 0 Then
@@ -43,6 +50,14 @@ Public Class UserGivenStocks
                             Dim currentTradingSymbol As String = _cmn.GetCurrentTradingSymbol(_eodTable, tradingDate, runningStock)
                             Dim lotSize As Integer = _cmn.GetLotSize(_eodTable, currentTradingSymbol, tradingDate)
                             If currentTradingSymbol IsNot Nothing AndAlso lotSize <> Integer.MinValue Then
+                                If _eodTable = Common.DataBaseTable.EOD_Currency Then
+                                    lotSize = lotSize * 1000
+                                ElseIf _eodTable = Common.DataBaseTable.EOD_Commodity Then
+                                    If commodityMultiplierMap IsNot Nothing AndAlso commodityMultiplierMap.ContainsKey(runningStock) Then
+                                        Dim multiplier As Long = commodityMultiplierMap(runningStock).ToString.Substring(0, commodityMultiplierMap(runningStock).ToString.Length - 1)
+                                        lotSize = lotSize * multiplier
+                                    End If
+                                End If
                                 Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_eodTable, currentTradingSymbol, previousTradingDay.AddDays(-200), previousTradingDay)
                                 If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
                                     If eodPayload.LastOrDefault.Value.PayloadDate.Date = previousTradingDay.Date Then
@@ -60,7 +75,6 @@ Public Class UserGivenStocks
                             End If
                         Next
                         If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
-                            Dim stockCounter As Integer = 0
                             For Each runningStock In tempStockList
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 Dim row As DataRow = ret.NewRow
@@ -119,6 +133,46 @@ Public Class UserGivenStocks
                 End If
             End If
         End If
+        Return ret
+    End Function
+
+    Private Async Function GetCommodityMultiplier() As Task(Of Dictionary(Of String, Object))
+        Dim proxyToBeUsed As HttpProxy = Nothing
+        Dim ret As Dictionary(Of String, Object) = Nothing
+
+        Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip, New TimeSpan(0, 1, 0), _canceller)
+            AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+            AddHandler browser.Heartbeat, AddressOf OnHeartbeat
+            AddHandler browser.WaitingFor, AddressOf OnWaitingFor
+            AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync("https://zerodha.com/static/js/brokerage.min.js",
+                                                                                 HttpMethod.Get,
+                                                                                 Nothing,
+                                                                                 True,
+                                                                                 Nothing,
+                                                                                 False,
+                                                                                 Nothing).ConfigureAwait(False)
+            If l Is Nothing OrElse l.Item2 Is Nothing Then
+                Throw New ApplicationException(String.Format("No response in the additional site's to fetch commodity multiplier and group map: {0}",
+                                                             "https://zerodha.com/static/js/brokerage.min.js"))
+            End If
+            If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                Dim jString As String = l.Item2
+                If jString IsNot Nothing Then
+                    Dim multiplierMap As String = Utilities.Strings.GetTextBetween("COMMODITY_MULTIPLIER_MAP=", "}", jString)
+                    If multiplierMap IsNot Nothing Then
+                        multiplierMap = multiplierMap & "}"
+                        ret = Utilities.Strings.JsonDeserialize(multiplierMap)
+                    End If
+
+                    'Dim groupMap As String = Utilities.Strings.GetTextBetween("COMMODITY_GROUP_MAP=", "}", jString)
+                    'If groupMap IsNot Nothing Then
+                    '    groupMap = groupMap & "}"
+                    '    GlobalVar.GroupMap = Utilities.Strings.JsonDeserialize(groupMap)
+                    'End If
+                End If
+            End If
+        End Using
         Return ret
     End Function
 End Class
