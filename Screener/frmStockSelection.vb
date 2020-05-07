@@ -381,47 +381,47 @@ Public Class frmStockSelection
         Select Case index
             Case 0
                 LoadSettings(pnlInstrumentList)
-                lblDescription.Text = String.Format("Return the user given stocklist with proper lotsize and volume filter. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return the user given stocklist with proper lotsize and volume filter. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 1
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 2
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return ATR Stocks with Pre market change% and previous close. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return ATR Stocks with Pre market change% and previous close. Give the date you want to trade. Current Date is also accepted if pre market backup is done.(Expecting that previous day data is there in the database)")
             Case 3
                 dtpkrVolumeSpikeChkTime.Value = New Date(Now.Year, Now.Month, Now.Day, 9, 18, 0)
                 LoadSettings(pnlIntradayVolumeSpikeSettings)
-                lblDescription.Text = String.Format("Return ATR stocks with volume change% till checking time compare to Previous 5 days average volume till checking time. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return ATR stocks with volume change% till checking time compare to Previous 5 days average volume till checking time. Give the date you want to trade if it is not the current date.")
             Case 4
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return ATR Stocks where previous day Open=High or Open=Low. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return ATR Stocks where previous day Open=High or Open=Low. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 5
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Stocks which touch the previous day last candle on first minute. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Stocks which touch the previous day last candle on first minute. Give the date you want to trade if it is not the current date.")
             Case 6
                 dtpkrTopGainerLosserChkTime.Value = New Date(Now.Year, Now.Month, Now.Day, 9, 19, 0)
                 txtTopGainerLosserNiftyChangePercentage.Text = 0
                 chkbTopGainerTopLosserOnlyBankniftyStocks.Checked = False
                 LoadSettings(pnlTopGainerLooserSettings)
-                lblDescription.Text = String.Format("Return ATR stocks with change% till checking time compare to Previous day close. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return ATR stocks with change% till checking time compare to Previous day close. Give the date you want to trade if it is not the current date.")
             Case 7
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Stocks which open above/below previous day high/low and continues the gap after 5 mins. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Stocks which open above/below previous day high/low and continues the gap after 5 mins. Give the date you want to trade if it is not the current date.")
             Case 8
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Stocks which creats minimum 1% gap between cash and future. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Stocks which creats minimum 1% gap between cash and future. Give the date you want to trade if it is not the current date.")
             Case 9
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks with high turnover (5 day average of volume X close). If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with high turnover (5 day average of volume X close). If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 10
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks with every minute top gainer losser. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with every minute top gainer losser. Give the date you want to trade if it is not the current date.")
             Case 11
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks with high slab lavel moved. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with high slab lavel moved. Give the date you want to trade if it is not the current date.")
             Case 12
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with open between one slab of previous day high or low. Give the date you want to trade if it is not the current date.")
             Case 13
                 For i = 1 To 7
                     Dim indicatorType As MultiTimeframeSignal.TypeOfIndicator = i
@@ -429,18 +429,18 @@ Public Class frmStockSelection
                 Next
                 cmbMultiTFIndicator.SelectedIndex = 1
                 LoadSettings(pnlMultiTFSettings)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks with last Week, Day, Hour, 15 Minutes candle value for respective indicator. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with last Week, Day, Hour, 15 Minutes candle value for respective indicator. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 14
                 txtNarrowRangeNmbrOfDays.Text = 7
                 LoadSettings(pnlNarrowRangeSettings)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks where current day candle range is less than last X(Number Of Days) days candle range. If you want to trade today give previous trading date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks where current day candle range is less than last X(Number Of Days) days candle range. Give the date you want to trade if it is not the current date.")
             Case 15
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with every minute top gainer losser(top 5 with no duplicate records). Give the date you want to trade if it is not the current date.")
             Case 16
                 txtMinimumCPRRangePer.Text = 100
                 LoadSettings(pnlCPRNarrowRangeSettings)
-                lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average. If you want to trade today give today's date.")
+                lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select
