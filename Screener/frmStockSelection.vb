@@ -358,6 +358,8 @@ Public Class frmStockSelection
                     stock = New TopGainerTopLosserOfEverySlab(_canceller, cmn, stockType)
                 Case 16
                     stock = New CPRNarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtMinimumCPRRangePer))
+                Case 17
+                    stock = New LowestRangeStocksOfEveryMinute(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -441,6 +443,9 @@ Public Class frmStockSelection
                 txtMinimumCPRRangePer.Text = 100
                 LoadSettings(pnlCPRNarrowRangeSettings)
                 lblDescription.Text = String.Format("Return High ATR stocks where current day CPR is narrow compare to previous 5 day average. Give the date you want to trade if it is not the current date.")
+            Case 17
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return lowest candle range stock in every minute from 9:15 to 10:30. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select
