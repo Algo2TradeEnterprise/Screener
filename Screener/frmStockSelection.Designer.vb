@@ -72,6 +72,9 @@ Partial Class frmStockSelection
         Me.pnlMultiTFSettings = New System.Windows.Forms.Panel()
         Me.cmbMultiTFIndicator = New System.Windows.Forms.ComboBox()
         Me.Label7 = New System.Windows.Forms.Label()
+        Me.pnlLowRangeStocksOfXMinuteSettings = New System.Windows.Forms.Panel()
+        Me.dtpckrLowRangeTime = New System.Windows.Forms.DateTimePicker()
+        Me.Label9 = New System.Windows.Forms.Label()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -80,6 +83,7 @@ Partial Class frmStockSelection
         Me.pnlNarrowRangeSettings.SuspendLayout()
         Me.pnlCPRNarrowRangeSettings.SuspendLayout()
         Me.pnlMultiTFSettings.SuspendLayout()
+        Me.pnlLowRangeStocksOfXMinuteSettings.SuspendLayout()
         Me.SuspendLayout()
         '
         'Panel1
@@ -341,7 +345,7 @@ Partial Class frmStockSelection
         Me.cmbProcedure.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbProcedure.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.cmbProcedure.FormattingEnabled = True
-        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab", "CPR Narrow Range Stocks", "Lowest Range Stock Of Every Minute"})
+        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab", "CPR Narrow Range Stocks", "Lowest Range Stock Of Every Minute", "Lowest Range Stock Of X Minute"})
         Me.cmbProcedure.Location = New System.Drawing.Point(87, 14)
         Me.cmbProcedure.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbProcedure.Name = "cmbProcedure"
@@ -567,11 +571,40 @@ Partial Class frmStockSelection
         Me.Label7.TabIndex = 6
         Me.Label7.Text = "Indicator:"
         '
+        'pnlLowRangeStocksOfXMinuteSettings
+        '
+        Me.pnlLowRangeStocksOfXMinuteSettings.Controls.Add(Me.dtpckrLowRangeTime)
+        Me.pnlLowRangeStocksOfXMinuteSettings.Controls.Add(Me.Label9)
+        Me.pnlLowRangeStocksOfXMinuteSettings.Location = New System.Drawing.Point(493, 6)
+        Me.pnlLowRangeStocksOfXMinuteSettings.Name = "pnlLowRangeStocksOfXMinuteSettings"
+        Me.pnlLowRangeStocksOfXMinuteSettings.Size = New System.Drawing.Size(322, 70)
+        Me.pnlLowRangeStocksOfXMinuteSettings.TabIndex = 66
+        '
+        'dtpckrLowRangeTime
+        '
+        Me.dtpckrLowRangeTime.Format = System.Windows.Forms.DateTimePickerFormat.Time
+        Me.dtpckrLowRangeTime.Location = New System.Drawing.Point(100, 11)
+        Me.dtpckrLowRangeTime.Name = "dtpckrLowRangeTime"
+        Me.dtpckrLowRangeTime.ShowUpDown = True
+        Me.dtpckrLowRangeTime.Size = New System.Drawing.Size(110, 22)
+        Me.dtpckrLowRangeTime.TabIndex = 5
+        Me.dtpckrLowRangeTime.Value = New Date(2019, 12, 8, 0, 0, 0, 0)
+        '
+        'Label9
+        '
+        Me.Label9.AutoSize = True
+        Me.Label9.Location = New System.Drawing.Point(8, 12)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(86, 17)
+        Me.Label9.TabIndex = 4
+        Me.Label9.Text = "Check Time:"
+        '
         'frmStockSelection
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1300, 661)
+        Me.Controls.Add(Me.pnlLowRangeStocksOfXMinuteSettings)
         Me.Controls.Add(Me.pnlMultiTFSettings)
         Me.Controls.Add(Me.pnlCPRNarrowRangeSettings)
         Me.Controls.Add(Me.pnlNarrowRangeSettings)
@@ -606,6 +639,8 @@ Partial Class frmStockSelection
         Me.pnlCPRNarrowRangeSettings.PerformLayout()
         Me.pnlMultiTFSettings.ResumeLayout(False)
         Me.pnlMultiTFSettings.PerformLayout()
+        Me.pnlLowRangeStocksOfXMinuteSettings.ResumeLayout(False)
+        Me.pnlLowRangeStocksOfXMinuteSettings.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -660,4 +695,7 @@ Partial Class frmStockSelection
     Friend WithEvents pnlMultiTFSettings As Panel
     Friend WithEvents cmbMultiTFIndicator As ComboBox
     Friend WithEvents Label7 As Label
+    Friend WithEvents pnlLowRangeStocksOfXMinuteSettings As Panel
+    Friend WithEvents dtpckrLowRangeTime As DateTimePicker
+    Friend WithEvents Label9 As Label
 End Class

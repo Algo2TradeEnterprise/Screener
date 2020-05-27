@@ -360,6 +360,8 @@ Public Class frmStockSelection
                     stock = New CPRNarrowRangeStocks(_canceller, cmn, stockType, GetTextBoxText_ThreadSafe(txtMinimumCPRRangePer))
                 Case 17
                     stock = New LowestRangeStocksOfEveryMinute(_canceller, cmn, stockType)
+                Case 18
+                    stock = New LowestRangeStockOfXMinute(_canceller, cmn, stockType, GetDateTimePickerValue_ThreadSafe(dtpckrLowRangeTime))
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -446,6 +448,10 @@ Public Class frmStockSelection
             Case 17
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return lowest candle range stock in every minute from 9:15 to 10:30. Give the date you want to trade if it is not the current date.")
+            Case 18
+                dtpckrLowRangeTime.Value = New Date(Now.Year, Now.Month, Now.Day, 9, 15, 0)
+                LoadSettings(pnlLowRangeStocksOfXMinuteSettings)
+                lblDescription.Text = String.Format("Return lowest candle range stocks of x minute in ascending order. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -467,6 +473,7 @@ Public Class frmStockSelection
         panelList.Add(pnlNarrowRangeSettings)
         panelList.Add(pnlCPRNarrowRangeSettings)
         panelList.Add(pnlMultiTFSettings)
+        panelList.Add(pnlLowRangeStocksOfXMinuteSettings)
 
         For Each runningPanel In panelList
             If panelName IsNot Nothing AndAlso runningPanel.Name = panelName.Name Then
