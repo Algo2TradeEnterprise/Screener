@@ -30,8 +30,8 @@ Public Class LowestRangeStockOfXMinute
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Range %")
-        ret.Columns.Add("Previous Day Highest ATR")
         ret.Columns.Add("ATR Range")
+        ret.Columns.Add("Volume Per Range")
         ret.Columns.Add("Time")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -69,8 +69,6 @@ Public Class LowestRangeStockOfXMinute
                             If stockData.ContainsKey(runningStock) AndAlso stockData(runningStock).ContainsKey(checkingTime) Then
                                 Dim checkPayload As Payload = stockData(runningStock)(checkingTime)
                                 If checkPayload IsNot Nothing Then
-                                    Dim range As Decimal = ((checkPayload.High - checkPayload.Low) / checkPayload.Close) * 100
-
                                     Dim highestATR As Decimal = Decimal.MinValue
                                     Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
                                     Indicator.ATR.CalculateATR(14, stockData(runningStock), atrPayload)
@@ -95,10 +93,12 @@ Public Class LowestRangeStockOfXMinute
                                         End If
                                     End If
                                     If highestATR <> Decimal.MinValue Then
+                                        Dim range As Decimal = ((checkPayload.High - checkPayload.Low) / checkPayload.Close) * 100
                                         Dim atrRange As Decimal = ((checkPayload.High - checkPayload.Low) / highestATR)
+                                        Dim volumePerRange As Decimal = checkPayload.Volume / (checkPayload.High - checkPayload.Low)
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(highestATR, 4), Math.Round(atrRange, 4), checkingTime.ToString("HH:mm:ss")})
+                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), checkingTime.ToString("HH:mm:ss")})
                                     End If
                                 End If
                             End If
@@ -106,9 +106,9 @@ Public Class LowestRangeStockOfXMinute
                     End If
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
-                        For Each runningStock In tempStockList.OrderBy(Function(x)
-                                                                           Return CDec(x.Value(2))
-                                                                       End Function)
+                        For Each runningStock In tempStockList.OrderByDescending(Function(x)
+                                                                                     Return CDec(x.Value(2))
+                                                                                 End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
                             row("Date") = tradingDate.ToString("dd-MM-yyyy")
@@ -124,8 +124,8 @@ Public Class LowestRangeStockOfXMinute
                             row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Range %") = runningStock.Value(0)
-                            row("Previous Day Highest ATR") = runningStock.Value(1)
-                            row("ATR Range") = runningStock.Value(2)
+                            row("ATR Range") = runningStock.Value(1)
+                            row("Volume Per Range") = runningStock.Value(2)
                             row("Time") = runningStock.Value(3)
 
                             ret.Rows.Add(row)
