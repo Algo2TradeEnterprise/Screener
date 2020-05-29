@@ -30,6 +30,8 @@ Public Class LowestRangeStockOfXMinute
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Range %")
+        ret.Columns.Add("Previous Day Highest ATR")
+        ret.Columns.Add("ATR Range")
         ret.Columns.Add("Time")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -54,8 +56,8 @@ Public Class LowestRangeStockOfXMinute
                     Dim stockData As Dictionary(Of String, Dictionary(Of Date, Payload)) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate, tradingDate)
-                        If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
+                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-8), tradingDate)
+                        If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 100 Then
                             If stockData Is Nothing Then stockData = New Dictionary(Of String, Dictionary(Of Date, Payload))
                             stockData.Add(runningStock, intradayPayload)
                         End If
@@ -69,8 +71,35 @@ Public Class LowestRangeStockOfXMinute
                                 If checkPayload IsNot Nothing Then
                                     Dim range As Decimal = ((checkPayload.High - checkPayload.Low) / checkPayload.Close) * 100
 
-                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                    tempStockList.Add(runningStock, {Math.Round(range, 4), checkingTime.ToString("HH:mm:ss")})
+                                    Dim highestATR As Decimal = Decimal.MinValue
+                                    Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
+                                    Indicator.ATR.CalculateATR(14, stockData(runningStock), atrPayload)
+                                    If atrPayload IsNot Nothing AndAlso atrPayload.Count > 0 Then
+                                        Dim firstCandle As Payload = Nothing
+                                        For Each runningPayload In stockData(runningStock)
+                                            If runningPayload.Key.Date = tradingDate.Date Then
+                                                If runningPayload.Value.PreviousCandlePayload.PayloadDate.Date <> tradingDate.Date Then
+                                                    firstCandle = runningPayload.Value
+                                                    Exit For
+                                                End If
+                                            End If
+                                        Next
+                                        If firstCandle IsNot Nothing AndAlso firstCandle.PreviousCandlePayload IsNot Nothing Then
+                                            highestATR = atrPayload.Max(Function(x)
+                                                                            If x.Key.Date = firstCandle.PreviousCandlePayload.PayloadDate.Date Then
+                                                                                Return x.Value
+                                                                            Else
+                                                                                Return Decimal.MinValue
+                                                                            End If
+                                                                        End Function)
+                                        End If
+                                    End If
+                                    If highestATR <> Decimal.MinValue Then
+                                        Dim atrRange As Decimal = ((checkPayload.High - checkPayload.Low) / highestATR)
+
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(highestATR, 4), Math.Round(atrRange, 4), checkingTime.ToString("HH:mm:ss")})
+                                    End If
                                 End If
                             End If
                         Next
@@ -78,7 +107,7 @@ Public Class LowestRangeStockOfXMinute
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
                         For Each runningStock In tempStockList.OrderBy(Function(x)
-                                                                           Return CDec(x.Value(0))
+                                                                           Return CDec(x.Value(2))
                                                                        End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
@@ -95,7 +124,9 @@ Public Class LowestRangeStockOfXMinute
                             row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Range %") = runningStock.Value(0)
-                            row("Time") = runningStock.Value(1)
+                            row("Previous Day Highest ATR") = runningStock.Value(1)
+                            row("ATR Range") = runningStock.Value(2)
+                            row("Time") = runningStock.Value(3)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
