@@ -14,10 +14,10 @@ Public Class LowerPriceStock
     Public Overrides Async Function GetStockDataAsync(ByVal startDate As Date, ByVal endDate As Date) As Task(Of DataTable)
         Await Task.Delay(0).ConfigureAwait(False)
         Dim ret As New DataTable
-        ret.Columns.Add("Date")
+        ret.Columns.Add("TradingDate")
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
-        ret.Columns.Add("Instrument Type")
+        ret.Columns.Add("InstrumentType")
         ret.Columns.Add("Previous Day Open")
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
@@ -47,10 +47,10 @@ Public Class LowerPriceStock
                         For Each runningStock In optionData.Values
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
-                            row("Date") = runningStock.PayloadDate.ToString("dd-MM-yyyy")
+                            row("TradingDate") = runningStock.PayloadDate.ToString("dd-MM-yyyy")
                             row("Trading Symbol") = runningStock.TradingSymbol
                             row("Lot Size") = 75
-                            row("Instrument Type") = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
+                            row("InstrumentType") = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
                             row("Previous Day Open") = runningStock.Open
                             row("Previous Day Low") = runningStock.Low
                             row("Previous Day High") = runningStock.High
