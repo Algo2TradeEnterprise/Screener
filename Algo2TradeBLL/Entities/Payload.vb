@@ -48,6 +48,15 @@ Public Class Payload
             _Close = value
         End Set
     End Property
+    Private _OI As Long
+    Public Property OI As Long
+        Get
+            Return _OI
+        End Get
+        Set(value As Long)
+            _OI = value
+        End Set
+    End Property
 
     Private _H_L As Decimal
     Public Property H_L As Decimal

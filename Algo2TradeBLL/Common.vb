@@ -358,13 +358,14 @@ Public Class Common
     End Function
 
     Public Shared Function ConvertDataTableToPayload(ByVal dt As DataTable,
-                                              ByVal openColumnIndex As Integer,
-                                              ByVal lowColumnIndex As Integer,
-                                              ByVal highColumnIndex As Integer,
-                                              ByVal closeColumnIndex As Integer,
-                                              ByVal volumeColumnIndex As Integer,
-                                              ByVal dateColumnIndex As Integer,
-                                              ByVal tradingSymbolColumnIndex As Integer) As Dictionary(Of Date, Payload)
+                                                     ByVal openColumnIndex As Integer,
+                                                     ByVal lowColumnIndex As Integer,
+                                                     ByVal highColumnIndex As Integer,
+                                                     ByVal closeColumnIndex As Integer,
+                                                     ByVal volumeColumnIndex As Integer,
+                                                     ByVal dateColumnIndex As Integer,
+                                                     ByVal tradingSymbolColumnIndex As Integer,
+                                                     Optional ByVal oiColumnIndex As Integer = Integer.MinValue) As Dictionary(Of Date, Payload)
 
         Dim inputpayload As Dictionary(Of Date, Payload) = Nothing
 
@@ -384,6 +385,7 @@ Public Class Common
                 tempPayload.Close = dt.Rows(i).Item(closeColumnIndex)
                 tempPayload.PayloadDate = dt.Rows(i).Item(dateColumnIndex)
                 tempPayload.TradingSymbol = dt.Rows(i).Item(tradingSymbolColumnIndex)
+                If oiColumnIndex <> Integer.MinValue Then tempPayload.OI = dt.Rows(i).Item(oiColumnIndex)
                 If tempPayload.PreviousCandlePayload IsNot Nothing Then
                     If tempPayload.PayloadDate.Date = tempPayload.PreviousCandlePayload.PayloadDate.Date Then
                         tempPayload.CumulativeVolume = tempPayload.PreviousCandlePayload.CumulativeVolume + dt.Rows(i).Item(volumeColumnIndex)
@@ -500,7 +502,7 @@ Public Class Common
         _cts.Token.ThrowIfCancellationRequested()
         Select Case tableName
             Case DataBaseTable.Intraday_Cash
-                connectionString = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDateTime`,`TradingSymbol` FROM `intraday_prices_cash` WHERE `TradingSymbol`=@trd AND `SnapshotDate`<='{0}' AND `SnapshotDate`>='{1}'", endDate.ToString("yyyy-MM-dd"), startDate.ToString("yyyy-MM-dd"))
+                connectionString = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDateTime`,`TradingSymbol`, FROM `intraday_prices_cash` WHERE `TradingSymbol`=@trd AND `SnapshotDate`<='{0}' AND `SnapshotDate`>='{1}'", endDate.ToString("yyyy-MM-dd"), startDate.ToString("yyyy-MM-dd"))
             Case DataBaseTable.Intraday_Currency
                 connectionString = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDateTime`,`TradingSymbol` FROM `intraday_prices_currency` WHERE `TradingSymbol`=@trd AND `SnapshotDate`<='{0}' AND `SnapshotDate`>='{1}'", endDate.ToString("yyyy-MM-dd"), startDate.ToString("yyyy-MM-dd"))
             Case DataBaseTable.Intraday_Commodity
@@ -801,6 +803,22 @@ Public Class Common
             If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
                 ret = dt.Rows(0).Item(0)
             End If
+        End If
+        Return ret
+    End Function
+
+    Public Async Function RunSelectAsync(ByVal query As String) As Task(Of DataTable)
+        Dim ret As DataTable = Nothing
+        If query IsNot Nothing Then
+            Dim conn As MySqlConnection = OpenDBConnection()
+            _cts.Token.ThrowIfCancellationRequested()
+            Dim cm As MySqlCommand = Nothing
+            cm = New MySqlCommand(query, conn)
+            _cts.Token.ThrowIfCancellationRequested()
+            Dim adapter As New MySqlDataAdapter(cm)
+            adapter.SelectCommand.CommandTimeout = 300
+            ret = New DataTable()
+            Await adapter.FillAsync(ret, _cts.Token).ConfigureAwait(False)
         End If
         Return ret
     End Function
