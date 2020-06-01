@@ -17,6 +17,7 @@ Public Class LowerPriceStock
         ret.Columns.Add("Date")
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
+        ret.Columns.Add("Instrument Type")
         ret.Columns.Add("Previous Day Open")
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
@@ -39,6 +40,7 @@ Public Class LowerPriceStock
                         thursdayOfWeek = tradingDate.AddDays(5)
                     End If
 
+                    OnHeartbeat(String.Format("Getting option data for {0}", tradingDate.ToString("dd-MM-yyyy")))
                     Dim optionData As Dictionary(Of String, Payload) = Await GetOptionStockData(thursdayOfWeek, "NIFTY", previousTradingDay).ConfigureAwait(False)
                     If optionData IsNot Nothing AndAlso optionData.Count > 0 Then
                         Dim stockCounter As Integer = 0
@@ -48,6 +50,7 @@ Public Class LowerPriceStock
                             row("Date") = runningStock.PayloadDate.ToString("dd-MM-yyyy")
                             row("Trading Symbol") = runningStock.TradingSymbol
                             row("Lot Size") = 75
+                            row("Instrument Type") = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
                             row("Previous Day Open") = runningStock.Open
                             row("Previous Day Low") = runningStock.Low
                             row("Previous Day High") = runningStock.High
