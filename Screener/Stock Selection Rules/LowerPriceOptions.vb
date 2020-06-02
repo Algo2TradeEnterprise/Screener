@@ -2,7 +2,7 @@
 Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class LowerPriceStock
+Public Class LowerPriceOptions
     Inherits StockSelection
 
     Public Sub New(ByVal canceller As CancellationTokenSource,

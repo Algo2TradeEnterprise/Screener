@@ -363,7 +363,9 @@ Public Class frmStockSelection
                 Case 18
                     stock = New LowestRangeStockOfXMinute(_canceller, cmn, stockType, GetDateTimePickerValue_ThreadSafe(dtpckrLowRangeTime))
                 Case 19
-                    stock = New LowerPriceStock(_canceller, cmn, stockType)
+                    stock = New LowerPriceOptions(_canceller, cmn, stockType)
+                Case 20
+                    stock = New LowerPriceOptionsWithOIChange(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -456,7 +458,10 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return lowest candle range stocks of x minute in ascending order. Give the date you want to trade if it is not the current date.")
             Case 19
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return NIFTY option stocks with Volume and OI where Close<10 . Give the date you want to trade if it is not the current date.")
+                lblDescription.Text = String.Format("Return NIFTY option stocks with Volume and OI where Close<10. Give the date you want to trade if it is not the current date.")
+            Case 20
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return NIFTY option stocks with Volume and OI Change % where Close<10. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select

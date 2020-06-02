@@ -107,11 +107,12 @@
     </Compile>
     <Compile Include="Stock Selection Rules\CPRNarrowRangeStocks.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocks.vb" />
-    <Compile Include="Stock Selection Rules\LowerPriceStock.vb" />
+    <Compile Include="Stock Selection Rules\LowerPriceOptions.vb" />
     <Compile Include="Stock Selection Rules\HighLowGapStock.vb" />
     <Compile Include="Stock Selection Rules\HighSlabLevelMovedStocks.vb" />
     <Compile Include="Stock Selection Rules\HighTurnoverStock.vb" />
     <Compile Include="Stock Selection Rules\IntradayVolumeSpike.vb" />
+    <Compile Include="Stock Selection Rules\LowerPriceOptionsWithOIChange.vb" />
     <Compile Include="Stock Selection Rules\LowestRangeStockOfXMinute.vb" />
     <Compile Include="Stock Selection Rules\LowestRangeStocksOfEveryMinute.vb" />
     <Compile Include="Stock Selection Rules\MultiTimeframeSignal.vb" />
