@@ -470,7 +470,7 @@ Public Class frmStockSelection
             Case 13
                 cmbStockType.SelectedIndex = 0
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
-            Case 19
+            Case 19, 20
                 cmbStockType.SelectedIndex = 3
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
             Case Else
