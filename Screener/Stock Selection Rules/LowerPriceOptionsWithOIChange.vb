@@ -55,13 +55,13 @@ Public Class LowerPriceOptionsWithOIChange
                                                                                                       Return x.PreviousOIChange > 0
                                                                                                   End Function).OrderByDescending(Function(y)
                                                                                                                                       Return y.PreviousVolume
-                                                                                                                                  End Function).Take(3).ToList
+                                                                                                                                  End Function).Take(My.Settings.NumberOfStockPerDay).ToList
 
                                 Dim ceSelectedStocks As List(Of OptionData) = ceStockList.FindAll(Function(x)
                                                                                                       Return x.PreviousOIChange > 0
                                                                                                   End Function).OrderByDescending(Function(y)
                                                                                                                                       Return y.PreviousVolume
-                                                                                                                                  End Function).Take(3).ToList
+                                                                                                                                  End Function).Take(My.Settings.NumberOfStockPerDay).ToList
 
                                 If peSelectedStocks IsNot Nothing AndAlso peSelectedStocks.Count > 0 Then
                                     For Each runningStock In peSelectedStocks
@@ -90,8 +90,6 @@ Public Class LowerPriceOptionsWithOIChange
                                     Next
                                 End If
                             End If
-
-
                         End If
                     End If
                 End If
