@@ -19,6 +19,7 @@ Public Class LowerPriceOptionsWithOIChange
         ret.Columns.Add("Lot Size")
         ret.Columns.Add("Instrument Type")
         ret.Columns.Add("Previous Volume")
+        ret.Columns.Add("Previous Blank Candle%")
         ret.Columns.Add("Previous OI Change%")
 
         Dim tradingDate As Date = startDate
@@ -32,7 +33,9 @@ Public Class LowerPriceOptionsWithOIChange
                     If prePreviousTradingDay <> Date.MinValue Then
                         Dim startDateOfWeek As Date = Common.GetStartDateOfTheWeek(tradingDate, DayOfWeek.Monday)
                         Dim thursdayOfWeek As Date = startDateOfWeek.AddDays(3)
-                        If tradingDate.DayOfWeek = DayOfWeek.Friday Then
+                        If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
+                            thursdayOfWeek = tradingDate.AddDays(7)
+                        ElseIf tradingDate.DayOfWeek = DayOfWeek.Friday Then
                             thursdayOfWeek = tradingDate.AddDays(6)
                         ElseIf tradingDate.DayOfWeek = DayOfWeek.Saturday Then
                             thursdayOfWeek = tradingDate.AddDays(5)
@@ -53,15 +56,19 @@ Public Class LowerPriceOptionsWithOIChange
                                 ceStockList IsNot Nothing AndAlso ceStockList.Count > 0 Then
                                 Dim peSelectedStocks As List(Of OptionData) = peStockList.FindAll(Function(x)
                                                                                                       Return x.PreviousOIChange > 0
-                                                                                                  End Function).OrderByDescending(Function(y)
-                                                                                                                                      Return y.PreviousVolume
-                                                                                                                                  End Function).Take(My.Settings.NumberOfStockPerDay).ToList
+                                                                                                  End Function).OrderBy(Function(y)
+                                                                                                                            Return y.PreviousBlankCandle
+                                                                                                                        End Function).ThenByDescending(Function(z)
+                                                                                                                                                           Return z.PreviousVolume
+                                                                                                                                                       End Function).Take(My.Settings.NumberOfStockPerDay).ToList
 
                                 Dim ceSelectedStocks As List(Of OptionData) = ceStockList.FindAll(Function(x)
                                                                                                       Return x.PreviousOIChange > 0
-                                                                                                  End Function).OrderByDescending(Function(y)
-                                                                                                                                      Return y.PreviousVolume
-                                                                                                                                  End Function).Take(My.Settings.NumberOfStockPerDay).ToList
+                                                                                                  End Function).OrderBy(Function(y)
+                                                                                                                            Return y.PreviousBlankCandle
+                                                                                                                        End Function).ThenByDescending(Function(z)
+                                                                                                                                                           Return z.PreviousVolume
+                                                                                                                                                       End Function).Take(My.Settings.NumberOfStockPerDay).ToList
 
                                 If peSelectedStocks IsNot Nothing AndAlso peSelectedStocks.Count > 0 Then
                                     For Each runningStock In peSelectedStocks
@@ -72,6 +79,7 @@ Public Class LowerPriceOptionsWithOIChange
                                         row("Lot Size") = 75
                                         row("Instrument Type") = runningStock.InstrumentType
                                         row("Previous Volume") = runningStock.PreviousVolume
+                                        row("Previous Blank Candle%") = Math.Round(runningStock.PreviousBlankCandle * 100, 4)
                                         row("Previous OI Change%") = Math.Round(runningStock.PreviousOIChange, 4)
                                         ret.Rows.Add(row)
                                     Next
@@ -85,6 +93,7 @@ Public Class LowerPriceOptionsWithOIChange
                                         row("Lot Size") = 75
                                         row("Instrument Type") = runningStock.InstrumentType
                                         row("Previous Volume") = runningStock.PreviousVolume
+                                        row("Previous Blank Candle%") = Math.Round(runningStock.PreviousBlankCandle * 100, 4)
                                         row("Previous OI Change%") = Math.Round(runningStock.PreviousOIChange, 4)
                                         ret.Rows.Add(row)
                                     Next
@@ -123,7 +132,24 @@ Public Class LowerPriceOptionsWithOIChange
             End If
             tradingSymbol = String.Format("{0}{1}%", rawInstrumentName.ToUpper, dateString)
         End If
-        Dim queryString As String = String.Format("SELECT C.`TradingSymbol`,B.`Volume` `Previous Day Volume`,((B.`OI`-A.`OI`)/A.`OI`)*100 `Previous OI Change`
+        'Dim queryString As String = String.Format("SELECT C.`TradingSymbol`,B.`Volume` `Previous Day Volume`,((B.`OI`-A.`OI`)/A.`OI`)*100 `Previous OI Change`
+        '                                            FROM (`eod_prices_opt_futures` A JOIN `eod_prices_opt_futures` B JOIN `eod_prices_opt_futures` C)
+        '                                            WHERE A.`SnapshotDate`='{0}' 
+        '                                            AND B.`SnapshotDate`='{1}'
+        '                                            AND C.`SnapshotDate`='{2}'
+        '                                            AND C.`TradingSymbol` LIKE '{3}' 
+        '                                            AND A.`TradingSymbol`=C.`TradingSymbol`
+        '                                            AND B.`TradingSymbol`=C.`TradingSymbol`
+        '                                            AND C.`Open` < 10
+        '                                            ORDER BY `Previous OI Change` DESC",
+        '                                            prePreviousTradingDate.ToString("yyyy-MM-dd"),
+        '                                            previousTradingDate.ToString("yyyy-MM-dd"),
+        '                                            tradingDate.ToString("yyyy-MM-dd"),
+        '                                            tradingSymbol)
+
+        Dim queryString As String = String.Format("SELECT C.`TradingSymbol`,B.`Volume` `Previous Day Volume`,
+                                                    ((SELECT COUNT(*) FROM `intraday_prices_opt_futures` WHERE `TradingSymbol`=B.`TradingSymbol` AND `SnapshotDate`=B.`SnapshotDate` AND (`High`-`Low`)=0)/(SELECT COUNT(*) FROM `intraday_prices_opt_futures` WHERE `TradingSymbol`=B.`TradingSymbol` AND `SnapshotDate`=B.`SnapshotDate`)) `Previous Blank Candle`,
+                                                    ((B.`OI`-A.`OI`)/A.`OI`)*100 `Previous OI Change`
                                                     FROM (`eod_prices_opt_futures` A JOIN `eod_prices_opt_futures` B JOIN `eod_prices_opt_futures` C)
                                                     WHERE A.`SnapshotDate`='{0}' 
                                                     AND B.`SnapshotDate`='{1}'
@@ -132,11 +158,12 @@ Public Class LowerPriceOptionsWithOIChange
                                                     AND A.`TradingSymbol`=C.`TradingSymbol`
                                                     AND B.`TradingSymbol`=C.`TradingSymbol`
                                                     AND C.`Open` < 10
-                                                    ORDER BY `Previous OI Change` DESC",
+                                                    HAVING `Previous OI Change`>0",
                                                     prePreviousTradingDate.ToString("yyyy-MM-dd"),
                                                     previousTradingDate.ToString("yyyy-MM-dd"),
                                                     tradingDate.ToString("yyyy-MM-dd"),
                                                     tradingSymbol)
+
         Dim dt As DataTable = Await _cmn.RunSelectAsync(queryString).ConfigureAwait(False)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
             Dim i As Integer = 0
@@ -146,7 +173,8 @@ Public Class LowerPriceOptionsWithOIChange
                     Dim tempPayload As OptionData = New OptionData With {
                         .TradingSymbol = dt.Rows(i).Item(0),
                         .PreviousVolume = dt.Rows(i).Item(1),
-                        .PreviousOIChange = dt.Rows(i).Item(2)
+                        .PreviousBlankCandle = dt.Rows(i).Item(2),
+                        .PreviousOIChange = dt.Rows(i).Item(3)
                     }
                     ret.Add(tempPayload)
                 End If
@@ -174,6 +202,7 @@ Public Class LowerPriceOptionsWithOIChange
             End Get
         End Property
         Public Property PreviousVolume As Decimal
+        Public Property PreviousBlankCandle As Decimal
         Public Property PreviousOIChange As Decimal
     End Class
 End Class
