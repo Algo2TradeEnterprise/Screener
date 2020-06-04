@@ -32,6 +32,7 @@ Public Class LowestRangeStockOfXMinute
         ret.Columns.Add("Range %")
         ret.Columns.Add("ATR Range")
         ret.Columns.Add("Volume Per Range")
+        ret.Columns.Add("Volume SMA %")
         ret.Columns.Add("Time")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -72,6 +73,8 @@ Public Class LowestRangeStockOfXMinute
                                     Dim highestATR As Decimal = Decimal.MinValue
                                     Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
                                     Indicator.ATR.CalculateATR(14, stockData(runningStock), atrPayload)
+                                    Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
+                                    Indicator.SMA.CalculateSMA(20, Payload.PayloadFields.Volume, stockData(runningStock), smaPayload)
                                     If atrPayload IsNot Nothing AndAlso atrPayload.Count > 0 Then
                                         Dim firstCandle As Payload = Nothing
                                         For Each runningPayload In stockData(runningStock)
@@ -96,9 +99,10 @@ Public Class LowestRangeStockOfXMinute
                                         Dim range As Decimal = ((checkPayload.High - checkPayload.Low) / checkPayload.Close) * 100
                                         Dim atrRange As Decimal = ((checkPayload.High - checkPayload.Low) / highestATR)
                                         Dim volumePerRange As Decimal = checkPayload.Volume / (checkPayload.High - checkPayload.Low)
+                                        Dim volSmaPer As Decimal = (checkPayload.Volume / smaPayload(checkPayload.PayloadDate)) * 100
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), checkingTime.ToString("HH:mm:ss")})
+                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), Math.Round(volSmaPer, 4), checkingTime.ToString("HH:mm:ss")})
                                     End If
                                 End If
                             End If
@@ -107,7 +111,7 @@ Public Class LowestRangeStockOfXMinute
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
                         For Each runningStock In tempStockList.OrderByDescending(Function(x)
-                                                                                     Return CDec(x.Value(2))
+                                                                                     Return CDec(x.Value(3))
                                                                                  End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
@@ -126,7 +130,8 @@ Public Class LowestRangeStockOfXMinute
                             row("Range %") = runningStock.Value(0)
                             row("ATR Range") = runningStock.Value(1)
                             row("Volume Per Range") = runningStock.Value(2)
-                            row("Time") = runningStock.Value(3)
+                            row("Volume SMA %") = runningStock.Value(3)
+                            row("Time") = runningStock.Value(4)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
