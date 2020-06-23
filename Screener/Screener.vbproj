@@ -11,7 +11,7 @@
     <AssemblyName>Screener</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -121,6 +121,7 @@
     <Compile Include="Stock Selection Rules\OpenAtHighLow.vb" />
     <Compile Include="Stock Selection Rules\PreMarketStocks.vb" />
     <Compile Include="Stock Selection Rules\SpotFutureArbritrage.vb" />
+    <Compile Include="Stock Selection Rules\StrongMovedStocks.vb" />
     <Compile Include="Stock Selection Rules\TopGainerTopLosser.vb" />
     <Compile Include="Stock Selection Rules\TopGainerTopLosserEveryMinute.vb" />
     <Compile Include="Stock Selection Rules\TopGainerTopLosserOfEverySlab.vb" />
