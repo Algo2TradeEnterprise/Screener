@@ -47,29 +47,50 @@ Public Class UserGivenStocks
                         Dim tempStockList As Dictionary(Of String, String()) = Nothing
                         For Each runningStock In _stockList
                             _canceller.Token.ThrowIfCancellationRequested()
-                            Dim currentTradingSymbol As String = _cmn.GetCurrentTradingSymbol(_eodTable, tradingDate, runningStock)
-                            Dim lotSize As Integer = _cmn.GetLotSize(_eodTable, currentTradingSymbol, tradingDate)
-                            If currentTradingSymbol IsNot Nothing AndAlso lotSize <> Integer.MinValue Then
-                                If _eodTable = Common.DataBaseTable.EOD_Currency Then
-                                    lotSize = lotSize * 1000
-                                ElseIf _eodTable = Common.DataBaseTable.EOD_Commodity Then
-                                    If commodityMultiplierMap IsNot Nothing AndAlso commodityMultiplierMap.ContainsKey(runningStock) Then
-                                        Dim multiplier As Long = commodityMultiplierMap(runningStock).ToString.Substring(0, commodityMultiplierMap(runningStock).ToString.Length - 1)
-                                        lotSize = lotSize * multiplier
+                            Dim currentTradingSymbol As String = Nothing
+                            If runningStock.ToUpper.Contains("-OPT") Then
+                                currentTradingSymbol = _cmn.GetCurrentTradingSymbol(_eodTable, tradingDate, runningStock.Split("-")(0).Trim)
+                            Else
+                                currentTradingSymbol = _cmn.GetCurrentTradingSymbol(_eodTable, tradingDate, runningStock)
+                            End If
+                            If currentTradingSymbol IsNot Nothing AndAlso currentTradingSymbol.Trim <> "" Then
+                                Dim lotSize As Integer = _cmn.GetLotSize(_eodTable, currentTradingSymbol, tradingDate)
+                                If lotSize <> Integer.MinValue Then
+                                    If _eodTable = Common.DataBaseTable.EOD_Currency Then
+                                        lotSize = lotSize * 1000
+                                    ElseIf _eodTable = Common.DataBaseTable.EOD_Commodity Then
+                                        If commodityMultiplierMap IsNot Nothing AndAlso commodityMultiplierMap.ContainsKey(runningStock) Then
+                                            Dim multiplier As Long = commodityMultiplierMap(runningStock).ToString.Substring(0, commodityMultiplierMap(runningStock).ToString.Length - 1)
+                                            lotSize = lotSize * multiplier
+                                        End If
                                     End If
-                                End If
-                                Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_eodTable, currentTradingSymbol, previousTradingDay.AddDays(-200), previousTradingDay)
-                                If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
-                                    If eodPayload.LastOrDefault.Value.PayloadDate.Date = previousTradingDay.Date Then
-                                        Dim lastDayPayload As Payload = eodPayload.LastOrDefault.Value
-                                        Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
-                                        Indicator.ATR.CalculateATR(14, eodPayload, atrPayload, True)
-                                        Dim atr As Decimal = atrPayload(lastDayPayload.PayloadDate)
-                                        Dim atrPer As Decimal = (atr / lastDayPayload.Close) * 100
-                                        Dim slab As Decimal = CalculateSlab(lastDayPayload.Close, atrPer)
+                                    Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_eodTable, currentTradingSymbol, previousTradingDay.AddDays(-200), previousTradingDay)
+                                    If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
+                                        If eodPayload.LastOrDefault.Value.PayloadDate.Date = previousTradingDay.Date Then
+                                            Dim lastDayPayload As Payload = eodPayload.LastOrDefault.Value
+                                            Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
+                                            Indicator.ATR.CalculateATR(14, eodPayload, atrPayload, True)
+                                            Dim atr As Decimal = atrPayload(lastDayPayload.PayloadDate)
+                                            Dim atrPer As Decimal = (atr / lastDayPayload.Close) * 100
+                                            Dim slab As Decimal = CalculateSlab(lastDayPayload.Close, atrPer)
 
-                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(currentTradingSymbol, {lotSize, atrPer, atr, lastDayPayload.Open, lastDayPayload.Low, lastDayPayload.High, lastDayPayload.Close, slab})
+                                            If runningStock.ToUpper.Contains("-OPT") Then
+                                                Dim optionContracts As List(Of String) = Await GetCurrentOptionContractsAsync(runningStock.Split("-")(0).Trim, tradingDate).ConfigureAwait(False)
+                                                If optionContracts IsNot Nothing AndAlso optionContracts.Count > 0 Then
+                                                    For Each runningOption In optionContracts
+                                                        Dim eodOptPayload As Dictionary(Of Date, Payload) = Await GetRawPayloadForOptionsAsync(runningOption, previousTradingDay.AddDays(-200), previousTradingDay).ConfigureAwait(False)
+                                                        If eodOptPayload IsNot Nothing AndAlso eodOptPayload.Count > 0 Then
+                                                            Dim lastDayOptPayload As Payload = eodOptPayload.LastOrDefault.Value
+                                                            If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                                            tempStockList.Add(runningOption, {lotSize, atrPer, atr, lastDayOptPayload.Open, lastDayOptPayload.Low, lastDayOptPayload.High, lastDayOptPayload.Close, slab})
+                                                        End If
+                                                    Next
+                                                End If
+                                            Else
+                                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                                tempStockList.Add(currentTradingSymbol, {lotSize, atrPer, atr, lastDayPayload.Open, lastDayPayload.Low, lastDayPayload.High, lastDayPayload.Close, slab})
+                                            End If
+                                        End If
                                     End If
                                 End If
                             End If
@@ -152,10 +173,12 @@ Public Class UserGivenStocks
                                                                                  Nothing,
                                                                                  False,
                                                                                  Nothing).ConfigureAwait(False)
+            _canceller.Token.ThrowIfCancellationRequested()
             If l Is Nothing OrElse l.Item2 Is Nothing Then
                 Throw New ApplicationException(String.Format("No response in the additional site's to fetch commodity multiplier and group map: {0}",
                                                              "https://zerodha.com/static/js/brokerage.min.js"))
             End If
+            _canceller.Token.ThrowIfCancellationRequested()
             If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                 Dim jString As String = l.Item2
                 If jString IsNot Nothing Then
@@ -173,6 +196,93 @@ Public Class UserGivenStocks
                 End If
             End If
         End Using
+        Return ret
+    End Function
+
+    Private Async Function GetCurrentOptionContractsAsync(ByVal rawInstrumentName As String, ByVal tradingDate As Date) As Task(Of List(Of String))
+        Dim ret As List(Of String) = Nothing
+        Dim tableName As String = "active_instruments_futures"
+        Select Case _eodTable
+            Case Common.DataBaseTable.EOD_Commodity
+                tableName = "active_instruments_commodity"
+            Case Common.DataBaseTable.EOD_Currency
+                tableName = "active_instruments_currency"
+            Case Common.DataBaseTable.EOD_Futures
+                tableName = "active_instruments_futures"
+            Case Else
+                Throw New NotImplementedException
+        End Select
+        Dim queryString As String = String.Format("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `{0}` WHERE `AS_ON_DATE`='{1}' AND `TRADING_SYMBOL` REGEXP '^{2}[0-9][0-9]*' AND `SEGMENT`='NFO-OPT'",
+                                                   tableName, tradingDate.ToString("yyyy-MM-dd"), rawInstrumentName)
+        _canceller.Token.ThrowIfCancellationRequested()
+        Dim dt As DataTable = Await _cmn.RunSelectAsync(queryString).ConfigureAwait(False)
+        _canceller.Token.ThrowIfCancellationRequested()
+        If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+            If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+                Dim activeInstruments As List(Of ActiveInstrumentData) = Nothing
+                For i = 0 To dt.Rows.Count - 1
+                    _canceller.Token.ThrowIfCancellationRequested()
+                    Dim instrumentData As New ActiveInstrumentData With
+                        {.Token = dt.Rows(i).Item(0),
+                         .TradingSymbol = dt.Rows(i).Item(1).ToString.ToUpper,
+                         .Expiry = If(IsDBNull(dt.Rows(i).Item(2)), Date.MaxValue, dt.Rows(i).Item(2))}
+                    If activeInstruments Is Nothing Then activeInstruments = New List(Of ActiveInstrumentData)
+                    activeInstruments.Add(instrumentData)
+                Next
+                If activeInstruments IsNot Nothing AndAlso activeInstruments.Count > 0 Then
+                    _canceller.Token.ThrowIfCancellationRequested()
+                    Dim minExpiry As Date = activeInstruments.Min(Function(x)
+                                                                      If x.Expiry.Date >= tradingDate.Date Then
+                                                                          Return x.Expiry
+                                                                      Else
+                                                                          Return Date.MaxValue
+                                                                      End If
+                                                                  End Function)
+                    If minExpiry <> Date.MinValue Then
+                        For Each runningOptStock In activeInstruments
+                            _canceller.Token.ThrowIfCancellationRequested()
+                            If runningOptStock.Expiry.Date = minExpiry.Date Then
+                                If ret Is Nothing Then ret = New List(Of String)
+                                ret.Add(runningOptStock.TradingSymbol)
+                            End If
+                        Next
+                    End If
+                End If
+            End If
+        End If
+        Return ret
+    End Function
+
+    Private Class ActiveInstrumentData
+        Public Token As String
+        Public TradingSymbol As String
+        Public Expiry As Date
+    End Class
+
+    Private Async Function GetRawPayloadForOptionsAsync(ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date) As Task(Of Dictionary(Of Date, Payload))
+        Dim ret As Dictionary(Of Date, Payload) = Nothing
+        _canceller.Token.ThrowIfCancellationRequested()
+        Dim queryString As String = Nothing
+        Select Case _eodTable
+            Case Common.DataBaseTable.EOD_Currency
+                queryString = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol` FROM `eod_prices_opt_currency` WHERE `TradingSymbol`='{0}' AND `SnapshotDate`>={1} AND `SnapshotDate`<='{2}'", tradingSymbol, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+            Case Common.DataBaseTable.EOD_Commodity
+                queryString = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol` FROM `eod_prices_opt_commodity` WHERE `TradingSymbol`='{0}' AND `SnapshotDate`>={1} AND `SnapshotDate`<='{2}'", tradingSymbol, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+            Case Common.DataBaseTable.EOD_Futures
+                queryString = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol` FROM `eod_prices_opt_futures` WHERE `TradingSymbol`='{0}' AND `SnapshotDate`>={1} AND `SnapshotDate`<='{2}'", tradingSymbol, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+            Case Else
+                Throw New NotImplementedException
+        End Select
+
+        _canceller.Token.ThrowIfCancellationRequested()
+        If tradingSymbol IsNot Nothing Then
+            OnHeartbeat(String.Format("Fetching raw candle data from DataBase for {0} on {1}", tradingSymbol, endDate.ToShortDateString))
+            Dim dt As DataTable = Await _cmn.RunSelectAsync(queryString).ConfigureAwait(False)
+            If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+                _canceller.Token.ThrowIfCancellationRequested()
+                ret = Common.ConvertDataTableToPayload(dt, 0, 1, 2, 3, 4, 5, 6)
+            End If
+        End If
         Return ret
     End Function
 End Class

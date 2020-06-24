@@ -391,7 +391,7 @@ Public Class frmStockSelection
         Select Case index
             Case 0
                 LoadSettings(pnlInstrumentList)
-                lblDescription.Text = String.Format("Return the user given stocklist with proper lotsize and volume filter. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+                lblDescription.Text = String.Format("Return the user given stocklist with proper lotsize. If you want option data please enter 'InstrumentName'-OPT e.g. 'NIFTY-OPT'. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 1
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
