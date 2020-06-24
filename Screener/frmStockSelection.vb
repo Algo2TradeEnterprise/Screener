@@ -481,6 +481,33 @@ Public Class frmStockSelection
             Case Else
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, True)
         End Select
+
+        Select Case index
+            Case 0
+                lblMaxBlankCandlePercentage.Visible = False
+                txtMaxBlankCandlePercentage.Visible = False
+                chkbFOStock.Visible = False
+                lblMinPrice.Visible = False
+                txtMinPrice.Visible = False
+                lblMaxPrice.Visible = False
+                txtMaxPrice.Visible = False
+                lblATR.Visible = False
+                txtATRPercentage.Visible = False
+                lblNumberOfStock.Visible = False
+                txtNumberOfStock.Visible = False
+            Case Else
+                lblMaxBlankCandlePercentage.Visible = True
+                txtMaxBlankCandlePercentage.Visible = True
+                chkbFOStock.Visible = True
+                lblMinPrice.Visible = True
+                txtMinPrice.Visible = True
+                lblMaxPrice.Visible = True
+                txtMaxPrice.Visible = True
+                lblATR.Visible = True
+                txtATRPercentage.Visible = True
+                lblNumberOfStock.Visible = True
+                txtNumberOfStock.Visible = True
+        End Select
     End Sub
 
     Private Sub LoadSettings(ByVal panelName As Panel)
