@@ -368,6 +368,8 @@ Public Class frmStockSelection
                     stock = New LowerPriceOptionsWithOIChange(_canceller, cmn, stockType)
                 Case 21
                     stock = New StrongMovedStocks(_canceller, cmn, stockType)
+                Case 22
+                    stock = New LowATRCandleQuickEntryStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -466,7 +468,10 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return NIFTY option stocks with Volume and OI Change % where Close<10. Give the date you want to trade if it is not the current date.")
             Case 21
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks which previous day open to close movement greater than 5%. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+                lblDescription.Text = String.Format("Return High ATR Stocks which previous day open to close movement greater than 5%. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 22
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks where 1 min candle range is less than 1*ATR but greater than 0.5*ATR. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select

@@ -107,6 +107,7 @@
     </Compile>
     <Compile Include="Stock Selection Rules\CPRNarrowRangeStocks.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocks.vb" />
+    <Compile Include="Stock Selection Rules\LowATRCandleQuickEntryStocks.vb" />
     <Compile Include="Stock Selection Rules\LowerPriceOptions.vb" />
     <Compile Include="Stock Selection Rules\HighLowGapStock.vb" />
     <Compile Include="Stock Selection Rules\HighSlabLevelMovedStocks.vb" />
