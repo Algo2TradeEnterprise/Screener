@@ -57,7 +57,7 @@ Public Class LowestRangeStockOfXMinute
                     Dim stockData As Dictionary(Of String, Dictionary(Of Date, Payload)) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-8), tradingDate)
+                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-20), tradingDate)
                         If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 100 Then
                             Dim xMinPayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 60, New Date(Now.Year, Now.Month, Now.Day, 9, 15, 0))
 
