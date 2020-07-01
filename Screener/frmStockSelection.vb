@@ -370,6 +370,8 @@ Public Class frmStockSelection
                     stock = New StrongMovedStocks(_canceller, cmn, stockType)
                 Case 22
                     stock = New LowATRCandleQuickEntryStocks(_canceller, cmn, stockType)
+                Case 23
+                    stock = New EODLowRangeStock(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -472,6 +474,9 @@ Public Class frmStockSelection
             Case 22
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks where 1 min candle range is less than 1*ATR but greater than 0.5*ATR. Give the date you want to trade if it is not the current date.")
+            Case 23
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks with lowest candle range with respect to ATR. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select

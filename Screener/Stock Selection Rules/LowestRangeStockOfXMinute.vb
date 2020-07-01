@@ -30,9 +30,10 @@ Public Class LowestRangeStockOfXMinute
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Range %")
-        ret.Columns.Add("ATR Range")
+        ret.Columns.Add("Highest ATR Range")
         ret.Columns.Add("Volume Per Range")
         ret.Columns.Add("Volume SMA %")
+        ret.Columns.Add("CR ATR %")
         ret.Columns.Add("Time")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -102,9 +103,10 @@ Public Class LowestRangeStockOfXMinute
                                         Dim atrRange As Decimal = ((checkPayload.High - checkPayload.Low) / highestATR)
                                         Dim volumePerRange As Decimal = checkPayload.Volume / (checkPayload.High - checkPayload.Low)
                                         Dim volSmaPer As Decimal = (checkPayload.Volume / smaPayload(checkPayload.PayloadDate)) * 100
+                                        Dim cratr As Decimal = (checkPayload.CandleRange / atrPayload(checkPayload.PayloadDate)) * 100
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), Math.Round(volSmaPer, 4), checkingTime.ToString("HH:mm:ss")})
+                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), Math.Round(volSmaPer, 4), Math.Round(cratr, 4), checkingTime.ToString("HH:mm:ss")})
                                     End If
                                 End If
                             End If
@@ -112,9 +114,9 @@ Public Class LowestRangeStockOfXMinute
                     End If
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
-                        For Each runningStock In tempStockList.OrderByDescending(Function(x)
-                                                                                     Return CDec(x.Value(3))
-                                                                                 End Function)
+                        For Each runningStock In tempStockList.OrderBy(Function(x)
+                                                                           Return CDec(x.Value(4))
+                                                                       End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
                             row("Date") = tradingDate.ToString("dd-MM-yyyy")
@@ -133,7 +135,8 @@ Public Class LowestRangeStockOfXMinute
                             row("ATR Range") = runningStock.Value(1)
                             row("Volume Per Range") = runningStock.Value(2)
                             row("Volume SMA %") = runningStock.Value(3)
-                            row("Time") = runningStock.Value(4)
+                            row("CR ATR %") = runningStock.Value(4)
+                            row("Time") = runningStock.Value(5)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
