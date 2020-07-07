@@ -36,7 +36,8 @@ Public Class LowestRangeStockOfXMinute
         'ret.Columns.Add("Volume Per Range")
         'ret.Columns.Add("Volume SMA %")
         'ret.Columns.Add("CR ATR %")
-        ret.Columns.Add("CR Day ATR %")
+        'ret.Columns.Add("CR Day ATR %")
+        ret.Columns.Add("Previous ATR")
         ret.Columns.Add("Time")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -110,9 +111,15 @@ Public Class LowestRangeStockOfXMinute
                                         'Dim cratr As Decimal = (checkPayload.CandleRange / atrPayload(checkPayload.PayloadDate)) * 100
                                         Dim crDayAtr As Decimal = (checkPayload.CandleRange / atrStockList(runningStock).DayATR) * 100
 
-                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        'tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(rangePer, 4), Math.Round(highestATR, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), Math.Round(volSmaPer, 4), Math.Round(cratr, 4), Math.Round(crDayAtr, 4), checkingTime.ToString("HH:mm:ss")})
-                                        tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(crDayAtr, 4), checkingTime.ToString("HH:mm:ss")})
+                                        'If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        ''tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(rangePer, 4), Math.Round(highestATR, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), Math.Round(volSmaPer, 4), Math.Round(cratr, 4), Math.Round(crDayAtr, 4), checkingTime.ToString("HH:mm:ss")})
+                                        'tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(crDayAtr, 4), checkingTime.ToString("HH:mm:ss")})
+
+                                        If range < atrPayload(checkPayload.PreviousCandlePayload.PayloadDate) Then
+                                            If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                            'tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(rangePer, 4), Math.Round(highestATR, 4), Math.Round(atrRange, 4), Math.Round(volumePerRange, 4), Math.Round(volSmaPer, 4), Math.Round(cratr, 4), Math.Round(crDayAtr, 4), checkingTime.ToString("HH:mm:ss")})
+                                            tempStockList.Add(runningStock, {Math.Round(range, 4), Math.Round(atrPayload(checkPayload.PreviousCandlePayload.PayloadDate), 4), checkingTime.ToString("HH:mm:ss")})
+                                        End If
                                     End If
                                 End If
                             End If
@@ -121,7 +128,7 @@ Public Class LowestRangeStockOfXMinute
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
                         For Each runningStock In tempStockList.OrderBy(Function(x)
-                                                                           Return CDec(x.Value(1))
+                                                                           Return CDec(x.Value(0))
                                                                        End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
@@ -144,7 +151,8 @@ Public Class LowestRangeStockOfXMinute
                             'row("Volume Per Range") = runningStock.Value(4)
                             'row("Volume SMA %") = runningStock.Value(5)
                             'row("CR ATR %") = runningStock.Value(6)
-                            row("CR Day ATR %") = runningStock.Value(1)
+                            'row("CR Day ATR %") = runningStock.Value(1)
+                            row("Previous ATR") = runningStock.Value(1)
                             row("Time") = runningStock.Value(2)
 
                             ret.Rows.Add(row)
