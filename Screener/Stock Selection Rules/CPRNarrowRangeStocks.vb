@@ -5,14 +5,14 @@ Imports Algo2TradeBLL
 Public Class CPRNarrowRangeStocks
     Inherits StockSelection
 
-    Private ReadOnly _minimumRangePer As Decimal
+    Private ReadOnly _maximumRangePer As Decimal
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
                    ByVal stockType As Integer,
                    ByVal minRangePer As Decimal)
         MyBase.New(canceller, cmn, stockType)
-        _minimumRangePer = minRangePer
+        _maximumRangePer = minRangePer
     End Sub
 
     Public Overrides Async Function GetStockDataAsync(ByVal startDate As Date, ByVal endDate As Date) As Task(Of DataTable)
@@ -29,7 +29,7 @@ Public Class CPRNarrowRangeStocks
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
-        ret.Columns.Add("Range")
+        ret.Columns.Add("Range %")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -81,7 +81,7 @@ Public Class CPRNarrowRangeStocks
                                 Next
                                 Dim avgRange As Decimal = sumOfPreviousRange / 5
                                 Dim rangePer As Decimal = Math.Round((currentDayRange / avgRange) * 100, 2)
-                                If rangePer < _minimumRangePer Then
+                                If rangePer < _maximumRangePer Then
                                     If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                     tempStockList.Add(runningStock, {rangePer})
                                 End If

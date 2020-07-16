@@ -68,7 +68,7 @@ Partial Class frmStockSelection
         Me.Label1 = New System.Windows.Forms.Label()
         Me.pnlCPRNarrowRangeSettings = New System.Windows.Forms.Panel()
         Me.txtMinimumCPRRangePer = New System.Windows.Forms.TextBox()
-        Me.Label6 = New System.Windows.Forms.Label()
+        Me.lblMaxCPRPer = New System.Windows.Forms.Label()
         Me.pnlMultiTFSettings = New System.Windows.Forms.Panel()
         Me.cmbMultiTFIndicator = New System.Windows.Forms.ComboBox()
         Me.Label7 = New System.Windows.Forms.Label()
@@ -521,7 +521,7 @@ Partial Class frmStockSelection
         'pnlCPRNarrowRangeSettings
         '
         Me.pnlCPRNarrowRangeSettings.Controls.Add(Me.txtMinimumCPRRangePer)
-        Me.pnlCPRNarrowRangeSettings.Controls.Add(Me.Label6)
+        Me.pnlCPRNarrowRangeSettings.Controls.Add(Me.lblMaxCPRPer)
         Me.pnlCPRNarrowRangeSettings.Location = New System.Drawing.Point(493, 6)
         Me.pnlCPRNarrowRangeSettings.Name = "pnlCPRNarrowRangeSettings"
         Me.pnlCPRNarrowRangeSettings.Size = New System.Drawing.Size(322, 70)
@@ -535,14 +535,14 @@ Partial Class frmStockSelection
         Me.txtMinimumCPRRangePer.TabIndex = 7
         Me.txtMinimumCPRRangePer.Text = "0"
         '
-        'Label6
+        'lblMaxCPRPer
         '
-        Me.Label6.AutoSize = True
-        Me.Label6.Location = New System.Drawing.Point(8, 13)
-        Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(161, 17)
-        Me.Label6.TabIndex = 6
-        Me.Label6.Text = "Minimum CPR Range %:"
+        Me.lblMaxCPRPer.AutoSize = True
+        Me.lblMaxCPRPer.Location = New System.Drawing.Point(8, 13)
+        Me.lblMaxCPRPer.Name = "lblMaxCPRPer"
+        Me.lblMaxCPRPer.Size = New System.Drawing.Size(164, 17)
+        Me.lblMaxCPRPer.TabIndex = 6
+        Me.lblMaxCPRPer.Text = "Maximum CPR Range %:"
         '
         'pnlMultiTFSettings
         '
@@ -691,7 +691,7 @@ Partial Class frmStockSelection
     Friend WithEvents chkbNarrowRangeDownwardsChecking As CheckBox
     Friend WithEvents pnlCPRNarrowRangeSettings As Panel
     Friend WithEvents txtMinimumCPRRangePer As TextBox
-    Friend WithEvents Label6 As Label
+    Friend WithEvents lblMaxCPRPer As Label
     Friend WithEvents pnlMultiTFSettings As Panel
     Friend WithEvents cmbMultiTFIndicator As ComboBox
     Friend WithEvents Label7 As Label
