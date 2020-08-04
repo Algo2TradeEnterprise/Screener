@@ -24,7 +24,6 @@ Public Class PreviousDayStrongHKStocks
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
-        ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Target To Stoploss Multiplier")
         ret.Columns.Add("Direction")
