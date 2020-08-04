@@ -13,6 +13,7 @@
     Public Property CurrentDayHigh As Decimal
     Public Property CurrentDayClose As Decimal
     Public Property Slab As Decimal
+    Public Property TargetToStoplossMultiplier As Decimal
     Public Property CurrentContractExpiry As Date
     Public Property PreviousContractTradingSymbol As String
     Public Property PreviousContractExpiry As Date

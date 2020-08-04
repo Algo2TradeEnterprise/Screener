@@ -40,7 +40,7 @@ Namespace Calculator
                 AddHandler browser.Heartbeat, AddressOf OnHeartbeat
                 AddHandler browser.WaitingFor, AddressOf OnWaitingFor
                 AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync("https://zerodha.com/static/app.js",
+                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync("https://zerodha.com/static/js/brokerage.min.js",
                                                                                      HttpMethod.Get,
                                                                                      Nothing,
                                                                                      True,
@@ -48,15 +48,22 @@ Namespace Calculator
                                                                                      False,
                                                                                      Nothing).ConfigureAwait(False)
                 If l Is Nothing OrElse l.Item2 Is Nothing Then
-                    Throw New ApplicationException(String.Format("No response in the additional site's historical race results landing page: {0}", "https://zerodha.com/static/app.js"))
+                    Throw New ApplicationException(String.Format("No response in the additional site's to fetch commodity multiplier and group map: {0}",
+                                                                 "https://zerodha.com/static/js/brokerage.min.js"))
                 End If
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     Dim jString As String = l.Item2
                     If jString IsNot Nothing Then
-                        Dim map As String = Utilities.Strings.GetTextBetween("COMMODITY_MULTIPLIER_MAP=", "},", jString)
-                        If map IsNot Nothing Then
-                            map = map & "}"
-                            GlobalVar.retDictionary = Utilities.Strings.JsonDeserialize(map)
+                        Dim multiplierMap As String = Utilities.Strings.GetTextBetween("COMMODITY_MULTIPLIER_MAP=", "}", jString)
+                        If multiplierMap IsNot Nothing Then
+                            multiplierMap = multiplierMap & "}"
+                            GlobalVar.MultiplierMap = Utilities.Strings.JsonDeserialize(multiplierMap)
+                        End If
+
+                        Dim groupMap As String = Utilities.Strings.GetTextBetween("COMMODITY_GROUP_MAP=", "}", jString)
+                        If groupMap IsNot Nothing Then
+                            groupMap = groupMap & "}"
+                            GlobalVar.GroupMap = Utilities.Strings.JsonDeserialize(groupMap)
                         End If
                     End If
                 End If
@@ -65,199 +72,215 @@ Namespace Calculator
 #End Region
 
 #Region "Public Fuctioncs"
-        Public Function Intraday_Equity(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+        Public Sub Intraday_Equity(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            Dim bp As Decimal = Buy
+            Dim sp As Decimal = Sell
+            Dim qty As Integer = Quantity
 
-            Dim m = Buy
-            Dim g = Sell
-            Dim v = Quantity
-            Output.Buy = Buy
-            Output.Sell = Sell
-            Output.Quantity = Quantity
-            Output.Multiplier = 1
-            Output.CTT = 0
+            Dim turnover As Decimal = Math.Round((bp + sp) * qty, 2)
+            Dim brokerage_buy As Decimal = If((bp * qty * 0.0003) > 20, 20, Math.Round(bp * qty * 0.0003, 2))
+            Dim brokerage_sell As Decimal = If((sp * qty * 0.0003) > 20, 20, Math.Round(sp * qty * 0.0003, 2))
+            Dim brokerage As Decimal = Math.Round(brokerage_buy + brokerage_sell, 2)
+            Dim stt_total As Decimal = Math.Round(sp * qty * 0.00025, 2)
+            Dim etc As Decimal = Math.Round(0.0000325 * turnover, 2)
+            Dim cc As Decimal = 0
+            Dim stax As Decimal = Math.Round(0.18 * (brokerage + etc), 2)
+            Dim sebi_charges As Decimal = Math.Round(turnover * 0.0000005, 2)
+            Dim stamp_charges As Decimal = Math.Round(bp * qty * 0.00003, 2)
+            Dim total_tax As Decimal = Math.Round(brokerage + stt_total + etc + cc + stax + sebi_charges + stamp_charges, 2)
+            Dim breakeven As Decimal = Math.Round(total_tax / qty, 2)
+            Dim net_profit As Decimal = Math.Round(((sp - bp) * qty) - total_tax, 2)
 
-            Dim o = If((m * v * 0.0001) > 20, 20, Math.Round((m * v * 0.0001), 2))
-            Dim i = If((g * v * 0.0001) > 20, 20, Math.Round((g * v * 0.0001), 2))
-            Dim n = Math.Round((o + i), 2)
-            Dim a = Math.Round(((m + g) * v), 2)
-            Dim r = Convert.ToInt32(g * v * 0.00025)
-            Dim s = Math.Round((0.0000325 * a), 2)
-            Dim l = 0
-            Dim c = Math.Round((0.18 * (n + s)), (2))
+            Output = New BrokerageAttributes With {
+                        .Buy = bp,
+                        .Sell = sp,
+                        .Quantity = qty,
+                        .Turnover = turnover,
+                        .Brokerage = brokerage,
+                        .STT = stt_total,
+                        .ExchangeFees = etc,
+                        .Clearing = cc,
+                        .GST = stax,
+                        .SEBI = sebi_charges,
+                        .StampDuty = stamp_charges,
+                        .TotalTax = total_tax,
+                        .BreakevenPoints = breakeven,
+                        .NetProfitLoss = net_profit
+                    }
+        End Sub
+        Public Sub Delivery_Equity(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            Dim bp As Decimal = Buy
+            Dim sp As Decimal = Sell
+            Dim qty As Integer = Quantity
 
-            Output.Turnover = a
-            Output.Brokerage = n
-            Output.STT = r
-            Output.Exchange = s
-            Output.Clearing = l
-            Output.GST = c
-            Output.TotalTax = Output.Brokerage + Output.STT + Output.Exchange + Output.Clearing + Output.GST + Output.SEBI
+            Dim turnover As Decimal = Math.Round((bp + sp) * qty, 2)
+            Dim brokerage As Decimal = 0
+            Dim stt_total As Decimal = Math.Round(turnover * 0.001, 2)
+            Dim etc As Decimal = Math.Round(0.0000325 * turnover, 2)
+            Dim cc As Decimal = 0
+            Dim stax As Decimal = Math.Round(0.18 * (brokerage + etc), 2)
+            Dim sebi_charges As Decimal = Math.Round(turnover * 0.000001, 2)
+            Dim total_tax As Decimal = Math.Round(brokerage + stt_total + etc + cc + stax + sebi_charges, 2)
+            Dim breakeven As Decimal = Math.Round(total_tax / qty, 2)
+            Dim net_profit As Decimal = Math.Round(((sp - bp) * qty) - total_tax, 2)
 
-            Return Nothing
-        End Function
-        Public Function Delivery_Equity(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            Output = New BrokerageAttributes With {
+                        .Buy = bp,
+                        .Sell = sp,
+                        .Quantity = qty,
+                        .Turnover = turnover,
+                        .Brokerage = brokerage,
+                        .STT = stt_total,
+                        .ExchangeFees = etc,
+                        .Clearing = 0,
+                        .GST = stax,
+                        .SEBI = sebi_charges,
+                        .TotalTax = total_tax,
+                        .BreakevenPoints = breakeven,
+                        .NetProfitLoss = net_profit
+                    }
+        End Sub
+        Public Sub FO_Futures(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            Dim bp As Decimal = Buy
+            Dim sp As Decimal = Sell
+            Dim qty As Integer = Quantity
 
-            Dim m = Buy
-            Dim g = Sell
-            Dim v = Quantity
-            Output.Buy = Buy
-            Output.Sell = Sell
-            Output.Quantity = Quantity
-            Output.Multiplier = 1
-            Output.CTT = 0
+            Dim turnover As Decimal = Math.Round((bp + sp) * qty, 2)
+            Dim brokerage_buy As Decimal = If((bp * qty * 0.0003) > 20, 20, Math.Round(bp * qty * 0.0003, 2))
+            Dim brokerage_sell As Decimal = If((sp * qty * 0.0003) > 20, 20, Math.Round(sp * qty * 0.0003, 2))
+            Dim brokerage As Decimal = Math.Round(brokerage_buy + brokerage_sell, 2)
+            Dim stt_total As Decimal = Math.Round(sp * qty * 0.0001, 2)
+            Dim etc As Decimal = Math.Round(0.000019 * turnover, 2)
+            Dim stax As Decimal = Math.Round(0.18 * (brokerage + etc), 2)
+            Dim sebi_charges As Decimal = Math.Round(turnover * 0.000001, 2)
+            Dim total_tax As Decimal = Math.Round(brokerage + stt_total + etc + stax + sebi_charges, 2)
+            Dim breakeven As Decimal = Math.Round(total_tax / qty, 2)
+            Dim net_profit As Decimal = Math.Round(((sp - bp) * qty) - total_tax, 2)
 
-            'Dim t = 1.5
-            'Dim e = 1.5
-
-            Dim o = Math.Round(((m + g) * v), 2)
-            Dim i = 0
-            Dim n = Convert.ToInt32(0.001 * o)
-            Dim a = Math.Round((0.0000325 * o), 2)
-            Dim r = 0
-            Dim s = Math.Round((0.18 * (i + a)), (2))
-
-            Output.Turnover = o
-            Output.Brokerage = i
-            Output.STT = n
-            Output.Exchange = a
-            Output.Clearing = r
-            Output.GST = s
-            Output.TotalTax = Output.Brokerage + Output.STT + Output.Exchange + Output.Clearing + Output.GST + Output.SEBI
-
-            Return Nothing
-        End Function
-        Public Function FO_Futures(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
-
-            Dim m = Buy
-            Dim g = Sell
-            Dim v = Quantity
-            Output.Buy = Buy
-            Output.Sell = Sell
-            Output.Quantity = Quantity
-            Output.Multiplier = 1
-            Output.CTT = 0
-
-            'Dim t = 1.5
-            'Dim e = 1.5
-
-            Dim o = Math.Round(((m + g) * v), (2))
-            Dim i = If((m * v * 0.0001) > 20, 20, Math.Round((m * v * 0.0001), (2)))
-            Dim n = If((g * v * 0.0001) > 20, 20, Math.Round((g * v * 0.0001), (2)))
-            Dim a = Math.Round((i + n), (2))
-            Dim r = Convert.ToInt32(g * v * 0.0001)
-            Dim l = Math.Round((0.000019 * o), (2))
-            Dim c = 0
-            Dim p = Math.Round((0.18 * (a + l)), (2))
-
-            Output.Turnover = o
-            Output.Brokerage = a
-            Output.STT = r
-            Output.Exchange = l
-            Output.Clearing = c
-            Output.GST = p
-            Output.TotalTax = Output.Brokerage + Output.STT + Output.Exchange + Output.Clearing + Output.GST + Output.SEBI
-
-            Return Nothing
-        End Function
-        Public Function Commodity_MCX(ByVal item As String, ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes) As Task
-
-            Dim m = Buy
-            Dim g = Sell
-            Dim v = Quantity
-            Output.Buy = Buy
-            Output.Sell = Sell
-            Output.Quantity = Quantity
-
-            If GlobalVar.retDictionary Is Nothing Then
+            Output = New BrokerageAttributes With {
+                        .Buy = bp,
+                        .Sell = sp,
+                        .Quantity = qty,
+                        .Turnover = turnover,
+                        .Brokerage = brokerage,
+                        .STT = stt_total,
+                        .ExchangeFees = etc,
+                        .GST = stax,
+                        .SEBI = sebi_charges,
+                        .TotalTax = total_tax,
+                        .BreakevenPoints = breakeven,
+                        .NetProfitLoss = net_profit
+                    }
+        End Sub
+        Public Sub Commodity_MCX(ByVal item As String, ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            If GlobalVar.MultiplierMap Is Nothing OrElse GlobalVar.GroupMap Is Nothing Then
                 Dim task = GetCommodityMultiplier()
                 task.Wait()
             End If
 
-            Dim t = GlobalVar.retDictionary(item).ToString.Substring(0, GlobalVar.retDictionary(item).ToString.Length - 1)
-            Dim e = GlobalVar.retDictionary(item).ToString.Substring(GlobalVar.retDictionary(item).ToString.Length - 1)
-            Output.Multiplier = t
-            Dim o = Math.Round(((m + g) * t * v), 2)
-            Dim i = Nothing
-            If m * t * v > 200000.0 Then
-                i = 20
+            Dim stockName As String = item
+            Dim bp As Decimal = Buy
+            Dim sp As Decimal = Sell
+            Dim qty As Integer = Quantity
+
+            Dim commodity_value As Long = GlobalVar.MultiplierMap(item).ToString.Substring(0, GlobalVar.MultiplierMap(item).ToString.Length - 1)
+            Dim commodity_cat As String = GlobalVar.MultiplierMap(item).ToString.Substring(GlobalVar.MultiplierMap(item).ToString.Length - 1)
+            Dim commodity_group As String = GlobalVar.GroupMap(item).ToString.Substring(GlobalVar.GroupMap(item).ToString.Length - 1)
+            Dim turnover As Decimal = Math.Round((bp + sp) * commodity_value * qty, 2)
+            Dim brokerage_buy As Decimal = 0
+            If (bp * commodity_value * qty) > 200000 Then
+                brokerage_buy = 20
             Else
-                i = If(m * t * v * 0.0001 > 20, 20, Math.Round((m * t * v * 0.0001), 2))
+                brokerage_buy = If((bp * commodity_value * qty * 0.0003) > 20, 20, Math.Round(bp * commodity_value * qty * 0.0003, 2))
             End If
-            Dim n = Nothing
-            If g * t * v > 200000.0 Then
-                n = 20
+            Dim brokerage_sell As Decimal = 0
+            If (sp * commodity_value * qty) > 200000 Then
+                brokerage_sell = 20
             Else
-                n = If(g * t * v * 0.0001 > 20, 20, Math.Round((g * t * v * 0.0001), 2))
+                brokerage_sell = If((sp * commodity_value * qty * 0.0003) > 20, 20, Math.Round(sp * commodity_value * qty * 0.0003, 2))
             End If
-            Dim a = i + n
-            Dim r = 0.00
-            If e = "a" Then
-                r = Math.Round((0.0001 * g * v * t), 2)
+            Dim brokerage As Decimal = brokerage_buy + brokerage_sell
+            Dim ctt As Decimal = 0
+            If commodity_cat = "a" Then
+                ctt = Math.Round(0.0001 * sp * qty * commodity_value, 2)
             End If
-            Dim s = 0.00
-            Dim l = 0.00
-            Dim c = 0.00
-            s = If(e = "a", Math.Round((0.000036 * o), 2), Math.Round((0.0000105 * o), 2))
-            l = If(e = "a", Math.Round((0.000026 * o), 2), Math.Round((0.0000005 * o), 2))
-            c = 0
-            If item = "RBDPMOLEIN" And o >= 100000.0 Then
-                Dim p = Convert.ToInt32(Math.Round((o / 100000.0), 2))
-                s = p
+            Dim etc As Decimal = 0
+            Dim cc As Decimal = 0
+            etc = If(commodity_cat = "a", Math.Round(0.000026 * turnover, 2), Math.Round(0.0000005 * turnover, 2))
+            If stockName = "RBDPMOLEIN" Then
+                If turnover >= 100000 Then
+                    Dim rbd_multiplier As Integer = CInt(turnover / 100000)
+                    etc = Math.Round(rbd_multiplier, 2)
+                End If
             End If
-            If item = "CASTORSEED" Then
-                l = Math.Round((0.000005 * o), 2)
-                c = 0
-            ElseIf item = "RBDPMOLEIN" Then
-                l = Math.Round((0.00001 * o), 2)
-                c = 0
-            ElseIf item = "PEPPER" Then
-                l = Math.Round((0.0000005 * o), 2)
-                c = 0
+            If stockName = "CASTORSEED" Then
+                etc = Math.Round(0.000005 * turnover, 2)
+            ElseIf stockName = "RBDPMOLEIN" Then
+                etc = Math.Round(0.00001 * turnover, 2)
+            ElseIf stockName = "PEPPER" Then
+                etc = Math.Round(0.0000005 * turnover, 2)
+            ElseIf stockName = "KAPAS" Then
+                etc = Math.Round(0.000005 * turnover, 2)
             End If
-            Dim d = Math.Round((0.18 * (a + s)), 2)
+            Dim stax As Decimal = Math.Round(0.18 * (brokerage + etc), 2)
+            Dim sebi_charges As Decimal = Math.Round(turnover * 0.000001, 2)
+            If commodity_group = "a" Then
+                sebi_charges = Math.Round(turnover * 0.0000001, 2)
+            End If
+            Dim total_tax As Decimal = Math.Round(brokerage + ctt + etc + stax + sebi_charges, 2)
+            Dim breakeven As Decimal = Math.Round(total_tax / (qty * commodity_value), 2)
+            Dim net_profit As Decimal = Math.Round(((sp - bp) * qty * commodity_value) - total_tax, 2)
 
-            Output.Turnover = o
-            Output.CTT = r
-            Output.Brokerage = a
-            Output.Exchange = l
-            Output.Clearing = c
-            Output.GST = d
-            Output.TotalTax = a + r + s + d + Output.SEBI
+            Output = New BrokerageAttributes With {
+                        .Buy = bp,
+                        .Sell = sp,
+                        .Quantity = qty,
+                        .Turnover = turnover,
+                        .CTT = ctt,
+                        .Brokerage = brokerage,
+                        .ExchangeFees = etc,
+                        .Clearing = cc,
+                        .GST = stax,
+                        .SEBI = sebi_charges,
+                        .TotalTax = total_tax,
+                        .BreakevenPoints = breakeven,
+                        .NetProfitLoss = net_profit
+                    }
+        End Sub
+        Public Sub Currency_Futures(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            Dim bp As Decimal = Buy
+            Dim sp As Decimal = Sell
+            Dim qty As Integer = Quantity
 
-            Return Nothing
-        End Function
-        Public Function Currency_Futures(ByVal Buy As Double, ByVal Sell As Double, ByVal Quantity As Integer, ByRef Output As BrokerageAttributes)
+            Dim turnover As Decimal = Math.Round((bp + sp) * qty * 1000, 2)
+            Dim brokerage_buy As Decimal = If((bp * qty * 1000 * 0.0003) > 20, 20, Math.Round(bp * qty * 1000 * 0.0003, 2))
+            Dim brokerage_sell As Decimal = If((sp * qty * 1000 * 0.0003) > 20, 20, Math.Round(sp * qty * 1000 * 0.0003, 2))
+            Dim brokerage As Decimal = Math.Round(brokerage_buy + brokerage_sell, 2)
+            Dim etc As Decimal = Math.Round(0.000009 * turnover, 2)
+            Dim cc As Decimal = 0
+            Dim total_trans_charge As Decimal = etc + cc
+            Dim stax As Decimal = Math.Round(0.18 * (brokerage + total_trans_charge), 2)
+            Dim sebi_charges As Decimal = Math.Round(turnover * 0.000001, 2)
+            Dim total_tax As Decimal = Math.Round(brokerage + total_trans_charge + stax + sebi_charges, 2)
+            Dim breakeven As Decimal = Math.Round(total_tax / (qty * 1000), 4)
+            Dim pips As Decimal = Math.Ceiling(breakeven / 0.0025)
+            Dim net_profit As Decimal = Math.Round(((sp - bp) * qty * 1000) - total_tax, 2)
 
-            Dim m = Buy
-            Dim g = Sell
-            Dim v = Quantity * 1000
-            Output.Buy = Buy
-            Output.Sell = Sell
-            Output.Quantity = Quantity * 1000
-            Output.Multiplier = 1
-            Output.CTT = 0
-
-            'Dim t = 1.5
-            'Dim e = 1.5
-
-            Dim t = Math.Round(((m + g) * v), (2))
-            Dim e = If((m * v * 0.0001) > 20, 20, Math.Round((m * v * 0.0001), (2)))
-            Dim o = If((g * v * 0.0001) > 20, 20, Math.Round((g * v * 0.0001), (2)))
-            Dim i = Math.Round((e + o), (2))
-            Dim n = Math.Round((0.000011 * t), (2))
-            Dim a = Math.Round((0.000009 * t), (2))
-            Dim r = 0
-            Dim s = Math.Round((0.18 * (i + n)), (2))
-
-            Output.Turnover = t
-            Output.Brokerage = i
-            Output.Exchange = a
-            Output.Clearing = r
-            Output.GST = s
-            Output.TotalTax = Output.Brokerage + n + Output.GST + Output.SEBI
-
-            Return Nothing
-        End Function
+            Output = New BrokerageAttributes With {
+                        .Buy = bp,
+                        .Sell = sp,
+                        .Quantity = qty,
+                        .Turnover = turnover,
+                        .Brokerage = brokerage,
+                        .ExchangeFees = etc,
+                        .Clearing = cc,
+                        .GST = stax,
+                        .SEBI = sebi_charges,
+                        .TotalTax = total_tax,
+                        .BreakevenPoints = breakeven,
+                        .NetProfitLoss = net_profit
+                    }
+        End Sub
 #End Region
     End Class
 End Namespace

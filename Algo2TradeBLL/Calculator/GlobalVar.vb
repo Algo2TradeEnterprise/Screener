@@ -1,5 +1,6 @@
 ﻿Namespace Calculator
     Public Module GlobalVar
-        Public retDictionary As Dictionary(Of String, Object) = Nothing
+        Public MultiplierMap As Dictionary(Of String, Object) = Nothing
+        Public GroupMap As Dictionary(Of String, Object) = Nothing
     End Module
 End Namespace
