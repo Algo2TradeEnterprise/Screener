@@ -316,7 +316,7 @@ Partial Class frmStockSelection
         Me.dgrvMain.Name = "dgrvMain"
         Me.dgrvMain.ReadOnly = True
         Me.dgrvMain.RowHeadersVisible = False
-        Me.dgrvMain.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.dgrvMain.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect
         Me.dgrvMain.Size = New System.Drawing.Size(1295, 365)
         Me.dgrvMain.TabIndex = 49
         '
