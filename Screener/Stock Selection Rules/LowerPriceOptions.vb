@@ -44,7 +44,9 @@ Public Class LowerPriceOptions
                     Dim optionData As Dictionary(Of String, Payload) = Await GetOptionStockData(thursdayOfWeek, "NIFTY", previousTradingDay).ConfigureAwait(False)
                     If optionData IsNot Nothing AndAlso optionData.Count > 0 Then
                         Dim stockCounter As Integer = 0
-                        For Each runningStock In optionData.Values
+                        For Each runningStock In optionData.Values.OrderByDescending(Function(x)
+                                                                                         Return x.Volume
+                                                                                     End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
                             row("Date") = tradingDate.ToString("dd-MM-yyyy")
@@ -87,12 +89,18 @@ Public Class LowerPriceOptions
             End If
             tradingSymbol = String.Format("{0}{1}%", rawInstrumentName.ToUpper, dateString)
         End If
+        'Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI` 
+        '                                           FROM `eod_prices_opt_futures` 
+        '                                           WHERE `TradingSymbol` LIKE '{0}' 
+        '                                           AND `SnapshotDate`='{1}' 
+        '                                           AND `Close`<10",
+        '                                           tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
         Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI` 
                                                    FROM `eod_prices_opt_futures` 
                                                    WHERE `TradingSymbol` LIKE '{0}' 
-                                                   AND `SnapshotDate`='{1}' 
-                                                   AND `Close`<10",
+                                                   AND `SnapshotDate`='{1}'",
                                                    tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
+
         Dim dt As DataTable = Await _cmn.RunSelectAsync(queryString).ConfigureAwait(False)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
             Dim i As Integer = 0
