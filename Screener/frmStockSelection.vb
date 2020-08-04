@@ -372,6 +372,8 @@ Public Class frmStockSelection
                     stock = New LowATRCandleQuickEntryStocks(_canceller, cmn, stockType)
                 Case 23
                     stock = New EODLowRangeStock(_canceller, cmn, stockType)
+                Case 24
+                    stock = New PreviousDayStrongHKStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -477,6 +479,9 @@ Public Class frmStockSelection
             Case 23
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks with lowest candle range with respect to ATR. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 24
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks with previous day strong HK Candle (Bullish:Open=Low, Bearish:Open=High). If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select

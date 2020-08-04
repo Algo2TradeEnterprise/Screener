@@ -26,7 +26,6 @@ Public Class HighATRStocks
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
-        ret.Columns.Add("Target To Stoploss Multiplier")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -61,7 +60,6 @@ Public Class HighATRStocks
                         row("Previous Day Close") = runningStock.Value.PreviousDayClose
                         row("Current Day Close") = runningStock.Value.CurrentDayClose
                         row("Slab") = runningStock.Value.Slab
-                        row("Target To Stoploss Multiplier") = runningStock.Value.TargetToStoplossMultiplier
                         ret.Rows.Add(row)
                         stockCounter += 1
                         If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For

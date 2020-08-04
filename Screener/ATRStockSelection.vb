@@ -117,13 +117,16 @@ Public Class ATRStockSelection
                         If filteredInstruments IsNot Nothing AndAlso filteredInstruments.Count > 0 Then
                             For Each stockData In filteredInstruments
                                 _cts.Token.ThrowIfCancellationRequested()
-                                Dim stockPayload As Dictionary(Of Date, Payload) = GetStockPayload(eodTableType, tradingDate, stockData.Value, immediatePreviousDay)
-                                If stockPayload IsNot Nothing AndAlso stockPayload.Count > 0 Then
-                                    stockData.Value.BlankCandlePercentage = CalculateBlankVolumePercentage(stockPayload)
-                                    stockData.Value.TargetToStoplossMultiplier = CalculateTargetToStoplossMultiplier(stockPayload, stockData.Value.PreviousDayOpen)
+                                If My.Settings.MaxBlankCandlePercentage = 100 Then
+                                    stockData.Value.BlankCandlePercentage = 0
                                 Else
-                                    stockData.Value.IsTradable = False
-                                    stockData.Value.BlankCandlePercentage = Decimal.MinValue
+                                    Dim stockPayload As Dictionary(Of Date, Payload) = GetStockPayload(eodTableType, tradingDate, stockData.Value, immediatePreviousDay)
+                                    If stockPayload IsNot Nothing AndAlso stockPayload.Count > 0 Then
+                                        stockData.Value.BlankCandlePercentage = CalculateBlankVolumePercentage(stockPayload)
+                                    Else
+                                        stockData.Value.IsTradable = False
+                                        stockData.Value.BlankCandlePercentage = Decimal.MinValue
+                                    End If
                                 End If
                             Next
                             Dim stocksLessThanMaxBlankCandlePercentage As IEnumerable(Of KeyValuePair(Of String, InstrumentDetails)) =
@@ -226,9 +229,13 @@ Public Class ATRStockSelection
                         Dim lastDayPayload As Payload = Nothing
                         Dim currentDayPayload As Payload = Nothing
                         If previousDayPayloads IsNot Nothing AndAlso previousDayPayloads.Count > 0 Then
-                            currentDayPayload = previousDayPayloads.LastOrDefault.Value
-                            If currentDayPayload.PreviousCandlePayload IsNot Nothing Then
-                                lastDayPayload = currentDayPayload.PreviousCandlePayload
+                            If previousDayPayloads.ContainsKey(tradingDate.Date) Then
+                                currentDayPayload = previousDayPayloads.LastOrDefault.Value
+                                If currentDayPayload.PreviousCandlePayload IsNot Nothing Then
+                                    lastDayPayload = currentDayPayload.PreviousCandlePayload
+                                End If
+                            Else
+                                lastDayPayload = previousDayPayloads.LastOrDefault.Value
                             End If
                         End If
                         If lastDayPayload IsNot Nothing AndAlso lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
@@ -240,14 +247,16 @@ Public Class ATRStockSelection
                                 runningInstrument.LastDayLow = lastDayPayload.Low
                                 runningInstrument.LastDayHigh = lastDayPayload.High
                                 runningInstrument.LastDayClose = lastDayPayload.Close
-                                runningInstrument.CurrentDayOpen = currentDayPayload.Open
-                                runningInstrument.CurrentDayLow = currentDayPayload.Low
-                                runningInstrument.CurrentDayHigh = currentDayPayload.High
-                                runningInstrument.CurrentDayClose = currentDayPayload.Close
+                                If currentDayPayload IsNot Nothing Then
+                                    runningInstrument.CurrentDayOpen = currentDayPayload.Open
+                                    runningInstrument.CurrentDayLow = currentDayPayload.Low
+                                    runningInstrument.CurrentDayHigh = currentDayPayload.High
+                                    runningInstrument.CurrentDayClose = currentDayPayload.Close
+                                End If
                                 If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
-                                priceFilterdCurrentNFOInstruments.Add(runningInstrument)
+                                    priceFilterdCurrentNFOInstruments.Add(runningInstrument)
+                                End If
                             End If
-                        End If
                     Next
                     Dim highATRStocks As Concurrent.ConcurrentDictionary(Of String, Decimal()) = Nothing
                     Try
@@ -394,9 +403,13 @@ Public Class ATRStockSelection
                         Dim lastDayPayload As Payload = Nothing
                         Dim currentDayPayload As Payload = Nothing
                         If previousDayPayloads IsNot Nothing AndAlso previousDayPayloads.Count > 0 Then
-                            currentDayPayload = previousDayPayloads.LastOrDefault.Value
-                            If currentDayPayload.PreviousCandlePayload IsNot Nothing Then
-                                lastDayPayload = currentDayPayload.PreviousCandlePayload
+                            If previousDayPayloads.ContainsKey(tradingDate.Date) Then
+                                currentDayPayload = previousDayPayloads.LastOrDefault.Value
+                                If currentDayPayload.PreviousCandlePayload IsNot Nothing Then
+                                    lastDayPayload = currentDayPayload.PreviousCandlePayload
+                                End If
+                            Else
+                                lastDayPayload = previousDayPayloads.LastOrDefault.Value
                             End If
                         End If
                         If lastDayPayload IsNot Nothing AndAlso lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
@@ -408,10 +421,12 @@ Public Class ATRStockSelection
                                 runningInstrument.LastDayLow = lastDayPayload.Low
                                 runningInstrument.LastDayHigh = lastDayPayload.High
                                 runningInstrument.LastDayClose = lastDayPayload.Close
-                                runningInstrument.CurrentDayOpen = currentDayPayload.Open
-                                runningInstrument.CurrentDayLow = currentDayPayload.Low
-                                runningInstrument.CurrentDayHigh = currentDayPayload.High
-                                runningInstrument.CurrentDayClose = currentDayPayload.Close
+                                If currentDayPayload IsNot Nothing Then
+                                    runningInstrument.CurrentDayOpen = currentDayPayload.Open
+                                    runningInstrument.CurrentDayLow = currentDayPayload.Low
+                                    runningInstrument.CurrentDayHigh = currentDayPayload.High
+                                    runningInstrument.CurrentDayClose = currentDayPayload.Close
+                                End If
                                 If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
                                 priceFilterdCurrentNFOInstruments.Add(runningInstrument)
                             End If
@@ -660,7 +675,7 @@ Public Class ATRStockSelection
                     previousTradingDate = _common.GetPreviousTradingDay(intradayTable, instrumentData.TradingSymbol, tradingDate)
                 End If
                 If previousTradingDate <> Date.MinValue Then
-                    ret = _common.GetRawPayloadForSpecificTradingSymbol(intradayTable, instrumentData.TradingSymbol, previousTradingDate.AddDays(-5), previousTradingDate)
+                    ret = _common.GetRawPayloadForSpecificTradingSymbol(intradayTable, instrumentData.TradingSymbol, previousTradingDate, previousTradingDate)
                 End If
             Else
                 Dim previousTradingDate As Date = Date.MinValue
@@ -670,7 +685,7 @@ Public Class ATRStockSelection
                     previousTradingDate = _common.GetPreviousTradingDay(intradayTable, instrumentData.PreviousContractTradingSymbol, tradingDate)
                 End If
                 If previousTradingDate <> Date.MinValue Then
-                    ret = _common.GetRawPayloadForSpecificTradingSymbol(intradayTable, instrumentData.PreviousContractTradingSymbol, previousTradingDate.AddDays(-5), previousTradingDate)
+                    ret = _common.GetRawPayloadForSpecificTradingSymbol(intradayTable, instrumentData.PreviousContractTradingSymbol, previousTradingDate, previousTradingDate)
                 End If
             End If
         End If
@@ -680,81 +695,18 @@ Public Class ATRStockSelection
     Private Function CalculateBlankVolumePercentage(ByVal inputPayload As Dictionary(Of Date, Payload)) As Decimal
         Dim ret As Decimal = Decimal.MinValue
         If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
-            Dim lastTradingDay As Date = inputPayload.LastOrDefault.Key.Date
-            Dim checkPayload As IEnumerable(Of KeyValuePair(Of Date, Payload)) = inputPayload.Where(Function(x)
-                                                                                                        Return x.Key.Date = lastTradingDay.Date
-                                                                                                    End Function)
-
-            Dim blankCandlePayload As IEnumerable(Of KeyValuePair(Of Date, Payload)) = checkPayload.Where(Function(x)
+            Dim blankCandlePayload As IEnumerable(Of KeyValuePair(Of Date, Payload)) = inputPayload.Where(Function(x)
                                                                                                               Return x.Value.Open = x.Value.Low AndAlso
                                                                                                               x.Value.Low = x.Value.High AndAlso
                                                                                                               x.Value.High = x.Value.Close
                                                                                                           End Function)
             If blankCandlePayload IsNot Nothing AndAlso blankCandlePayload.Count > 0 Then
-                ret = Math.Round((blankCandlePayload.Count / checkPayload.Count) * 100, 2)
+                ret = Math.Round((blankCandlePayload.Count / inputPayload.Count) * 100, 2)
             Else
                 ret = 0
             End If
         End If
         Return ret
-    End Function
-
-    Private Function CalculateTargetToStoplossMultiplier(ByVal inputPayload As Dictionary(Of Date, Payload), ByVal price As Decimal) As Decimal
-        Dim ret As Decimal = Decimal.MinValue
-        If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
-            Dim hkPayload As Dictionary(Of Date, Payload) = Nothing
-            Indicator.HeikenAshi.ConvertToHeikenAshi(inputPayload, hkPayload)
-
-            Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
-            Indicator.ATR.CalculateATR(14, hkPayload, atrPayload, True)
-            Dim lastTradingDay As Date = inputPayload.LastOrDefault.Key.Date
-            Dim highestATR As Decimal = atrPayload.Max(Function(x)
-                                                           If x.Key.Date = lastTradingDay.Date Then
-                                                               Return x.Value
-                                                           Else
-                                                               Return Decimal.MinValue
-                                                           End If
-                                                       End Function)
-
-            Dim slPoint As Decimal = Utilities.Numbers.ConvertFloorCeling(highestATR, 0.05, Utilities.Numbers.NumberManipulation.RoundOfType.Celing)
-            Dim quantity As Integer = CalculateQuantityFromStoploss(price, price - slPoint, 500)
-            Dim targetPoint As Decimal = CalculatorTargetPoint(price, quantity, 500)
-            ret = Math.Round(targetPoint / slPoint, 2)
-        End If
-        Return ret
-    End Function
-
-    Private Function CalculateQuantityFromStoploss(ByVal buyPrice As Decimal, ByVal sellPrice As Decimal, ByVal netLossOfTrade As Decimal) As Integer
-        Dim potentialBrokerage As Calculator.BrokerageAttributes = Nothing
-        Dim calculator As New Calculator.BrokerageCalculator(_cts)
-
-        Dim quantity As Integer = 1
-        Dim previousQuantity As Integer = 1
-        For quantity = 1 To Integer.MaxValue
-            calculator.Intraday_Equity(buyPrice, sellPrice, quantity, potentialBrokerage)
-
-            If potentialBrokerage.NetProfitLoss < Math.Abs(netLossOfTrade) * -1 Then
-                Exit For
-            Else
-                previousQuantity = quantity
-            End If
-        Next
-        Return previousQuantity
-    End Function
-
-    Public Function CalculatorTargetPoint(ByVal entryPrice As Decimal, ByVal quantity As Integer, ByVal desiredProfitOfTrade As Decimal) As Decimal
-        Dim potentialBrokerage As Calculator.BrokerageAttributes = Nothing
-        Dim calculator As New Calculator.BrokerageCalculator(_cts)
-        Dim exitPrice As Decimal = entryPrice
-        calculator.Intraday_Equity(entryPrice, exitPrice, quantity, potentialBrokerage)
-
-        While Not potentialBrokerage.NetProfitLoss > desiredProfitOfTrade
-            calculator.Intraday_Equity(entryPrice, exitPrice, quantity, potentialBrokerage)
-            If potentialBrokerage.NetProfitLoss > desiredProfitOfTrade Then Exit While
-            exitPrice += 0.05
-        End While
-
-        Return exitPrice - entryPrice
     End Function
 
 #Region "IDisposable Support"
