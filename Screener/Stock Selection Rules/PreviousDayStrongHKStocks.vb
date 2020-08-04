@@ -49,7 +49,7 @@ Public Class PreviousDayStrongHKStocks
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(-50), tradingDate.AddDays(-1))
-                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
+                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 30 Then
                             Dim eodHKPayload As Dictionary(Of Date, Payload) = Nothing
                             Indicator.HeikenAshi.ConvertToHeikenAshi(eodPayload, eodHKPayload)
                             Dim lastDayHKPayload As Payload = eodHKPayload.LastOrDefault.Value
