@@ -27,6 +27,7 @@ Public Class PreviousDayStrongHKStocks
         ret.Columns.Add("Slab")
         ret.Columns.Add("Target To Stoploss Multiplier")
         ret.Columns.Add("Direction")
+        ret.Columns.Add("Change %")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -48,11 +49,22 @@ Public Class PreviousDayStrongHKStocks
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(-50), tradingDate.AddDays(-1))
+                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(-50), tradingDate)
                         If eodPayload IsNot Nothing AndAlso eodPayload.Count > 30 Then
+                            Dim currentDayPayload As Payload = Nothing
+                            If eodPayload.ContainsKey(tradingDate.Date) Then
+                                currentDayPayload = eodPayload(tradingDate.Date)
+                            End If
+
                             Dim eodHKPayload As Dictionary(Of Date, Payload) = Nothing
                             Indicator.HeikenAshi.ConvertToHeikenAshi(eodPayload, eodHKPayload)
-                            Dim lastDayHKPayload As Payload = eodHKPayload.LastOrDefault.Value
+                            Dim lastDayHKPayload As Payload = Nothing
+                            If currentDayPayload IsNot Nothing Then
+                                lastDayHKPayload = eodHKPayload(currentDayPayload.PreviousCandlePayload.PayloadDate)
+                            Else
+                                lastDayHKPayload = eodHKPayload.LastOrDefault.Value
+                            End If
+
                             Dim direction As String = Nothing
                             If Math.Round(lastDayHKPayload.Open, 2) = Math.Round(lastDayHKPayload.Low, 2) Then
                                 direction = "BULLISH"
@@ -63,9 +75,13 @@ Public Class PreviousDayStrongHKStocks
                                 Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-15), tradingDate.AddDays(-1))
                                 If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 100 Then
                                     Dim multiplier As Decimal = CalculateTargetToStoplossMultiplier(intradayPayload, atrStockList(runningStock).PreviousDayClose)
+                                    Dim changePer As Decimal = Decimal.MinValue
+                                    If currentDayPayload IsNot Nothing Then
+                                        changePer = Math.Round(((currentDayPayload.Open / currentDayPayload.PreviousCandlePayload.Close) - 1) * 100, 3)
+                                    End If
 
                                     If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                    tempStockList.Add(runningStock, {multiplier, direction})
+                                    tempStockList.Add(runningStock, {multiplier, direction, If(changePer <> Decimal.MinValue, changePer, "")})
                                 End If
                             End If
                         End If
@@ -88,6 +104,7 @@ Public Class PreviousDayStrongHKStocks
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Target To Stoploss Multiplier") = runningStock.Value(0)
                             row("Direction") = runningStock.Value(1)
+                            row("Change %") = runningStock.Value(2)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
