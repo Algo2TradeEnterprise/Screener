@@ -1,9 +1,11 @@
-﻿Imports System.IO
-Imports System.Threading
+﻿Imports System.Threading
 Imports Algo2TradeBLL
+Imports Utilities.Numbers
 
 Public Class LowerPriceOptions
     Inherits StockSelection
+
+    Private ReadOnly _stockName As String = "BANKNIFTY"
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
@@ -18,12 +20,8 @@ Public Class LowerPriceOptions
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
         ret.Columns.Add("Puts_Calls")
-        ret.Columns.Add("Previous Day Open")
-        ret.Columns.Add("Previous Day Low")
-        ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Previous Day Volume")
-        ret.Columns.Add("Previous Day OI")
 
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
@@ -34,33 +32,60 @@ Public Class LowerPriceOptions
                 If previousTradingDay <> Date.MinValue Then
                     Dim startDateOfWeek As Date = Common.GetStartDateOfTheWeek(tradingDate, DayOfWeek.Monday)
                     Dim thursdayOfWeek As Date = startDateOfWeek.AddDays(3)
-                    If tradingDate.DayOfWeek = DayOfWeek.Friday Then
+                    If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
+                        thursdayOfWeek = tradingDate.AddDays(7)
+                    ElseIf tradingDate.DayOfWeek = DayOfWeek.Friday Then
                         thursdayOfWeek = tradingDate.AddDays(6)
                     ElseIf tradingDate.DayOfWeek = DayOfWeek.Saturday Then
                         thursdayOfWeek = tradingDate.AddDays(5)
                     End If
 
                     OnHeartbeat(String.Format("Getting option data for {0}", tradingDate.ToString("dd-MM-yyyy")))
-                    Dim optionData As Dictionary(Of String, Payload) = Await GetOptionStockData(thursdayOfWeek, "NIFTY", previousTradingDay).ConfigureAwait(False)
-                    If optionData IsNot Nothing AndAlso optionData.Count > 0 Then
-                        Dim stockCounter As Integer = 0
-                        For Each runningStock In optionData.Values.OrderByDescending(Function(x)
-                                                                                         Return x.Volume
-                                                                                     End Function)
-                            _canceller.Token.ThrowIfCancellationRequested()
-                            Dim row As DataRow = ret.NewRow
-                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                            row("Trading Symbol") = runningStock.TradingSymbol
-                            row("Lot Size") = 75
-                            row("Puts_Calls") = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
-                            row("Previous Day Open") = runningStock.Open
-                            row("Previous Day Low") = runningStock.Low
-                            row("Previous Day High") = runningStock.High
-                            row("Previous Day Close") = runningStock.Close
-                            row("Previous Day Volume") = runningStock.Volume
-                            row("Previous Day OI") = runningStock.OI
-                            ret.Rows.Add(row)
-                        Next
+
+                    Dim futureTradingSymbol As String = _cmn.GetCurrentTradingSymbol(Common.DataBaseTable.Intraday_Futures, tradingDate, _stockName)
+                    If futureTradingSymbol IsNot Nothing Then
+                        Dim lotSize As Integer = _cmn.GetLotSize(Common.DataBaseTable.Intraday_Futures, futureTradingSymbol, tradingDate)
+
+                        Dim optionData As Dictionary(Of String, Payload) = Await GetOptionStockData(thursdayOfWeek, _stockName, previousTradingDay).ConfigureAwait(False)
+
+                        If optionData IsNot Nothing AndAlso optionData.Count > 0 Then
+                            Dim ceDone As Boolean = False
+                            Dim peDone As Boolean = False
+                            Dim counter As Integer = 0
+                            For Each runningStock In optionData.Values.OrderByDescending(Function(x)
+                                                                                             Return x.Volume
+                                                                                         End Function)
+
+                                Dim intrumentType As String = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
+                                If Not ceDone AndAlso intrumentType.ToUpper = "CE" Then
+                                    Dim row As DataRow = ret.NewRow
+                                    row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                    row("Trading Symbol") = runningStock.TradingSymbol
+                                    row("Lot Size") = lotSize
+                                    row("Puts_Calls") = intrumentType
+                                    row("Previous Day Close") = runningStock.Close
+                                    row("Previous Day Volume") = runningStock.Volume
+                                    ret.Rows.Add(row)
+
+                                    counter += 1
+                                    ceDone = True
+                                ElseIf Not peDone AndAlso intrumentType.ToUpper = "PE" Then
+                                    Dim row As DataRow = ret.NewRow
+                                    row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                    row("Trading Symbol") = runningStock.TradingSymbol
+                                    row("Lot Size") = lotSize
+                                    row("Puts_Calls") = intrumentType
+                                    row("Previous Day Close") = runningStock.Close
+                                    row("Previous Day Volume") = runningStock.Volume
+                                    ret.Rows.Add(row)
+
+                                    counter += 1
+                                    peDone = True
+                                End If
+
+                                If counter >= 2 Then Exit For
+                            Next
+                        End If
                     End If
                 End If
             End If
@@ -89,17 +114,17 @@ Public Class LowerPriceOptions
             End If
             tradingSymbol = String.Format("{0}{1}%", rawInstrumentName.ToUpper, dateString)
         End If
-        'Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI` 
-        '                                           FROM `eod_prices_opt_futures` 
-        '                                           WHERE `TradingSymbol` LIKE '{0}' 
-        '                                           AND `SnapshotDate`='{1}' 
-        '                                           AND `Close`<10",
-        '                                           tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
-        Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI` 
-                                                   FROM `eod_prices_opt_futures` 
-                                                   WHERE `TradingSymbol` LIKE '{0}' 
-                                                   AND `SnapshotDate`='{1}'",
+        Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI`
+                                                   FROM `eod_prices_opt_futures`
+                                                   WHERE `TradingSymbol` LIKE '{0}'
+                                                   AND `SnapshotDate`='{1}'
+                                                   AND `Close`<30",
                                                    tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
+        'Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI`
+        '                                           FROM `eod_prices_opt_futures`
+        '                                           WHERE `TradingSymbol` LIKE '{0}'
+        '                                           AND `SnapshotDate`='{1}'",
+        '                                           tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
 
         Dim dt As DataTable = Await _cmn.RunSelectAsync(queryString).ConfigureAwait(False)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
@@ -131,5 +156,43 @@ Public Class LowerPriceOptions
             ret = True
         End If
         Return ret
+    End Function
+
+    Private Function CalculateQuantityFromTarget(ByVal buyPrice As Decimal, ByVal sellPrice As Decimal, ByVal netProfitOfTrade As Decimal) As Integer
+        Dim potentialBrokerage As Calculator.BrokerageAttributes = Nothing
+        Dim calculator As Calculator.BrokerageCalculator = New Calculator.BrokerageCalculator(_canceller)
+
+        Dim quantity As Integer = 1
+        Dim previousQuantity As Integer = 1
+        For quantity = 1 To Integer.MaxValue
+            calculator.FO_Options(buyPrice, sellPrice, quantity, potentialBrokerage)
+
+            If potentialBrokerage.NetProfitLoss > netProfitOfTrade Then
+                previousQuantity = quantity
+                Exit For
+            Else
+                previousQuantity = quantity
+            End If
+        Next
+        Return previousQuantity
+    End Function
+
+    Private Function CalculateStandardDeviationPA(ByVal inputPayload As List(Of Long)) As Double
+        Dim ret As Double = Nothing
+        If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
+            Dim sum As Double = 0
+            For Each runningPayload In inputPayload
+                sum = sum + runningPayload
+            Next
+            Dim mean As Double = sum / inputPayload.Count
+            Dim sumVariance As Double = 0
+            For Each runningPayload In inputPayload
+                sumVariance = sumVariance + Math.Pow((runningPayload - mean), 2)
+            Next
+            Dim sampleVariance As Double = sumVariance / (inputPayload.Count)
+            Dim standardDeviation As Double = Math.Sqrt(sampleVariance)
+            ret = standardDeviation
+        End If
+        Return Math.Round(ret, 4)
     End Function
 End Class
