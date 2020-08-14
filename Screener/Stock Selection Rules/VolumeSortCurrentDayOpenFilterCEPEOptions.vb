@@ -58,7 +58,7 @@ Public Class VolumeSortCurrentDayOpenFilterCEPEOptions
                                 If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 AndAlso intradayPayload.ContainsKey(tradingDate.Date) Then
                                     Dim firstCandleOfDay As Payload = intradayPayload(tradingDate.Date)
 
-                                    If firstCandleOfDay.PreviousCandlePayload IsNot Nothing AndAlso firstCandleOfDay.Open < 30 Then
+                                    If firstCandleOfDay.Open < 30 Then
                                         Dim intrumentType As String = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
                                         If Not ceDone AndAlso intrumentType.ToUpper = "CE" Then
                                             Dim row As DataRow = ret.NewRow
