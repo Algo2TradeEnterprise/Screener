@@ -106,6 +106,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Stock Selection Rules\CPRNarrowRangeStocks.vb" />
+    <Compile Include="Stock Selection Rules\CurrentDayOpenATRSortVolumeFilterCEPEOptions.vb" />
+    <Compile Include="Stock Selection Rules\CurrentDayOpenATRSortVolumeFilterTop2Options.vb" />
     <Compile Include="Stock Selection Rules\EODLowRangeStock.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocks.vb" />
     <Compile Include="Stock Selection Rules\LowATRCandleQuickEntryStocks.vb" />
@@ -122,6 +124,8 @@
     <Compile Include="Stock Selection Rules\OHLStocks.vb" />
     <Compile Include="Stock Selection Rules\OpenAtHighLow.vb" />
     <Compile Include="Stock Selection Rules\PreMarketStocks.vb" />
+    <Compile Include="Stock Selection Rules\PreviousDayCloseATRSortVolumeFilterCEPEOptions.vb" />
+    <Compile Include="Stock Selection Rules\PreviousDayCloseATRSortVolumeFilterTop2Options.vb" />
     <Compile Include="Stock Selection Rules\PreviousDayStrongHKStocks.vb" />
     <Compile Include="Stock Selection Rules\SpotFutureArbritrage.vb" />
     <Compile Include="Stock Selection Rules\StrongMovedStocks.vb" />

@@ -382,6 +382,14 @@ Public Class frmStockSelection
                     stock = New VolumeSortCurrentDayOpenFilterCEPEOptions(_canceller, cmn, stockType)
                 Case 28
                     stock = New VolumeSortCurrentDayOpenFilterTop2Options(_canceller, cmn, stockType)
+                Case 29
+                    stock = New PreviousDayCloseATRSortVolumeFilterCEPEOptions(_canceller, cmn, stockType)
+                Case 30
+                    stock = New PreviousDayCloseATRSortVolumeFilterTop2Options(_canceller, cmn, stockType)
+                Case 31
+                    stock = New CurrentDayOpenATRSortVolumeFilterCEPEOptions(_canceller, cmn, stockType)
+                Case 32
+                    stock = New CurrentDayOpenATRSortVolumeFilterTop2Options(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -491,6 +499,9 @@ Public Class frmStockSelection
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks with previous day strong HK Candle (Bullish:Open=Low, Bearish:Open=High). If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 25, 26, 27, 28
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return BANKNIFTY option stocks. Give the date you want to trade if it is not the current date.")
+            Case 29, 30, 31, 32
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return BANKNIFTY option stocks. Give the date you want to trade if it is not the current date.")
             Case Else
