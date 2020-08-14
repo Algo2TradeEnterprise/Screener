@@ -466,7 +466,7 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return lowest candle range stocks of x minute in ascending order. Give the date you want to trade if it is not the current date.")
             Case 19
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return BANKNIFTY option stocks with Volume sort where Close<30. Give the date you want to trade if it is not the current date.")
+                lblDescription.Text = String.Format("Return BANKNIFTY option stocks with Volume sort and OI where Close<30. Give the date you want to trade if it is not the current date.")
             Case 20
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return NIFTY option stocks with Volume and OI Change % where Close<10. Give the date you want to trade if it is not the current date.")

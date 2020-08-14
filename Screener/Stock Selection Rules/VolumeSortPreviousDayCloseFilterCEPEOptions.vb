@@ -1,8 +1,7 @@
 ﻿Imports System.Threading
 Imports Algo2TradeBLL
-Imports Utilities.Numbers
 
-Public Class LowerPriceOptions
+Public Class VolumeSortPreviousDayCloseFilterCEPEOptions
     Inherits StockSelection
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
@@ -20,9 +19,8 @@ Public Class LowerPriceOptions
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
         ret.Columns.Add("Puts_Calls")
-        ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Previous Day Volume")
-        ret.Columns.Add("Previous Day OI")
+        ret.Columns.Add("Previous Day Close")
 
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
@@ -50,20 +48,41 @@ Public Class LowerPriceOptions
                         Dim optionData As Dictionary(Of String, Payload) = Await GetOptionStockData(thursdayOfWeek, _stockName, previousTradingDay).ConfigureAwait(False)
 
                         If optionData IsNot Nothing AndAlso optionData.Count > 0 Then
+                            Dim ceDone As Boolean = False
+                            Dim peDone As Boolean = False
+                            Dim counter As Integer = 0
                             For Each runningStock In optionData.Values.OrderByDescending(Function(x)
                                                                                              Return x.Volume
                                                                                          End Function)
+                                If runningStock.Close < 30 Then
+                                    Dim intrumentType As String = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
+                                    If Not ceDone AndAlso intrumentType.ToUpper = "CE" Then
+                                        Dim row As DataRow = ret.NewRow
+                                        row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                        row("Trading Symbol") = runningStock.TradingSymbol
+                                        row("Lot Size") = lotSize
+                                        row("Puts_Calls") = intrumentType
+                                        row("Previous Day Volume") = runningStock.Volume
+                                        row("Previous Day Close") = runningStock.Close
+                                        ret.Rows.Add(row)
 
-                                Dim intrumentType As String = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
-                                Dim row As DataRow = ret.NewRow
-                                row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                row("Trading Symbol") = runningStock.TradingSymbol
-                                row("Lot Size") = lotSize
-                                row("Puts_Calls") = intrumentType
-                                row("Previous Day Close") = runningStock.Close
-                                row("Previous Day Volume") = runningStock.Volume
-                                row("Previous Day OI") = runningStock.OI
-                                ret.Rows.Add(row)
+                                        counter += 1
+                                        ceDone = True
+                                    ElseIf Not peDone AndAlso intrumentType.ToUpper = "PE" Then
+                                        Dim row As DataRow = ret.NewRow
+                                        row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                        row("Trading Symbol") = runningStock.TradingSymbol
+                                        row("Lot Size") = lotSize
+                                        row("Puts_Calls") = intrumentType
+                                        row("Previous Day Volume") = runningStock.Volume
+                                        row("Previous Day Close") = runningStock.Close
+                                        ret.Rows.Add(row)
+
+                                        counter += 1
+                                        peDone = True
+                                    End If
+                                End If
+                                If counter >= 2 Then Exit For
                             Next
                         End If
                     End If
@@ -94,17 +113,12 @@ Public Class LowerPriceOptions
             End If
             tradingSymbol = String.Format("{0}{1}%", rawInstrumentName.ToUpper, dateString)
         End If
+
         Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI`
                                                    FROM `eod_prices_opt_futures`
                                                    WHERE `TradingSymbol` LIKE '{0}'
-                                                   AND `SnapshotDate`='{1}'
-                                                   AND `Close`<30",
+                                                   AND `SnapshotDate`='{1}'",
                                                    tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
-        'Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI`
-        '                                           FROM `eod_prices_opt_futures`
-        '                                           WHERE `TradingSymbol` LIKE '{0}'
-        '                                           AND `SnapshotDate`='{1}'",
-        '                                           tradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
 
         Dim dt As DataTable = Await _cmn.RunSelectAsync(queryString).ConfigureAwait(False)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then

@@ -130,6 +130,10 @@
     <Compile Include="Stock Selection Rules\TopGainerTopLosserOfEverySlab.vb" />
     <Compile Include="Stock Selection Rules\TouchPreviousDayLastCandle.vb" />
     <Compile Include="Stock Selection Rules\UserGivenStocks.vb" />
+    <Compile Include="Stock Selection Rules\VolumeSortCurrentDayOpenFilterCEPEOptions.vb" />
+    <Compile Include="Stock Selection Rules\VolumeSortCurrentDayOpenFilterTop2Options.vb" />
+    <Compile Include="Stock Selection Rules\VolumeSortPreviousDayCloseFilterCEPEOptions.vb" />
+    <Compile Include="Stock Selection Rules\VolumeSortPreviousDayCloseFilterTop2Options.vb" />
     <Compile Include="StockSelection.vb" />
   </ItemGroup>
   <ItemGroup>
