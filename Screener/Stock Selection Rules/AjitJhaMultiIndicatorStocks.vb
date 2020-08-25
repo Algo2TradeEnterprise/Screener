@@ -26,6 +26,7 @@ Public Class AjitJhaMultiIndicatorStocks
                 If _stockList IsNot Nothing AndAlso _stockList.Count > 0 Then
                     Dim stkCtr As Integer = 0
                     For Each runningStock In _stockList
+                        _canceller.Token.ThrowIfCancellationRequested()
                         stkCtr += 1
                         OnHeartbeat(String.Format("Running for {0} #{1}/{2}", runningStock, stkCtr, _stockList.Count))
                         Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_intradayTable, runningStock, tradingDate.AddDays(-20), tradingDate)
@@ -34,6 +35,7 @@ Public Class AjitJhaMultiIndicatorStocks
                             Dim xMinutePayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 5, exchangeStartTime)
                             Dim currentDayPayload As Dictionary(Of Date, Payload) = Nothing
                             For Each runningPayload In xMinutePayload
+                                _canceller.Token.ThrowIfCancellationRequested()
                                 If runningPayload.Key.Date = tradingDate.Date Then
                                     If currentDayPayload Is Nothing Then currentDayPayload = New Dictionary(Of Date, Payload)
                                     currentDayPayload.Add(runningPayload.Key, runningPayload.Value)
@@ -48,6 +50,7 @@ Public Class AjitJhaMultiIndicatorStocks
                                     For Each runningPayload In weeklyPayload.OrderByDescending(Function(x)
                                                                                                    Return x.Key
                                                                                                End Function)
+                                        _canceller.Token.ThrowIfCancellationRequested()
                                         If weeklySubPayload Is Nothing Then weeklySubPayload = New Dictionary(Of Date, Payload)
                                         weeklySubPayload.Add(runningPayload.Key, runningPayload.Value)
 
@@ -69,6 +72,7 @@ Public Class AjitJhaMultiIndicatorStocks
                                     Indicator.VWAP.CalculateVWAP(xMinutePayload, vwapPayload)
 
                                     For Each runningPayload In currentDayPayload
+                                        _canceller.Token.ThrowIfCancellationRequested()
                                         Dim signalCandle As Payload = runningPayload.Value
                                         If signalCandle.High > weeklyHigh Then
                                             Dim lastestCandle As Payload = GetCurrentDayCandle(currentDayPayload, signalCandle, eodPayload.LastOrDefault.Value, tradingDate, runningStock)
