@@ -18,20 +18,24 @@ Public Class AjitJhaMultiIndicatorStocks
         ret.Columns.Add("Date")
         ret.Columns.Add("Trading Symbol")
 
+        Dim dtCtr As Integer = 0
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
             _canceller.Token.ThrowIfCancellationRequested()
+            dtCtr += 1
             Dim tradingDay As Boolean = Await IsTradableDay(tradingDate).ConfigureAwait(False)
             If tradingDay Then
+                Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
+                Dim lastSignalTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 12, 0, 0)
+
                 If _stockList IsNot Nothing AndAlso _stockList.Count > 0 Then
                     Dim stkCtr As Integer = 0
                     For Each runningStock In _stockList
                         _canceller.Token.ThrowIfCancellationRequested()
                         stkCtr += 1
-                        OnHeartbeat(String.Format("Running for {0} #{1}/{2}", runningStock, stkCtr, _stockList.Count))
+                        OnHeartbeat(String.Format("Running for {0} #{1}/{2} #{3}/{4}", runningStock, stkCtr, _stockList.Count, dtCtr, DateDiff(DateInterval.Day, startDate, endDate) + 1))
                         Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_intradayTable, runningStock, tradingDate.AddDays(-20), tradingDate)
                         If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                            Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
                             Dim xMinutePayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 5, exchangeStartTime)
                             Dim currentDayPayload As Dictionary(Of Date, Payload) = Nothing
                             For Each runningPayload In xMinutePayload
@@ -76,31 +80,33 @@ Public Class AjitJhaMultiIndicatorStocks
                                     For Each runningPayload In currentDayPayload
                                         _canceller.Token.ThrowIfCancellationRequested()
                                         Dim signalCandle As Payload = runningPayload.Value
-                                        If signalCandle.High > weeklyHigh Then
-                                            Dim lastestCandle As Payload = GetCurrentDayCandle(currentDayPayload, signalCandle, eodPayload.LastOrDefault.Value, tradingDate, runningStock)
-                                            If signalCandle.Close > lastestCandle.PreviousCandlePayload.High Then
-                                                Dim latestPayload As Dictionary(Of Date, Payload) = Utilities.Strings.DeepClone(Of Dictionary(Of Date, Payload))(eodPayload)
-                                                latestPayload.Add(lastestCandle.PayloadDate, lastestCandle)
+                                        If signalCandle.PayloadDate <= lastSignalTime Then
+                                            If signalCandle.High > weeklyHigh Then
+                                                Dim lastestCandle As Payload = GetCurrentDayCandle(currentDayPayload, signalCandle, eodPayload.LastOrDefault.Value, tradingDate, runningStock)
+                                                If signalCandle.Close > lastestCandle.PreviousCandlePayload.High Then
+                                                    Dim latestPayload As Dictionary(Of Date, Payload) = Utilities.Strings.DeepClone(Of Dictionary(Of Date, Payload))(eodPayload)
+                                                    latestPayload.Add(lastestCandle.PayloadDate, lastestCandle)
 
-                                                If signalCandle.Volume > smaPayload(signalCandle.PayloadDate) Then
-                                                    Dim emaCls20 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_20).Item1
-                                                    If signalCandle.Close > emaCls20 Then
-                                                        Dim emaCls50 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_50).Item1
-                                                        If emaPayload(signalCandle.PayloadDate) > emaCls50 Then
-                                                            Dim macd As Tuple(Of Decimal, Decimal) = GetIndicatorLatestValue(latestPayload, IndicatorType.MACD_26_12_9)
-                                                            If macd.Item1 > macd.Item2 Then
-                                                                Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
-                                                                If cci > 100 Then
-                                                                    If rsiPayload(signalCandle.PayloadDate) > 60 Then
-                                                                        If signalCandle.High / lastestCandle.Low <= 1.015 Then
-                                                                            If signalCandle.Close >= 100 Then
-                                                                                If signalCandle.Close > vwapPayload(signalCandle.PayloadDate) Then
-                                                                                    If signalCandle.Close > signalCandle.Open Then
-                                                                                        Dim row As DataRow = ret.NewRow
-                                                                                        row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                                                                        row("Trading Symbol") = runningStock
-                                                                                        ret.Rows.Add(row)
-                                                                                        Exit For
+                                                    If signalCandle.Volume > smaPayload(signalCandle.PayloadDate) Then
+                                                        Dim emaCls20 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_20).Item1
+                                                        If signalCandle.Close > emaCls20 Then
+                                                            Dim emaCls50 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_50).Item1
+                                                            If emaPayload(signalCandle.PayloadDate) > emaCls50 Then
+                                                                Dim macd As Tuple(Of Decimal, Decimal) = GetIndicatorLatestValue(latestPayload, IndicatorType.MACD_26_12_9)
+                                                                If macd.Item1 > macd.Item2 Then
+                                                                    Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
+                                                                    If cci > 100 Then
+                                                                        If rsiPayload(signalCandle.PayloadDate) > 60 Then
+                                                                            If signalCandle.High / lastestCandle.Low <= 1.015 Then
+                                                                                If signalCandle.Close >= 100 Then
+                                                                                    If signalCandle.Close > vwapPayload(signalCandle.PayloadDate) Then
+                                                                                        If signalCandle.Close > signalCandle.Open Then
+                                                                                            Dim row As DataRow = ret.NewRow
+                                                                                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                                                                            row("Trading Symbol") = runningStock
+                                                                                            ret.Rows.Add(row)
+                                                                                            Exit For
+                                                                                        End If
                                                                                     End If
                                                                                 End If
                                                                             End If
@@ -111,32 +117,32 @@ Public Class AjitJhaMultiIndicatorStocks
                                                         End If
                                                     End If
                                                 End If
-                                            End If
-                                        ElseIf signalCandle.Low < weeklyLow Then
-                                            Dim lastestCandle As Payload = GetCurrentDayCandle(currentDayPayload, signalCandle, eodPayload.LastOrDefault.Value, tradingDate, runningStock)
-                                            If signalCandle.Close < lastestCandle.PreviousCandlePayload.Low Then
-                                                Dim latestPayload As Dictionary(Of Date, Payload) = Utilities.Strings.DeepClone(Of Dictionary(Of Date, Payload))(eodPayload)
-                                                latestPayload.Add(lastestCandle.PayloadDate, lastestCandle)
+                                            ElseIf signalCandle.Low < weeklyLow Then
+                                                Dim lastestCandle As Payload = GetCurrentDayCandle(currentDayPayload, signalCandle, eodPayload.LastOrDefault.Value, tradingDate, runningStock)
+                                                If signalCandle.Close < lastestCandle.PreviousCandlePayload.Low Then
+                                                    Dim latestPayload As Dictionary(Of Date, Payload) = Utilities.Strings.DeepClone(Of Dictionary(Of Date, Payload))(eodPayload)
+                                                    latestPayload.Add(lastestCandle.PayloadDate, lastestCandle)
 
-                                                If signalCandle.Volume > smaPayload(signalCandle.PayloadDate) Then
-                                                    Dim emaCls20 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_20).Item1
-                                                    If signalCandle.Close < emaCls20 Then
-                                                        Dim emaCls50 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_50).Item1
-                                                        If emaPayload(signalCandle.PayloadDate) < emaCls50 Then
-                                                            Dim macd As Tuple(Of Decimal, Decimal) = GetIndicatorLatestValue(latestPayload, IndicatorType.MACD_26_12_9)
-                                                            If macd.Item1 < macd.Item2 Then
-                                                                Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
-                                                                If cci < -100 Then
-                                                                    If rsiPayload(signalCandle.PayloadDate) < 40 Then
-                                                                        If lastestCandle.High / signalCandle.Low <= 1.015 Then
-                                                                            If signalCandle.Close >= 100 Then
-                                                                                If signalCandle.Close < vwapPayload(signalCandle.PayloadDate) Then
-                                                                                    If signalCandle.Close < signalCandle.Open Then
-                                                                                        Dim row As DataRow = ret.NewRow
-                                                                                        row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                                                                        row("Trading Symbol") = runningStock
-                                                                                        ret.Rows.Add(row)
-                                                                                        Exit For
+                                                    If signalCandle.Volume > smaPayload(signalCandle.PayloadDate) Then
+                                                        Dim emaCls20 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_20).Item1
+                                                        If signalCandle.Close < emaCls20 Then
+                                                            Dim emaCls50 As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.EMA_Close_50).Item1
+                                                            If emaPayload(signalCandle.PayloadDate) < emaCls50 Then
+                                                                Dim macd As Tuple(Of Decimal, Decimal) = GetIndicatorLatestValue(latestPayload, IndicatorType.MACD_26_12_9)
+                                                                If macd.Item1 < macd.Item2 Then
+                                                                    Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
+                                                                    If cci < -100 Then
+                                                                        If rsiPayload(signalCandle.PayloadDate) < 40 Then
+                                                                            If lastestCandle.High / signalCandle.Low <= 1.015 Then
+                                                                                If signalCandle.Close >= 100 Then
+                                                                                    If signalCandle.Close < vwapPayload(signalCandle.PayloadDate) Then
+                                                                                        If signalCandle.Close < signalCandle.Open Then
+                                                                                            Dim row As DataRow = ret.NewRow
+                                                                                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                                                                            row("Trading Symbol") = runningStock
+                                                                                            ret.Rows.Add(row)
+                                                                                            Exit For
+                                                                                        End If
                                                                                     End If
                                                                                 End If
                                                                             End If
