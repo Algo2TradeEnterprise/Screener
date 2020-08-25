@@ -1,6 +1,38 @@
 ﻿Imports System.Drawing
+Imports Utilities.Numbers
+
+<Serializable>
 Public Class Payload
     Implements IDisposable
+
+    Public Sub New(ByVal payloadSource As CandleDataSource)
+        Me.PayloadSource = payloadSource
+        Me.Volume = Double.MinValue
+    End Sub
+
+#Region "Enum"
+    Public Enum CandleDataSource
+        Chart = 1
+        Tick
+        Calculated
+    End Enum
+    Public Enum PayloadFields
+        Open = 1
+        High
+        Low
+        Close
+        Volume
+        H_L
+        C_AVG_HL
+        SMI_EMA
+        Additional_Field
+    End Enum
+    Public Enum StrongCandle
+        Bullish = 1
+        Bearish
+        None
+    End Enum
+#End Region
 
     Private _TradingSymbol As String
     Public Property TradingSymbol As String
@@ -12,6 +44,16 @@ Public Class Payload
         End Set
     End Property
 
+    Public ReadOnly Property RawInstrumentName As String
+        Get
+            If TradingSymbol.Contains("FUT") Then
+                Return TradingSymbol.Remove(TradingSymbol.Count - 8)
+            Else
+                Return TradingSymbol
+            End If
+        End Get
+    End Property
+
     Private _Open As Decimal
     Public Property Open As Decimal
         Get
@@ -21,6 +63,7 @@ Public Class Payload
             _Open = value
         End Set
     End Property
+
     Private _High As Decimal
     Public Property High As Decimal
         Get
@@ -30,6 +73,7 @@ Public Class Payload
             _High = value
         End Set
     End Property
+
     Private _Low As Decimal
     Public Property Low As Decimal
         Get
@@ -39,6 +83,7 @@ Public Class Payload
             _Low = value
         End Set
     End Property
+
     Private _Close As Decimal
     Public Property Close As Decimal
         Get
@@ -48,6 +93,7 @@ Public Class Payload
             _Close = value
         End Set
     End Property
+
     Private _OI As Long
     Public Property OI As Long
         Get
@@ -118,8 +164,12 @@ Public Class Payload
             _Volume = value
         End Set
     End Property
+
+    Public Property CumulativeVolume As Long
+
     Public Property PayloadDate As Date
 
+    <NonSerialized>
     Private _CandleColor As Color
     Public ReadOnly Property CandleColor As Color
         Get
@@ -134,6 +184,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _VolumeColor As Color
     Public ReadOnly Property VolumeColor As Color
         Get
@@ -151,9 +202,21 @@ Public Class Payload
             Return _VolumeColor
         End Get
     End Property
+
+    <NonSerialized>
+    Private _PreviousCandlePayload As Payload
     Public Property PreviousCandlePayload As Payload
+        Get
+            Return _PreviousCandlePayload
+        End Get
+        Set(value As Payload)
+            _PreviousCandlePayload = value
+        End Set
+    End Property
+
     Public Property PayloadSource As CandleDataSource
 
+    <NonSerialized>
     Private _CandleStrengthNormal As StrongCandle
     Public ReadOnly Property CandleStrengthNormal As StrongCandle
         Get
@@ -170,6 +233,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _CandleStrengthHeikenAshi As StrongCandle
     Public ReadOnly Property CandleStrengthHeikenAshi As StrongCandle
         Get
@@ -185,7 +249,22 @@ Public Class Payload
             Return _CandleStrengthHeikenAshi
         End Get
     End Property
+    Public ReadOnly Property CandleStrengthHeikenAshi(ByVal buffer As Decimal) As StrongCandle
+        Get
+            If Me.CandleColor = Color.Green Then
+                If Math.Abs(Math.Round(Me.Open, 2) - Math.Round(Me.Low, 2)) <= buffer Then
+                    _CandleStrengthHeikenAshi = StrongCandle.Bullish
+                End If
+            ElseIf Me.CandleColor = Color.Red Then
+                If Math.Abs(Math.Round(Me.Open, 2) - Math.Round(Me.High, 2)) <= buffer Then
+                    _CandleStrengthHeikenAshi = StrongCandle.Bearish
+                End If
+            End If
+            Return _CandleStrengthHeikenAshi
+        End Get
+    End Property
 
+    <NonSerialized>
     Private _CandleWicksPercentage As Wicks
     Public ReadOnly Property CandleWicksPercentage As Wicks
         Get
@@ -196,6 +275,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _CandleWicks As Wicks
     Public ReadOnly Property CandleWicks As Wicks
         Get
@@ -235,6 +315,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _VolumeIndex As Double
     Public ReadOnly Property VolumeIndex As Double
         Get
@@ -243,6 +324,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _CandleRange As Double
     Public ReadOnly Property CandleRange As Double
         Get
@@ -251,6 +333,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _CandleRangePercentage As Double
     Public ReadOnly Property CandleRangePercentage As Double
         Get
@@ -259,6 +342,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _CandleBody As Double
     Public ReadOnly Property CandleBody As Double
         Get
@@ -267,10 +351,12 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _DojiCandle As Double
     Public ReadOnly Property DojiCandle As Boolean
         Get
-            If Me.CandleBody < Me.CandleRange / 4 Then
+            'If Me.CandleBody < Me.CandleRange / 4 Then
+            If Me.CandleBody = 0 Then
                 _DojiCandle = True
             Else
                 _DojiCandle = False
@@ -279,6 +365,7 @@ Public Class Payload
         End Get
     End Property
 
+    <NonSerialized>
     Private _DeadCandle As Double
     Public ReadOnly Property DeadCandle As Boolean
         Get
@@ -290,6 +377,8 @@ Public Class Payload
             Return _DeadCandle
         End Get
     End Property
+
+    <NonSerialized>
     Private _IsMaribazu As Double
     Public ReadOnly Property IsMaribazu As Boolean
         Get
@@ -301,17 +390,24 @@ Public Class Payload
             Return _IsMaribazu
         End Get
     End Property
+
+    Public Property Supporting As String
+
+    <NonSerialized>
     Private _Ticks As List(Of Payload)
     Public ReadOnly Property Ticks As List(Of Payload)
         Get
+            'Dim tickSize As Decimal = NumberManipulation.ConvertFloorCeling(Me.Close * 0.01 * 0.025, 0.05, RoundOfType.Floor)
+            Dim tickSize As Decimal = 0.05
+            'TO DO: Change the vaue of tickSize to take the actual tick as per Exchange
             If _Ticks Is Nothing OrElse _Ticks.Count = 0 Then
                 Dim multiplier As Short = 0
                 Dim startPrice As Decimal = Me.Open
                 Dim firstWick As Decimal = If(Me.CandleColor = Color.Red, Me.High, Me.Low)
                 Dim secondWick As Decimal = If(Me.CandleColor = Color.Red, Me.Low, Me.High)
                 Dim endPrice As Decimal = Me.Close
-                Dim totalTicksToBeCreated As Integer = If(Me.CandleColor = Color.Red, ((Me.High - Me.Open) + (Me.High - Me.Low) + (Me.Close - Me.Low)) / 0.05,
-                                                                                      ((Me.Open - Me.Low) + (Me.High - Me.Low) + (Me.High - Me.Close)) / 0.05)
+                Dim totalTicksToBeCreated As Integer = If(Me.CandleColor = Color.Red, ((Me.High - Me.Open) + (Me.High - Me.Low) + (Me.Close - Me.Low)) / tickSize,
+                                                                                      ((Me.Open - Me.Low) + (Me.High - Me.Low) + (Me.High - Me.Close)) / tickSize)
                 totalTicksToBeCreated += 3
                 Dim ticksPerSecond As Double = totalTicksToBeCreated / 60
 
@@ -319,69 +415,50 @@ Public Class Payload
                 multiplier = If(Me.CandleColor = Color.Red, 1, -1)
                 Dim runningTickCtr As Integer = 0
                 Dim runningPayLoadDate As Date = Nothing
-                For runningTick As Decimal = startPrice To firstWick Step 0.05 * multiplier
+                Dim previousTickPayload As Payload = Nothing
+                For runningTick As Decimal = startPrice To firstWick Step tickSize * multiplier
                     runningTickCtr += 1
                     'runningPayLoadDate = New Date(Me.PayloadDate.Year, Me.PayloadDate.Month, Me.PayloadDate.Day, Me.PayloadDate.Hour, Me.PayloadDate.Minute, Math.Round(runningTickCtr / ticksPerSecond, 0))
                     runningPayLoadDate = New Date(Me.PayloadDate.Year, Me.PayloadDate.Month, Me.PayloadDate.Day, Me.PayloadDate.Hour, Me.PayloadDate.Minute, If(Math.Round(runningTickCtr / ticksPerSecond, 0) >= 60, 59, Math.Round(runningTickCtr / ticksPerSecond, 0)))
-                    _Ticks.Add(New Payload(CandleDataSource.Calculated) With {.TradingSymbol = Me.TradingSymbol, .Open = runningTick, .Low = runningTick, .High = runningTick, .Close = runningTick, .PayloadDate = runningPayLoadDate})
+                    _Ticks.Add(New Payload(CandleDataSource.Calculated) With {.TradingSymbol = Me.TradingSymbol, .Open = runningTick, .Low = runningTick, .High = runningTick, .Close = runningTick, .PayloadDate = runningPayLoadDate, .PreviousCandlePayload = previousTickPayload})
+                    previousTickPayload = _Ticks.LastOrDefault
                 Next
                 multiplier = If(Me.CandleColor = Color.Red, -1, 1)
-                For runningTick As Decimal = firstWick To secondWick Step 0.05 * multiplier
+                For runningTick As Decimal = firstWick To secondWick Step tickSize * multiplier
                     runningTickCtr += 1
                     Try
                         runningPayLoadDate = New Date(Me.PayloadDate.Year, Me.PayloadDate.Month, Me.PayloadDate.Day, Me.PayloadDate.Hour, Me.PayloadDate.Minute, If(Math.Round(runningTickCtr / ticksPerSecond, 0) >= 60, 59, Math.Round(runningTickCtr / ticksPerSecond, 0)))
                     Catch ex As Exception
                         Throw ex
                     End Try
-                    _Ticks.Add(New Payload(CandleDataSource.Calculated) With {.TradingSymbol = Me.TradingSymbol, .Open = runningTick, .Low = runningTick, .High = runningTick, .Close = runningTick, .PayloadDate = runningPayLoadDate})
+                    _Ticks.Add(New Payload(CandleDataSource.Calculated) With {.TradingSymbol = Me.TradingSymbol, .Open = runningTick, .Low = runningTick, .High = runningTick, .Close = runningTick, .PayloadDate = runningPayLoadDate, .PreviousCandlePayload = previousTickPayload})
+                    previousTickPayload = _Ticks.LastOrDefault
                 Next
                 multiplier = If(Me.CandleColor = Color.Red, 1, -1)
-                For runningTick As Decimal = secondWick To endPrice Step 0.05 * multiplier
+                For runningTick As Decimal = secondWick To endPrice Step tickSize * multiplier
                     runningTickCtr += 1
                     Try
                         runningPayLoadDate = New Date(Me.PayloadDate.Year, Me.PayloadDate.Month, Me.PayloadDate.Day, Me.PayloadDate.Hour, Me.PayloadDate.Minute, If(Math.Round(runningTickCtr / ticksPerSecond, 0) >= 60, 59, Math.Round(runningTickCtr / ticksPerSecond, 0)))
                     Catch ex As Exception
                         Throw ex
                     End Try
-                    _Ticks.Add(New Payload(CandleDataSource.Calculated) With {.TradingSymbol = Me.TradingSymbol, .Open = runningTick, .Low = runningTick, .High = runningTick, .Close = runningTick, .PayloadDate = runningPayLoadDate})
+                    _Ticks.Add(New Payload(CandleDataSource.Calculated) With {.TradingSymbol = Me.TradingSymbol, .Open = runningTick, .Low = runningTick, .High = runningTick, .Close = runningTick, .PayloadDate = runningPayLoadDate, .PreviousCandlePayload = previousTickPayload})
+                    previousTickPayload = _Ticks.LastOrDefault
                 Next
             End If
             Return _Ticks
         End Get
     End Property
 
-    Public Sub New(ByVal payloadSource As CandleDataSource)
-        Me.PayloadSource = payloadSource
-        Me.Volume = Double.MinValue
-    End Sub
-
-    Public Property CumulativeVolume As Long
-    Public Enum CandleDataSource
-        Chart = 1
-        Tick
-        Calculated
-    End Enum
-    Public Enum PayloadFields
-        Open = 1
-        High
-        Low
-        Close
-        Volume
-        H_L
-        C_AVG_HL
-        SMI_EMA
-        Additional_Field
-    End Enum
-    Public Enum StrongCandle
-        Bullish = 1
-        Bearish
-        None
-    End Enum
-
+    <Serializable>
     Public Class Wicks
         Public Property Top As Double
         Public Property Bottom As Double
     End Class
+
+    Public Overrides Function ToString() As String
+        Return String.Format("Trading Symbol:{0}, Open:{1}, High:{2}, Low:{3}, Close{4}, Date:{5}", Me.TradingSymbol, Me.Open, Me.High, Me.Low, Me.Close, Me.PayloadDate)
+    End Function
 #Region "IDisposable Support"
     Private disposedValue As Boolean ' To detect redundant calls
 
@@ -423,5 +500,3 @@ Public Class Payload
     End Sub
 #End Region
 End Class
-
-
