@@ -97,7 +97,7 @@ Public Class AjitJhaMultiIndicatorStocks
                                                                     Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
                                                                     If cci > 100 Then
                                                                         If rsiPayload(signalCandle.PayloadDate) > 60 Then
-                                                                            If (signalCandle.High / lastestCandle.Low) - 1 <= 1 Then
+                                                                            If ((signalCandle.High / lastestCandle.Low) - 1) * 100 <= 1 Then
                                                                                 If signalCandle.Close >= 100 Then
                                                                                     If signalCandle.Close > vwapPayload(signalCandle.PayloadDate) Then
                                                                                         If signalCandle.Close > signalCandle.Open Then
@@ -133,7 +133,7 @@ Public Class AjitJhaMultiIndicatorStocks
                                                                     Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
                                                                     If cci < -100 Then
                                                                         If rsiPayload(signalCandle.PayloadDate) < 40 Then
-                                                                            If (lastestCandle.High / signalCandle.Low) - 1 <= 1 Then
+                                                                            If ((lastestCandle.High / signalCandle.Low) - 1) * 100 <= 1 Then
                                                                                 If signalCandle.Close >= 100 Then
                                                                                     If signalCandle.Close < vwapPayload(signalCandle.PayloadDate) Then
                                                                                         If signalCandle.Close < signalCandle.Open Then
