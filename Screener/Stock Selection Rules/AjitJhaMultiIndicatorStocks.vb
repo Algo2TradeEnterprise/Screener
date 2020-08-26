@@ -26,7 +26,7 @@ Public Class AjitJhaMultiIndicatorStocks
             Dim tradingDay As Boolean = Await IsTradableDay(tradingDate).ConfigureAwait(False)
             If tradingDay Then
                 Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
-                Dim lastSignalTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 12, 0, 0)
+                Dim lastSignalTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 11, 55, 0)
 
                 If _stockList IsNot Nothing AndAlso _stockList.Count > 0 Then
                     Dim stkCtr As Integer = 0
@@ -97,7 +97,7 @@ Public Class AjitJhaMultiIndicatorStocks
                                                                     Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
                                                                     If cci > 100 Then
                                                                         If rsiPayload(signalCandle.PayloadDate) > 60 Then
-                                                                            If signalCandle.High / lastestCandle.Low <= 1.015 Then
+                                                                            If (signalCandle.High / lastestCandle.Low) - 1 <= 1 Then
                                                                                 If signalCandle.Close >= 100 Then
                                                                                     If signalCandle.Close > vwapPayload(signalCandle.PayloadDate) Then
                                                                                         If signalCandle.Close > signalCandle.Open Then
@@ -133,7 +133,7 @@ Public Class AjitJhaMultiIndicatorStocks
                                                                     Dim cci As Decimal = GetIndicatorLatestValue(latestPayload, IndicatorType.CCI_20).Item1
                                                                     If cci < -100 Then
                                                                         If rsiPayload(signalCandle.PayloadDate) < 40 Then
-                                                                            If lastestCandle.High / signalCandle.Low <= 1.015 Then
+                                                                            If (lastestCandle.High / signalCandle.Low) - 1 <= 1 Then
                                                                                 If signalCandle.Close >= 100 Then
                                                                                     If signalCandle.Close < vwapPayload(signalCandle.PayloadDate) Then
                                                                                         If signalCandle.Close < signalCandle.Open Then
