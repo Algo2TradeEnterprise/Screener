@@ -109,7 +109,7 @@ Public Class HighestATRAtTheMoneyOptions
                                                             Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
                                                             Indicator.ATR.CalculateATR(14, instrumentType, atrPayload, True)
 
-                                                            strikePayloads.Add(previousDayCandle.TradingSymbol, New Tuple(Of Payload, Decimal)(previousDayCandle, atrPayload(previousDayCandle.PayloadDate)))
+                                                            strikePayloads.Add(previousDayCandle.TradingSymbol, New Tuple(Of Payload, Decimal)(previousDayCandle, (atrPayload(previousDayCandle.PayloadDate) / previousDayCandle.Close) * 100))
                                                         End If
                                                     Next
                                                 End If
