@@ -169,7 +169,7 @@ Public Class LowestPriceAtTheMoneyOptions
             tradingSymbol = String.Format("{0}{1}%", rawInstrumentName.ToUpper, dateString)
         End If
 
-        Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`,`OI`
+        Dim queryString As String = String.Format("SELECT `Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`TradingSymbol`
                                                    FROM `eod_prices_opt_futures`
                                                    WHERE `TradingSymbol` LIKE '{0}'
                                                    AND `SnapshotDate`='{1}'",
@@ -188,7 +188,6 @@ Public Class LowestPriceAtTheMoneyOptions
                 tempPayload.Volume = dt.Rows(i).Item(4)
                 tempPayload.PayloadDate = dt.Rows(i).Item(5)
                 tempPayload.TradingSymbol = dt.Rows(i).Item(6)
-                tempPayload.OI = dt.Rows(i).Item(7)
 
                 ret.Add(tempPayload.TradingSymbol, tempPayload)
                 i += 1
