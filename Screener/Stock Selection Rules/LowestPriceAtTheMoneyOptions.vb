@@ -6,7 +6,7 @@ Public Class LowestPriceAtTheMoneyOptions
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
     Private ReadOnly _strikePriceGap As Decimal = 100
-    Private ReadOnly _maximumPremium As Decimal = 500
+    Private ReadOnly _maximumPremium As Decimal = 200
     Private ReadOnly _numberOfStrikes As Integer = 5
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
