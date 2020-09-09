@@ -23,6 +23,7 @@ Public Class LowerDeviationAtTheMoneyOptions
         ret.Columns.Add("Puts_Calls")
         ret.Columns.Add("Price")
         ret.Columns.Add("Time")
+        ret.Columns.Add("New Stock")
 
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
@@ -33,9 +34,14 @@ Public Class LowerDeviationAtTheMoneyOptions
                 If previousTradingDay <> Date.MinValue Then
                     Dim startDateOfWeek As Date = Common.GetStartDateOfTheWeek(tradingDate, DayOfWeek.Monday)
                     Dim thursdayOfWeek As Date = startDateOfWeek.AddDays(3)
-                    If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
-                        thursdayOfWeek = tradingDate.AddDays(7)
-                    ElseIf tradingDate.DayOfWeek = DayOfWeek.Friday Then
+                    'If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
+                    '    thursdayOfWeek = tradingDate.AddDays(7)
+                    'ElseIf tradingDate.DayOfWeek = DayOfWeek.Friday Then
+                    '    thursdayOfWeek = tradingDate.AddDays(6)
+                    'ElseIf tradingDate.DayOfWeek = DayOfWeek.Saturday Then
+                    '    thursdayOfWeek = tradingDate.AddDays(5)
+                    'End If
+                    If tradingDate.DayOfWeek = DayOfWeek.Friday Then
                         thursdayOfWeek = tradingDate.AddDays(6)
                     ElseIf tradingDate.DayOfWeek = DayOfWeek.Saturday Then
                         thursdayOfWeek = tradingDate.AddDays(5)
@@ -98,8 +104,16 @@ Public Class LowerDeviationAtTheMoneyOptions
                                         End If
                                     Next
                                     If lowerDeviationStocklistOfEveryMinute IsNot Nothing AndAlso lowerDeviationStocklistOfEveryMinute.Count > 0 Then
+                                        Dim insertedStockList As List(Of String) = New List(Of String)
                                         For Each runningPayload In lowerDeviationStocklistOfEveryMinute
                                             Dim intrumentType As String = runningPayload.TradingSymbol.Substring(runningPayload.TradingSymbol.Count - 2).Trim
+                                            Dim newStock As Boolean = True
+                                            If insertedStockList.Contains(runningPayload.TradingSymbol) Then
+                                                newStock = False
+                                            Else
+                                                insertedStockList.Add(runningPayload.TradingSymbol)
+                                            End If
+
                                             Dim row As DataRow = ret.NewRow
                                             row("Date") = tradingDate.ToString("dd-MM-yyyy")
                                             row("Trading Symbol") = runningPayload.TradingSymbol
@@ -107,6 +121,7 @@ Public Class LowerDeviationAtTheMoneyOptions
                                             row("Puts_Calls") = intrumentType
                                             row("Price") = runningPayload.Close
                                             row("Time") = runningPayload.PayloadDate.ToString("HH:mm:ss")
+                                            row("New Stock") = newStock
                                             ret.Rows.Add(row)
                                         Next
                                     End If
