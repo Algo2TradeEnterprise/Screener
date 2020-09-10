@@ -1,12 +1,11 @@
 ﻿Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class LowestPriceAtTheMoneyOptions
+Public Class LowerPriceNearestOptions
     Inherits StockSelection
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
     Private ReadOnly _strikePriceGap As Decimal = 100
-    Private ReadOnly _maximumPremium As Decimal = 200
     Private ReadOnly _numberOfStrikes As Integer = 5
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
@@ -24,6 +23,7 @@ Public Class LowestPriceAtTheMoneyOptions
         ret.Columns.Add("Puts_Calls")
         ret.Columns.Add("Price")
         ret.Columns.Add("Time")
+        ret.Columns.Add("New Stock")
 
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
@@ -64,7 +64,7 @@ Public Class LowestPriceAtTheMoneyOptions
                                     End If
                                 Next
                                 If stockData IsNot Nothing AndAlso stockData.Count > 0 Then
-                                    Dim usedStocklist As Dictionary(Of String, Payload) = Nothing
+                                    Dim lowerDeviationStocklistOfEveryMinute As List(Of Payload) = Nothing
                                     For Each runningPayload In futureIntradayPayload
                                         Dim price As Decimal = runningPayload.Value.Close
                                         Dim strikePricesToCheck As List(Of Decimal) = New List(Of Decimal)
@@ -99,41 +99,50 @@ Public Class LowestPriceAtTheMoneyOptions
                                             Next
                                         End If
                                         If strikePricesToCheck IsNot Nothing AndAlso strikePricesToCheck.Count > 0 Then
-                                            Dim strikePayloads As List(Of Payload) = New List(Of Payload)
                                             For Each runningStrike In strikePricesToCheck
                                                 If stockData.ContainsKey(runningStrike) Then
-                                                    For Each instrumentType In stockData(runningStrike).Values
-                                                        If instrumentType.ContainsKey(runningPayload.Key) Then
-                                                            strikePayloads.Add(instrumentType(runningPayload.Key))
+                                                    If stockData(runningStrike).ContainsKey("CE") AndAlso stockData(runningStrike).ContainsKey("PE") Then
+                                                        Dim cePayload As Payload = Nothing
+                                                        Dim pePayload As Payload = Nothing
+                                                        If stockData(runningStrike)("CE").ContainsKey(runningPayload.Key) Then
+                                                            cePayload = stockData(runningStrike)("CE")(runningPayload.Key)
                                                         End If
-                                                    Next
+                                                        If stockData(runningStrike)("PE").ContainsKey(runningPayload.Key) Then
+                                                            pePayload = stockData(runningStrike)("PE")(runningPayload.Key)
+                                                        End If
+                                                        If cePayload IsNot Nothing AndAlso pePayload IsNot Nothing Then
+                                                            If cePayload.Close + pePayload.Close + Math.Abs(runningStrike - price) <= 800 Then
+                                                                If lowerDeviationStocklistOfEveryMinute Is Nothing Then lowerDeviationStocklistOfEveryMinute = New List(Of Payload)
+                                                                lowerDeviationStocklistOfEveryMinute.Add(cePayload)
+                                                                lowerDeviationStocklistOfEveryMinute.Add(pePayload)
+                                                                Exit For
+                                                            End If
+                                                        End If
+                                                    End If
                                                 End If
                                             Next
-                                            If strikePayloads IsNot Nothing AndAlso strikePayloads.Count > 0 Then
-                                                Dim lowestPayload As Payload = Nothing
-                                                For Each optionPayload In strikePayloads.OrderBy(Function(x)
-                                                                                                     Return x.Close
-                                                                                                 End Function)
-                                                    lowestPayload = optionPayload
-                                                    Exit For
-                                                Next
-                                                If usedStocklist Is Nothing Then usedStocklist = New Dictionary(Of String, Payload)
-                                                If lowestPayload.Close <= _maximumPremium AndAlso Not usedStocklist.ContainsKey(lowestPayload.TradingSymbol) Then
-                                                    usedStocklist.Add(lowestPayload.TradingSymbol, lowestPayload)
-                                                End If
-                                            End If
                                         End If
+                                        If lowerDeviationStocklistOfEveryMinute IsNot Nothing AndAlso lowerDeviationStocklistOfEveryMinute.Count >= 2 Then Exit For
                                     Next
-                                    If usedStocklist IsNot Nothing AndAlso usedStocklist.Count > 0 Then
-                                        For Each runningPayload In usedStocklist
-                                            Dim intrumentType As String = runningPayload.Value.TradingSymbol.Substring(runningPayload.Value.TradingSymbol.Count - 2).Trim
+                                    If lowerDeviationStocklistOfEveryMinute IsNot Nothing AndAlso lowerDeviationStocklistOfEveryMinute.Count > 0 Then
+                                        Dim insertedStockList As List(Of String) = New List(Of String)
+                                        For Each runningPayload In lowerDeviationStocklistOfEveryMinute
+                                            Dim intrumentType As String = runningPayload.TradingSymbol.Substring(runningPayload.TradingSymbol.Count - 2).Trim
+                                            Dim newStock As Boolean = True
+                                            If insertedStockList.Contains(runningPayload.TradingSymbol) Then
+                                                newStock = False
+                                            Else
+                                                insertedStockList.Add(runningPayload.TradingSymbol)
+                                            End If
+
                                             Dim row As DataRow = ret.NewRow
                                             row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                            row("Trading Symbol") = runningPayload.Value.TradingSymbol
+                                            row("Trading Symbol") = runningPayload.TradingSymbol
                                             row("Lot Size") = lotSize
                                             row("Puts_Calls") = intrumentType
-                                            row("Price") = runningPayload.Value.Close
-                                            row("Time") = runningPayload.Value.PayloadDate.ToString("HH:mm:ss")
+                                            row("Price") = runningPayload.Close
+                                            row("Time") = runningPayload.PayloadDate.ToString("HH:mm:ss")
+                                            row("New Stock") = newStock
                                             ret.Rows.Add(row)
                                         Next
                                     End If

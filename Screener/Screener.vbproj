@@ -113,6 +113,7 @@
     <Compile Include="Stock Selection Rules\HighestATRAtTheMoneyOptions.vb" />
     <Compile Include="Stock Selection Rules\LowATRCandleQuickEntryStocks.vb" />
     <Compile Include="Stock Selection Rules\LowerDeviationAtTheMoneyOptions.vb" />
+    <Compile Include="Stock Selection Rules\LowerPriceNearestOptions.vb" />
     <Compile Include="Stock Selection Rules\LowestPriceAtTheMoneyOptions.vb" />
     <Compile Include="Stock Selection Rules\LowerPriceOptions.vb" />
     <Compile Include="Stock Selection Rules\HighLowGapStock.vb" />
