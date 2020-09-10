@@ -398,6 +398,8 @@ Public Class frmStockSelection
                     stock = New LowerDeviationAtTheMoneyOptions(_canceller, cmn, stockType)
                 Case 36
                     stock = New LowerPriceNearestOptions(_canceller, cmn, stockType)
+                Case 37
+                    stock = New DayOpenAtTheMoneyOptions(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -524,6 +526,9 @@ Public Class frmStockSelection
             Case 36
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return BANKNIFTY option stocks. Give the date you want to trade if it is not the current date.")
+            Case 37
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return NIFTY option stocks. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -532,7 +537,7 @@ Public Class frmStockSelection
             Case 13
                 cmbStockType.SelectedIndex = 0
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
-            Case 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36
+            Case 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37
                 cmbStockType.SelectedIndex = 3
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
             Case Else
@@ -540,7 +545,7 @@ Public Class frmStockSelection
         End Select
 
         Select Case index
-            Case 0, 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36
+            Case 0, 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37
                 lblMaxBlankCandlePercentage.Visible = False
                 txtMaxBlankCandlePercentage.Visible = False
                 chkbFOStock.Visible = False
