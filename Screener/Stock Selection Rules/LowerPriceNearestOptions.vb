@@ -191,14 +191,14 @@ Public Class LowerPriceNearestOptions
                                                     Dim optionPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, nifty50TradingSymbol, tradingDate, tradingDate)
                                                     If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(tradeEntryTime) Then
                                                         nifty50LotSize = _cmn.GetLotSize(Common.DataBaseTable.EOD_Futures_Options, nifty50TradingSymbol, tradingDate)
-                                                        nifty50Turnover = optionPayload(tradeEntryTime).Close * nifty50LotSize
+                                                        If nifty50LotSize <> Integer.MinValue Then nifty50Turnover = optionPayload(tradeEntryTime).Close * nifty50LotSize
                                                     End If
                                                 End If
                                                 If niftyBankTradingSymbol IsNot Nothing Then
                                                     Dim optionPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, niftyBankTradingSymbol, tradingDate, tradingDate)
                                                     If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(tradeEntryTime) Then
                                                         niftyBankLotSize = _cmn.GetLotSize(Common.DataBaseTable.EOD_Futures_Options, niftyBankTradingSymbol, tradingDate)
-                                                        niftyBankTurnover = optionPayload(tradeEntryTime).Close * niftyBankLotSize
+                                                        If niftyBankLotSize <> Integer.MinValue Then niftyBankTurnover = optionPayload(tradeEntryTime).Close * niftyBankLotSize
                                                     End If
                                                 End If
 
@@ -210,7 +210,7 @@ Public Class LowerPriceNearestOptions
                                                     row("Lot Size") = nifty50LotSize
                                                     row("Time") = tradeEntryTime.ToString("dd-MM-yyyy HH:mm:ss")
                                                     row("Turnover") = nifty50Turnover
-                                                    row("Turnover Ratio") = nifty50Turnover / niftyBankTurnover
+                                                    row("Turnover Ratio") = Math.Round(nifty50Turnover / niftyBankTurnover, 4)
                                                     ret.Rows.Add(row)
                                                 End If
                                                 If niftyBankTradingSymbol IsNot Nothing AndAlso nifty50Turnover <> Decimal.MinValue AndAlso niftyBankTurnover <> Decimal.MinValue Then
@@ -221,7 +221,7 @@ Public Class LowerPriceNearestOptions
                                                     row("Lot Size") = niftyBankLotSize
                                                     row("Time") = tradeEntryTime.ToString("dd-MM-yyyy HH:mm:ss")
                                                     row("Turnover") = niftyBankTurnover
-                                                    row("Turnover Ratio") = niftyBankTurnover / nifty50Turnover
+                                                    row("Turnover Ratio") = Math.Round(niftyBankTurnover / nifty50Turnover, 4)
                                                     ret.Rows.Add(row)
                                                 End If
                                             End If
