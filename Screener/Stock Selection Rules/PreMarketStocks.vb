@@ -27,6 +27,7 @@ Public Class PreMarketStocks
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Change %")
+        ret.Columns.Add("Value In Lakhs")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -64,11 +65,12 @@ Public Class PreMarketStocks
                         Dim tempStockList As Dictionary(Of String, Decimal()) = Nothing
                         For i = 0 To dt.Rows.Count - 1
                             _canceller.Token.ThrowIfCancellationRequested()
-                            Dim instrumentName As String = dt.Rows(i).Item(1).ToString.ToUpper
-                            Dim changePer As String = Math.Round(((dt.Rows(i).Item(4) / dt.Rows(i).Item(7)) - 1) * 100, 2)
+                            Dim instrumentName As String = dt.Rows(i).Item("SYMBOL").ToString.ToUpper
+                            Dim valueInLakhs As Double = dt.Rows(i).Item("Value")
+                            Dim changePer As String = Math.Round(((dt.Rows(i).Item("Price") / dt.Rows(i).Item("Prev Close")) - 1) * 100, 2)
                             If atrStockList.ContainsKey(instrumentName) Then
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
-                                tempStockList.Add(instrumentName, {changePer, dt.Rows(i).Item(7)})
+                                tempStockList.Add(instrumentName, {changePer, dt.Rows(i).Item("Prev Close"), valueInLakhs})
                             End If
                         Next
                         If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
@@ -90,6 +92,7 @@ Public Class PreMarketStocks
                                 row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Change %") = runningStock.Value(0)
+                                row("Value In Lakhs") = runningStock.Value(1)
 
                                 ret.Rows.Add(row)
                                 stockCounter += 1
