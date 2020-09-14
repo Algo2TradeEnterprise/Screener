@@ -17,6 +17,8 @@ Public Class LowerPriceNearestOptions
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
         ret.Columns.Add("Time")
+        ret.Columns.Add("Turnover")
+        ret.Columns.Add("Turnover Ratio")
 
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
@@ -181,22 +183,45 @@ Public Class LowerPriceNearestOptions
                                                     niftyBankTradingSymbol = niftyBankTradingSymbol.Replace("[TYPE]", "PE")
                                                 End If
 
+                                                Dim nifty50Turnover As Decimal = Decimal.MinValue
+                                                Dim nifty50LotSize As Integer = Integer.MinValue
+                                                Dim niftyBankTurnover As Decimal = Decimal.MinValue
+                                                Dim niftyBankLotSize As Integer = Integer.MinValue
                                                 If nifty50TradingSymbol IsNot Nothing Then
+                                                    Dim optionPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, nifty50TradingSymbol, tradingDate, tradingDate)
+                                                    If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(tradeEntryTime) Then
+                                                        nifty50LotSize = _cmn.GetLotSize(Common.DataBaseTable.EOD_Futures_Options, nifty50TradingSymbol, tradingDate)
+                                                        nifty50Turnover = optionPayload(tradeEntryTime).Close * nifty50LotSize
+                                                    End If
+                                                End If
+                                                If niftyBankTradingSymbol IsNot Nothing Then
+                                                    Dim optionPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, niftyBankTradingSymbol, tradingDate, tradingDate)
+                                                    If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(tradeEntryTime) Then
+                                                        niftyBankLotSize = _cmn.GetLotSize(Common.DataBaseTable.EOD_Futures_Options, niftyBankTradingSymbol, tradingDate)
+                                                        niftyBankTurnover = optionPayload(tradeEntryTime).Close * niftyBankLotSize
+                                                    End If
+                                                End If
+
+                                                If nifty50TradingSymbol IsNot Nothing AndAlso nifty50Turnover <> Decimal.MinValue AndAlso niftyBankTurnover <> Decimal.MinValue Then
                                                     nifty50TradingSymbol = nifty50TradingSymbol.ToUpper
                                                     Dim row As DataRow = ret.NewRow
                                                     row("Date") = tradingDate.ToString("dd-MMM-yyyy")
                                                     row("Trading Symbol") = nifty50TradingSymbol
-                                                    row("Lot Size") = 75
+                                                    row("Lot Size") = nifty50LotSize
                                                     row("Time") = tradeEntryTime.ToString("dd-MM-yyyy HH:mm:ss")
+                                                    row("Turnover") = nifty50Turnover
+                                                    row("Turnover Ratio") = nifty50Turnover / niftyBankTurnover
                                                     ret.Rows.Add(row)
                                                 End If
-                                                If niftyBankTradingSymbol IsNot Nothing Then
+                                                If niftyBankTradingSymbol IsNot Nothing AndAlso nifty50Turnover <> Decimal.MinValue AndAlso niftyBankTurnover <> Decimal.MinValue Then
                                                     niftyBankTradingSymbol = niftyBankTradingSymbol.ToUpper
                                                     Dim row As DataRow = ret.NewRow
                                                     row("Date") = tradingDate.ToString("dd-MMM-yyyy")
                                                     row("Trading Symbol") = niftyBankTradingSymbol
-                                                    row("Lot Size") = 25
+                                                    row("Lot Size") = niftyBankLotSize
                                                     row("Time") = tradeEntryTime.ToString("dd-MM-yyyy HH:mm:ss")
+                                                    row("Turnover") = niftyBankTurnover
+                                                    row("Turnover Ratio") = niftyBankTurnover / nifty50Turnover
                                                     ret.Rows.Add(row)
                                                 End If
                                             End If

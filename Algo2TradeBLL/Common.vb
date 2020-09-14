@@ -793,7 +793,7 @@ Public Class Common
                 cm = New MySqlCommand("SELECT `LOT_SIZE` FROM `active_instruments_currency` WHERE `TRADING_SYMBOL`=@trd AND `AS_ON_DATE`=@sd", conn)
             Case DataBaseTable.Intraday_Commodity, DataBaseTable.EOD_Commodity
                 cm = New MySqlCommand("SELECT `LOT_SIZE` FROM `active_instruments_commodity` WHERE `TRADING_SYMBOL`=@trd AND `AS_ON_DATE`=@sd", conn)
-            Case DataBaseTable.Intraday_Futures, DataBaseTable.EOD_Futures
+            Case DataBaseTable.Intraday_Futures, DataBaseTable.EOD_Futures, DataBaseTable.Intraday_Futures_Options, DataBaseTable.EOD_Futures_Options
                 cm = New MySqlCommand("SELECT `LOT_SIZE` FROM `active_instruments_futures` WHERE `TRADING_SYMBOL`=@trd AND `AS_ON_DATE`=@sd", conn)
         End Select
 
