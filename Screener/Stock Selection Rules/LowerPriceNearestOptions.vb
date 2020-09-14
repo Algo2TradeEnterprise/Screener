@@ -4,10 +4,6 @@ Imports Algo2TradeBLL
 Public Class LowerPriceNearestOptions
     Inherits StockSelection
 
-    Private ReadOnly _stockName As String = "BANKNIFTY"
-    Private ReadOnly _strikePriceGap As Decimal = 100
-    Private ReadOnly _numberOfStrikes As Integer = 5
-
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
                    ByVal stockType As Integer)
@@ -20,131 +16,191 @@ Public Class LowerPriceNearestOptions
         ret.Columns.Add("Date")
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
-        ret.Columns.Add("Puts_Calls")
-        ret.Columns.Add("Price")
         ret.Columns.Add("Time")
-        ret.Columns.Add("New Stock")
 
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
             _canceller.Token.ThrowIfCancellationRequested()
             Dim tradingDay As Boolean = Await IsTradableDay(tradingDate).ConfigureAwait(False)
             If tradingDay Then
-                Dim previousTradingDay As Date = _cmn.GetPreviousTradingDay(Common.DataBaseTable.EOD_Futures, tradingDate)
+                Dim previousTradingDay As Date = _cmn.GetPreviousTradingDay(Common.DataBaseTable.EOD_Cash, tradingDate)
                 If previousTradingDay <> Date.MinValue Then
                     Dim startDateOfWeek As Date = Common.GetStartDateOfTheWeek(tradingDate, DayOfWeek.Monday)
-                    Dim thursdayOfWeek As Date = startDateOfWeek.AddDays(3)
+                    Dim expiry As Date = startDateOfWeek.AddDays(3)
                     If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
-                        thursdayOfWeek = tradingDate.AddDays(7)
+                        expiry = tradingDate.AddDays(7)
                     ElseIf tradingDate.DayOfWeek = DayOfWeek.Friday Then
-                        thursdayOfWeek = tradingDate.AddDays(6)
+                        expiry = tradingDate.AddDays(6)
                     ElseIf tradingDate.DayOfWeek = DayOfWeek.Saturday Then
-                        thursdayOfWeek = tradingDate.AddDays(5)
+                        expiry = tradingDate.AddDays(5)
                     End If
 
-                    OnHeartbeat(String.Format("Getting option data for {0}", tradingDate.ToString("dd-MM-yyyy")))
+                    Dim lastDayOfTheMonth As Date = New Date(tradingDate.Year, tradingDate.Month, Date.DaysInMonth(tradingDate.Year, tradingDate.Month))
+                    Dim lastThursDayOfTheMonth As Date = lastDayOfTheMonth
+                    While lastThursDayOfTheMonth.DayOfWeek <> DayOfWeek.Thursday
+                        lastThursDayOfTheMonth = lastThursDayOfTheMonth.AddDays(-1)
+                    End While
 
-                    Dim futureTradingSymbol As String = _cmn.GetCurrentTradingSymbol(Common.DataBaseTable.Intraday_Futures, tradingDate, _stockName)
-                    If futureTradingSymbol IsNot Nothing Then
-                        Dim lotSize As Integer = _cmn.GetLotSize(Common.DataBaseTable.Intraday_Futures, futureTradingSymbol, tradingDate)
-                        Dim futureIntradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures, futureTradingSymbol, tradingDate, tradingDate)
-                        If futureIntradayPayload IsNot Nothing AndAlso futureIntradayPayload.Count > 0 Then
-                            Dim optionData As Dictionary(Of String, Payload) = Await GetOptionStockData(thursdayOfWeek, _stockName, previousTradingDay).ConfigureAwait(False)
-                            If optionData IsNot Nothing AndAlso optionData.Count > 0 Then
-                                Dim stockData As Dictionary(Of Decimal, Dictionary(Of String, Dictionary(Of Date, Payload))) = Nothing
-                                For Each runningStock In optionData.Values
-                                    Dim strikePrice As String = runningStock.TradingSymbol.Substring(_stockName.Count + 5, runningStock.TradingSymbol.Count - _stockName.Count - 7)
-                                    Dim intrumentType As String = runningStock.TradingSymbol.Substring(runningStock.TradingSymbol.Count - 2).Trim
 
-                                    Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, runningStock.TradingSymbol, tradingDate, tradingDate)
-                                    If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                                        If stockData Is Nothing Then stockData = New Dictionary(Of Decimal, Dictionary(Of String, Dictionary(Of Date, Payload)))
-                                        If Not stockData.ContainsKey(strikePrice) Then stockData.Add(strikePrice, New Dictionary(Of String, Dictionary(Of Date, Payload)))
-                                        stockData(strikePrice).Add(intrumentType, intradayPayload)
-                                    End If
+                    Dim nifty50Payload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY 50", previousTradingDay, tradingDate)
+                    Dim niftyBankPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", previousTradingDay, tradingDate)
+                    If nifty50Payload IsNot Nothing AndAlso nifty50Payload.Count AndAlso niftyBankPayload IsNot Nothing AndAlso niftyBankPayload.Count > 0 Then
+                        Dim nifty50ChangePayload As Dictionary(Of Date, Decimal) = Nothing
+                        Dim lastNifty50Open As Decimal = Decimal.MinValue
+                        Dim lastNifty50Date As Date = Date.MinValue
+                        For Each runningPayload In nifty50Payload
+                            If lastNifty50Date = Date.MinValue OrElse lastNifty50Date.Date <> runningPayload.Key.Date Then
+                                lastNifty50Date = runningPayload.Key.Date
+                                lastNifty50Open = runningPayload.Value.Open
+                            End If
+                            If lastNifty50Date <> Date.MinValue AndAlso lastNifty50Open <> Decimal.MinValue Then
+                                If nifty50ChangePayload Is Nothing Then nifty50ChangePayload = New Dictionary(Of Date, Decimal)
+                                nifty50ChangePayload.Add(runningPayload.Key, ((runningPayload.Value.Close / lastNifty50Open) - 1) * 100)
+                            End If
+                        Next
+
+                        Dim niftyBankChangePayload As Dictionary(Of Date, Decimal) = Nothing
+                        Dim lastNiftyBankOpen As Decimal = Decimal.MinValue
+                        Dim lastNiftyBankDate As Date = Date.MinValue
+                        For Each runningPayload In niftyBankPayload
+                            If lastNiftyBankDate = Date.MinValue OrElse lastNiftyBankDate.Date <> runningPayload.Key.Date Then
+                                lastNiftyBankDate = runningPayload.Key.Date
+                                lastNiftyBankOpen = runningPayload.Value.Open
+                            End If
+                            If lastNiftyBankDate <> Date.MinValue AndAlso lastNiftyBankOpen <> Decimal.MinValue Then
+                                If niftyBankChangePayload Is Nothing Then niftyBankChangePayload = New Dictionary(Of Date, Decimal)
+                                niftyBankChangePayload.Add(runningPayload.Key, ((runningPayload.Value.Close / lastNiftyBankOpen) - 1) * 100)
+                            End If
+                        Next
+
+                        If nifty50ChangePayload IsNot Nothing AndAlso nifty50ChangePayload.Count > 0 Then
+                            If niftyBankChangePayload IsNot Nothing AndAlso niftyBankChangePayload.Count > 0 Then
+                                Dim diffPayload As Dictionary(Of Date, Decimal) = Nothing
+                                For Each runningPayload In nifty50ChangePayload
+                                    If diffPayload Is Nothing Then diffPayload = New Dictionary(Of Date, Decimal)
+                                    diffPayload.Add(runningPayload.Key, (runningPayload.Value - niftyBankChangePayload(runningPayload.Key)))
                                 Next
-                                If stockData IsNot Nothing AndAlso stockData.Count > 0 Then
-                                    Dim lowerDeviationStocklistOfEveryMinute As List(Of Payload) = Nothing
-                                    For Each runningPayload In futureIntradayPayload
-                                        Dim price As Decimal = runningPayload.Value.Close
-                                        Dim strikePricesToCheck As List(Of Decimal) = New List(Of Decimal)
-                                        If _numberOfStrikes Mod 2 = 0 Then
-                                            Dim immediateUpperStrike As Decimal = Math.Ceiling(price / _strikePriceGap) * _strikePriceGap
-                                            Dim immediateLowerStrike As Decimal = Math.Floor(price / _strikePriceGap) * _strikePriceGap
-                                            strikePricesToCheck.Add(immediateUpperStrike)
-                                            strikePricesToCheck.Add(immediateLowerStrike)
-                                            For counter = 1 To (_numberOfStrikes / 2) - 1
-                                                immediateUpperStrike = immediateUpperStrike + _strikePriceGap
-                                                immediateLowerStrike = immediateLowerStrike - _strikePriceGap
-                                                strikePricesToCheck.Add(immediateUpperStrike)
-                                                strikePricesToCheck.Add(immediateLowerStrike)
-                                            Next
-                                        Else
-                                            Dim immediateUpperStrike As Decimal = Math.Ceiling(price / _strikePriceGap) * _strikePriceGap
-                                            Dim immediateLowerStrike As Decimal = Math.Floor(price / _strikePriceGap) * _strikePriceGap
-                                            Dim intermidiateStrike As Decimal = Decimal.MinValue
-                                            If immediateUpperStrike - price > price - immediateLowerStrike Then
-                                                intermidiateStrike = immediateLowerStrike
-                                            Else
-                                                intermidiateStrike = immediateUpperStrike
-                                            End If
-                                            strikePricesToCheck.Add(intermidiateStrike)
-                                            immediateUpperStrike = intermidiateStrike
-                                            immediateLowerStrike = intermidiateStrike
-                                            For counter = 1 To (_numberOfStrikes - 1) / 2
-                                                immediateUpperStrike = immediateUpperStrike + _strikePriceGap
-                                                immediateLowerStrike = immediateLowerStrike - _strikePriceGap
-                                                strikePricesToCheck.Add(immediateUpperStrike)
-                                                strikePricesToCheck.Add(immediateLowerStrike)
-                                            Next
+                                If diffPayload IsNot Nothing AndAlso diffPayload.Count > 0 Then
+                                    Dim maxDiff As Decimal = Decimal.MinValue
+                                    Dim maxDiffDate As Date = Date.MinValue
+                                    For Each runningPayload In diffPayload.Where(Function(x)
+                                                                                     Return x.Key.Date = previousTradingDay.Date
+                                                                                 End Function)
+                                        If Math.Abs(runningPayload.Value) > maxDiff Then
+                                            maxDiff = Math.Abs(runningPayload.Value)
+                                            maxDiffDate = runningPayload.Key
                                         End If
-                                        If strikePricesToCheck IsNot Nothing AndAlso strikePricesToCheck.Count > 0 Then
-                                            For Each runningStrike In strikePricesToCheck
-                                                If stockData.ContainsKey(runningStrike) Then
-                                                    If stockData(runningStrike).ContainsKey("CE") AndAlso stockData(runningStrike).ContainsKey("PE") Then
-                                                        Dim cePayload As Payload = Nothing
-                                                        Dim pePayload As Payload = Nothing
-                                                        If stockData(runningStrike)("CE").ContainsKey(runningPayload.Key) Then
-                                                            cePayload = stockData(runningStrike)("CE")(runningPayload.Key)
-                                                        End If
-                                                        If stockData(runningStrike)("PE").ContainsKey(runningPayload.Key) Then
-                                                            pePayload = stockData(runningStrike)("PE")(runningPayload.Key)
-                                                        End If
-                                                        If cePayload IsNot Nothing AndAlso pePayload IsNot Nothing Then
-                                                            If cePayload.Close + pePayload.Close + Math.Abs(runningStrike - price) <= 800 Then
-                                                                If lowerDeviationStocklistOfEveryMinute Is Nothing Then lowerDeviationStocklistOfEveryMinute = New List(Of Payload)
-                                                                lowerDeviationStocklistOfEveryMinute.Add(cePayload)
-                                                                lowerDeviationStocklistOfEveryMinute.Add(pePayload)
-                                                                Exit For
-                                                            End If
-                                                        End If
+                                    Next
+                                    If maxDiffDate <> Date.MinValue Then
+                                        Dim nifty50ModifiedChangePayload As Dictionary(Of Date, Decimal) = Nothing
+                                        Dim nifty50MaxDiffClose As Decimal = nifty50Payload(maxDiffDate).Close
+                                        For Each runningPayload In nifty50Payload
+                                            If runningPayload.Key > maxDiffDate Then
+                                                If nifty50ModifiedChangePayload Is Nothing Then nifty50ModifiedChangePayload = New Dictionary(Of Date, Decimal)
+                                                nifty50ModifiedChangePayload.Add(runningPayload.Key, ((runningPayload.Value.Close / nifty50MaxDiffClose) - 1) * 100)
+                                            End If
+                                        Next
+
+                                        Dim niftyBankModifiedChangePayload As Dictionary(Of Date, Decimal) = Nothing
+                                        Dim niftyBankMaxDiffClose As Decimal = niftyBankPayload(maxDiffDate).Close
+                                        For Each runningPayload In niftyBankPayload
+                                            If runningPayload.Key > maxDiffDate Then
+                                                If niftyBankModifiedChangePayload Is Nothing Then niftyBankModifiedChangePayload = New Dictionary(Of Date, Decimal)
+                                                niftyBankModifiedChangePayload.Add(runningPayload.Key, ((runningPayload.Value.Close / niftyBankMaxDiffClose) - 1) * 100)
+                                            End If
+                                        Next
+
+                                        Dim diffModifiedPayload As Dictionary(Of Date, Decimal) = Nothing
+                                        For Each runningPayload In nifty50ModifiedChangePayload
+                                            If diffModifiedPayload Is Nothing Then diffModifiedPayload = New Dictionary(Of Date, Decimal)
+                                            diffModifiedPayload.Add(runningPayload.Key, (runningPayload.Value - niftyBankModifiedChangePayload(runningPayload.Key)))
+                                        Next
+
+                                        If diffModifiedPayload IsNot Nothing AndAlso diffModifiedPayload.Count > 0 Then
+                                            Dim convertedDiffModifiedPayload As Dictionary(Of Date, Payload) = Nothing
+                                            Common.ConvertDecimalToPayload(Payload.PayloadFields.Close, diffModifiedPayload, convertedDiffModifiedPayload)
+
+                                            Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
+                                            Indicator.SMA.CalculateSMA(15, Payload.PayloadFields.Close, convertedDiffModifiedPayload, smaPayload)
+
+                                            Dim sdPayload As Dictionary(Of Date, Decimal) = Nothing
+                                            Indicator.StandardDeviation.CalculateSD(15, Payload.PayloadFields.Close, convertedDiffModifiedPayload, sdPayload)
+
+                                            Dim tradeEntryTime As Date = Date.MinValue
+                                            Dim counter As Integer = 0
+                                            For Each runningPayload In diffModifiedPayload
+                                                counter += 1
+                                                If counter >= 15 AndAlso runningPayload.Key.Date = tradingDate.Date Then
+                                                    Dim sd As Decimal = (runningPayload.Value - smaPayload(runningPayload.Key)) / sdPayload(runningPayload.Key)
+                                                    If Math.Abs(sd) >= 2.5 Then
+                                                        tradeEntryTime = runningPayload.Key
+                                                        Exit For
                                                     End If
                                                 End If
                                             Next
-                                        End If
-                                        If lowerDeviationStocklistOfEveryMinute IsNot Nothing AndAlso lowerDeviationStocklistOfEveryMinute.Count >= 2 Then Exit For
-                                    Next
-                                    If lowerDeviationStocklistOfEveryMinute IsNot Nothing AndAlso lowerDeviationStocklistOfEveryMinute.Count > 0 Then
-                                        Dim insertedStockList As List(Of String) = New List(Of String)
-                                        For Each runningPayload In lowerDeviationStocklistOfEveryMinute
-                                            Dim intrumentType As String = runningPayload.TradingSymbol.Substring(runningPayload.TradingSymbol.Count - 2).Trim
-                                            Dim newStock As Boolean = True
-                                            If insertedStockList.Contains(runningPayload.TradingSymbol) Then
-                                                newStock = False
-                                            Else
-                                                insertedStockList.Add(runningPayload.TradingSymbol)
-                                            End If
+                                            If tradeEntryTime <> Date.MinValue Then
+                                                Dim nifty50Close As Decimal = nifty50Payload(tradeEntryTime).Close
+                                                Dim nifty50StrikePrice As Decimal = Decimal.MinValue
+                                                If (Math.Ceiling(nifty50Close / 50) * 50) - nifty50Close > nifty50Close - (Math.Floor(nifty50Close / 50) * 50) Then
+                                                    nifty50StrikePrice = Math.Floor(nifty50Close / 50) * 50
+                                                Else
+                                                    nifty50StrikePrice = Math.Ceiling(nifty50Close / 50) * 50
+                                                End If
 
-                                            Dim row As DataRow = ret.NewRow
-                                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                            row("Trading Symbol") = runningPayload.TradingSymbol
-                                            row("Lot Size") = lotSize
-                                            row("Puts_Calls") = intrumentType
-                                            row("Price") = runningPayload.Close
-                                            row("Time") = runningPayload.PayloadDate.ToString("HH:mm:ss")
-                                            row("New Stock") = newStock
-                                            ret.Rows.Add(row)
-                                        Next
+                                                Dim niftyBankClose As Decimal = niftyBankPayload(tradeEntryTime).Close
+                                                Dim niftyBankStrikePrice As Decimal = Decimal.MinValue
+                                                If (Math.Ceiling(niftyBankClose / 100) * 100) - niftyBankClose > niftyBankClose - (Math.Floor(niftyBankClose / 100) * 100) Then
+                                                    niftyBankStrikePrice = Math.Floor(niftyBankClose / 100) * 100
+                                                Else
+                                                    niftyBankStrikePrice = Math.Ceiling(niftyBankClose / 100) * 100
+                                                End If
+
+                                                Dim nifty50TradingSymbol As String = Nothing
+                                                Dim niftyBankTradingSymbol As String = Nothing
+                                                If expiry = lastThursDayOfTheMonth Then
+                                                    nifty50TradingSymbol = String.Format("{0}{1}{2}[TYPE]", "NIFTY", expiry.ToString("yyMMM"), nifty50StrikePrice)
+                                                    niftyBankTradingSymbol = String.Format("{0}{1}{2}[TYPE]", "BANKNIFTY", expiry.ToString("yyMMM"), niftyBankStrikePrice)
+                                                Else
+                                                    Dim dateString As String = ""
+                                                    If expiry.Month > 9 Then
+                                                        dateString = String.Format("{0}{1}{2}", expiry.ToString("yy"), Microsoft.VisualBasic.Left(expiry.ToString("MMM"), 1), expiry.ToString("dd"))
+                                                    Else
+                                                        dateString = expiry.ToString("yyMdd")
+                                                    End If
+                                                    nifty50TradingSymbol = String.Format("{0}{1}{2}[TYPE]", "NIFTY", dateString, nifty50StrikePrice)
+                                                    niftyBankTradingSymbol = String.Format("{0}{1}{2}[TYPE]", "BANKNIFTY", dateString, niftyBankStrikePrice)
+                                                End If
+
+                                                Dim nifty50ChangePer As Decimal = nifty50ModifiedChangePayload(tradeEntryTime)
+                                                Dim niftyBankChangePer As Decimal = niftyBankModifiedChangePayload(tradeEntryTime)
+                                                If nifty50ChangePer > niftyBankChangePer Then
+                                                    nifty50TradingSymbol = nifty50TradingSymbol.Replace("[TYPE]", "PE")
+                                                    niftyBankTradingSymbol = niftyBankTradingSymbol.Replace("[TYPE]", "CE")
+                                                Else
+                                                    nifty50TradingSymbol = nifty50TradingSymbol.Replace("[TYPE]", "CE")
+                                                    niftyBankTradingSymbol = niftyBankTradingSymbol.Replace("[TYPE]", "PE")
+                                                End If
+
+                                                If nifty50TradingSymbol IsNot Nothing Then
+                                                    nifty50TradingSymbol = nifty50TradingSymbol.ToUpper
+                                                    Dim row As DataRow = ret.NewRow
+                                                    row("Date") = tradingDate.ToString("dd-MMM-yyyy")
+                                                    row("Trading Symbol") = nifty50TradingSymbol
+                                                    row("Lot Size") = 75
+                                                    row("Time") = tradeEntryTime.ToString("dd-MM-yyyy HH:mm:ss")
+                                                    ret.Rows.Add(row)
+                                                End If
+                                                If niftyBankTradingSymbol IsNot Nothing Then
+                                                    niftyBankTradingSymbol = niftyBankTradingSymbol.ToUpper
+                                                    Dim row As DataRow = ret.NewRow
+                                                    row("Date") = tradingDate.ToString("dd-MMM-yyyy")
+                                                    row("Trading Symbol") = niftyBankTradingSymbol
+                                                    row("Lot Size") = 25
+                                                    row("Time") = tradeEntryTime.ToString("dd-MM-yyyy HH:mm:ss")
+                                                    ret.Rows.Add(row)
+                                                End If
+                                            End If
+                                        End If
                                     End If
                                 End If
                             End If

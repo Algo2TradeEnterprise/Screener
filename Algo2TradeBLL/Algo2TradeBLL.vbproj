@@ -106,6 +106,7 @@
     <Compile Include="Indicators\RSI.vb" />
     <Compile Include="Indicators\SMA.vb" />
     <Compile Include="Indicators\SMI.vb" />
+    <Compile Include="Indicators\StandardDeviation.vb" />
     <Compile Include="Indicators\Supertrend.vb" />
     <Compile Include="Indicators\SwingHighLow.vb" />
     <Compile Include="Indicators\SwingHighLowTrendLine.vb" />
