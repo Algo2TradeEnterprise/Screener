@@ -40,14 +40,14 @@ Public Class LowTurnoverOption
                         Dim lotSize As Integer = _cmn.GetLotSize(Common.DataBaseTable.EOD_Futures, futureTradingSymbol, tradingDate)
                         If lotSize <> Integer.MinValue Then
                             Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate)
-                            If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
+                            If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso eodPayload.ContainsKey(tradingDate.Date) AndAlso eodPayload.ContainsKey(previousTradingDay.Date) Then
                                 Dim hkPayload As Dictionary(Of Date, Payload) = Nothing
                                 Indicator.HeikenAshi.ConvertToHeikenAshi(eodPayload, hkPayload)
 
                                 Dim instrumentType As String = Nothing
-                                If hkPayload(tradingDate.Date).CandleColor = Color.Green Then
+                                If hkPayload(previousTradingDay.Date).CandleColor = Color.Green Then
                                     instrumentType = "CE"
-                                ElseIf hkPayload(tradingDate.Date).CandleColor = Color.Red Then
+                                ElseIf hkPayload(previousTradingDay.Date).CandleColor = Color.Red Then
                                     instrumentType = "PE"
                                 End If
 
@@ -92,7 +92,7 @@ Public Class LowTurnoverOption
                                         signalCandleTime = startTime
                                         While signalCandleTime <= endTime
                                             OnHeartbeat(String.Format("Checking signal for {0}", signalCandleTime.ToString("HH:mm:ss")))
-                                            Dim signalFound As Boolean = False
+                                            Dim tempStockList As Dictionary(Of String, Decimal()) = Nothing
                                             For Each runningContract In optionContracts.Values
                                                 Dim optionPayload As Dictionary(Of Date, Payload) = optionData(runningContract)
                                                 If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(signalCandleTime) Then
@@ -118,27 +118,39 @@ Public Class LowTurnoverOption
                                                                                                             End If
                                                                                                         End Function)
 
-                                                            Dim row As DataRow = ret.NewRow
-                                                            row("Date") = tradingDate.ToString("dd-MMM-yyyy")
-                                                            row("Trading Symbol") = runningContract
-                                                            row("Lot Size") = lotSize
-                                                            row("Puts_Calls") = instrumentType
-                                                            row("Time") = signalCandleTime.ToString("HH:mm:ss")
-                                                            row("Entry Price") = optionFractalLow
-                                                            row("Target Price") = optionFractalHigh
-                                                            row("Quantity") = quantity
-                                                            row("Turnover") = turnover
-                                                            row("Total Volume") = totalVolume
-                                                            row("Previous Day Highest Volume") = previousDayMaxVolumePayloaod(signalCandleTime)
-                                                            row("Volume %") = Math.Round(totalVolume * 100 / previousDayMaxVolumePayloaod(signalCandleTime), 2)
-                                                            ret.Rows.Add(row)
-
-                                                            signalFound = True
+                                                            Dim volumePer As Decimal = Math.Round(totalVolume * 100 / previousDayMaxVolumePayloaod(signalCandleTime), 2)
+                                                            If volumePer >= 10 Then
+                                                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
+                                                                tempStockList.Add(runningContract, {optionFractalLow, optionFractalHigh, quantity, turnover, totalVolume, previousDayMaxVolumePayloaod(signalCandleTime), volumePer})
+                                                            End If
                                                         End If
                                                     End If
                                                 End If
                                             Next
-                                            'If signalFound Then Exit While
+                                            If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
+                                                For Each runningStock In tempStockList.OrderBy(Function(x)
+                                                                                                   Return x.Value(3)
+                                                                                               End Function)
+                                                    Dim row As DataRow = ret.NewRow
+                                                    row("Date") = tradingDate.ToString("dd-MMM-yyyy")
+                                                    row("Trading Symbol") = runningStock.Key
+                                                    row("Lot Size") = lotSize
+                                                    row("Puts_Calls") = instrumentType
+                                                    row("Time") = signalCandleTime.ToString("HH:mm:ss")
+                                                    row("Entry Price") = runningStock.Value(0)
+                                                    row("Target Price") = runningStock.Value(1)
+                                                    row("Quantity") = runningStock.Value(2)
+                                                    row("Turnover") = runningStock.Value(3)
+                                                    row("Total Volume") = runningStock.Value(4)
+                                                    row("Previous Day Highest Volume") = runningStock.Value(5)
+                                                    row("Volume %") = runningStock.Value(6)
+                                                    ret.Rows.Add(row)
+
+                                                    Exit For
+                                                Next
+                                                Exit While
+                                            End If
+
                                             signalCandleTime = signalCandleTime.AddMinutes(1)
                                         End While
                                     End If
