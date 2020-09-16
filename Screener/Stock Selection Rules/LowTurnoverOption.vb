@@ -109,7 +109,7 @@ Public Class LowTurnoverOption
                                                         CalculatePL(optionFractalLow, optionFractalHigh, lotSize) <= 1000 Then
                                                         Dim quantity As Integer = CalculateQuantityFromTarget(optionFractalLow, optionFractalHigh, 500, lotSize)
                                                         Dim turnover As Decimal = optionFractalLow * quantity
-                                                        If turnover <= 20000 Then
+                                                        If turnover <= 10000 Then
                                                             Dim totalVolume As Long = optionPayload.Sum(Function(x)
                                                                                                             If x.Key.Date = tradingDate.Date AndAlso x.Key <= signalCandleTime Then
                                                                                                                 Return x.Value.Volume
