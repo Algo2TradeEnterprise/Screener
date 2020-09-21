@@ -4,6 +4,8 @@ Imports System.Threading
 Imports MySql.Data.MySqlClient
 Imports Utilities.Strings
 Imports NLog
+Imports Utilities.Network
+Imports System.Net.Http
 
 Public Class Common
     Implements IDisposable
@@ -780,6 +782,40 @@ Public Class Common
         Return ret
     End Function
 
+    Public Function GetInstrumentToken(ByVal tableName As DataBaseTable, ByVal tradingDate As Date, ByVal tradingSymbol As String) As String
+        Dim ret As String = Nothing
+        Dim dt As DataTable = Nothing
+        Dim conn As MySqlConnection = OpenDBConnection()
+        Dim cm As MySqlCommand = Nothing
+
+        Select Case tableName
+            Case DataBaseTable.Intraday_Cash, DataBaseTable.EOD_Cash, DataBaseTable.EOD_POSITIONAL
+                cm = New MySqlCommand("SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_cash` WHERE `TRADING_SYMBOL` = @trd AND `AS_ON_DATE`<=@sd AND `AS_ON_DATE`>=@ed", conn)
+                cm.Parameters.AddWithValue("@ed", tradingDate.AddDays(-15).ToString("yyyy-MM-dd"))
+            Case DataBaseTable.Intraday_Currency, DataBaseTable.EOD_Currency
+                cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_currency` WHERE `TRADING_SYMBOL` = @trd AND `AS_ON_DATE`=@sd", conn)
+            Case DataBaseTable.Intraday_Commodity, DataBaseTable.EOD_Commodity
+                cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_commodity` WHERE `TRADING_SYMBOL` = @trd AND `AS_ON_DATE`=@sd", conn)
+            Case DataBaseTable.Intraday_Futures, DataBaseTable.EOD_Futures, DataBaseTable.Intraday_Futures_Options, DataBaseTable.EOD_Futures_Options
+                cm = New MySqlCommand("SELECT `INSTRUMENT_TOKEN`,`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_futures` WHERE `TRADING_SYMBOL` = @trd AND `AS_ON_DATE`=@sd", conn)
+            Case Else
+                Throw New NotImplementedException
+        End Select
+
+        OnHeartbeat(String.Format("Getting  token from DataBase for {0} on {1}", tradingSymbol, tradingDate.ToShortDateString))
+        cm.Parameters.AddWithValue("@trd", tradingSymbol)
+        cm.Parameters.AddWithValue("@sd", tradingDate.Date.ToString("yyyy-MM-dd"))
+        Dim adapter As New MySqlDataAdapter(cm)
+        adapter.SelectCommand.CommandTimeout = 300
+        dt = New DataTable()
+        adapter.Fill(dt)
+        If dt IsNot Nothing AndAlso dt.Rows.Count > 0 AndAlso Not IsDBNull(dt.Rows(0).Item(0)) Then
+            ret = dt.Rows(0).Item(0)
+        End If
+
+        Return ret
+    End Function
+
     Public Function GetLotSize(ByVal tableName As DataBaseTable, ByVal tradingSymbol As String, ByVal currentDate As Date) As Integer
         Dim ret As Integer = Integer.MinValue
         Dim dt As DataTable = Nothing
@@ -829,32 +865,126 @@ Public Class Common
         Return ret
     End Function
 
-    Public Async Function GetHistoricalDataAsync(ByVal tableName As DataBaseTable, ByVal rawInstrumentName As String, ByVal startDate As Date, ByVal endDate As Date) As Task(Of Dictionary(Of Date, Payload))
+    'Public Async Function GetHistoricalDataAsync(ByVal tableName As DataBaseTable, ByVal rawInstrumentName As String, ByVal startDate As Date, ByVal endDate As Date) As Task(Of Dictionary(Of Date, Payload))
+    '    Dim ret As Dictionary(Of Date, Payload) = Nothing
+    '    Dim instrumentToken As String = Nothing
+    '    Dim tradingSymbol As String = Nothing
+    '    Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
+    '    Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
+    '    Dim ZerodhaHistoricalURL As String = Nothing
+    '    Select Case tableName
+    '        Case DataBaseTable.EOD_Cash, DataBaseTable.EOD_Commodity, DataBaseTable.EOD_Currency, DataBaseTable.EOD_Futures
+    '            ZerodhaHistoricalURL = ZerodhaEODHistoricalURL
+    '        Case DataBaseTable.Intraday_Cash, DataBaseTable.Intraday_Commodity, DataBaseTable.Intraday_Currency, DataBaseTable.Intraday_Futures
+    '            ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
+    '    End Select
+    '    Dim instrument As Tuple(Of String, String) = GetCurrentTradingSymbolWithInstrumentToken(tableName, endDate, rawInstrumentName)
+    '    If instrument IsNot Nothing Then
+    '        tradingSymbol = instrument.Item1
+    '        instrumentToken = instrument.Item2
+    '    End If
+    '    If instrumentToken IsNot Nothing AndAlso instrumentToken <> "" Then
+    '        Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+    '        OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
+    '        Dim historicalCandlesJSONDict As Dictionary(Of String, Object) = Nothing
+    '        Using sr As New StreamReader(HttpWebRequest.Create(historicalDataURL).GetResponseAsync().Result.GetResponseStream)
+    '            Dim jsonString = Await sr.ReadToEndAsync.ConfigureAwait(False)
+    '            historicalCandlesJSONDict = StringManipulation.JsonDeserialize(jsonString)
+    '        End Using
+    '        If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
+    '            historicalCandlesJSONDict.ContainsKey("data") Then
+    '            Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")
+    '            If historicalCandlesDict.ContainsKey("candles") AndAlso historicalCandlesDict("candles").count > 0 Then
+    '                Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
+    '                If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+    '                OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
+    '                Dim previousPayload As Payload = Nothing
+    '                For Each historicalCandle In historicalCandles
+    '                    Dim runningSnapshotTime As Date = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
+
+    '                    Dim runningPayload As Payload = New Payload(Payload.CandleDataSource.Chart)
+    '                    With runningPayload
+    '                        .PayloadDate = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
+    '                        .TradingSymbol = tradingSymbol
+    '                        .Open = historicalCandle(1)
+    '                        .High = historicalCandle(2)
+    '                        .Low = historicalCandle(3)
+    '                        .Close = historicalCandle(4)
+    '                        .Volume = historicalCandle(5)
+    '                        .PreviousCandlePayload = previousPayload
+    '                    End With
+    '                    previousPayload = runningPayload
+    '                    ret.Add(runningSnapshotTime, runningPayload)
+    '                Next
+    '            End If
+    '        End If
+    '    End If
+    '    Return ret
+    'End Function
+
+    Public Async Function GetHistoricalDataAsync(ByVal tableName As DataBaseTable, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date) As Task(Of Dictionary(Of Date, Payload))
         Dim ret As Dictionary(Of Date, Payload) = Nothing
-        Dim instrumentToken As String = Nothing
-        Dim tradingSymbol As String = Nothing
-        Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
-        Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
+        Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
+        Dim ZerodhaIntradayHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/minute?oi=1&from={1}&to={2}"
         Dim ZerodhaHistoricalURL As String = Nothing
         Select Case tableName
-            Case DataBaseTable.EOD_Cash, DataBaseTable.EOD_Commodity, DataBaseTable.EOD_Currency, DataBaseTable.EOD_Futures
+            Case DataBaseTable.EOD_Cash, DataBaseTable.EOD_Commodity, DataBaseTable.EOD_Currency, DataBaseTable.EOD_Futures, DataBaseTable.EOD_Futures_Options
                 ZerodhaHistoricalURL = ZerodhaEODHistoricalURL
-            Case DataBaseTable.Intraday_Cash, DataBaseTable.Intraday_Commodity, DataBaseTable.Intraday_Currency, DataBaseTable.Intraday_Futures
+            Case DataBaseTable.Intraday_Cash, DataBaseTable.Intraday_Commodity, DataBaseTable.Intraday_Currency, DataBaseTable.Intraday_Futures, DataBaseTable.Intraday_Futures_Options
                 ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
+            Case Else
+                Throw New NotImplementedException
         End Select
-        Dim instrument As Tuple(Of String, String) = GetCurrentTradingSymbolWithInstrumentToken(tableName, endDate, rawInstrumentName)
-        If instrument IsNot Nothing Then
-            tradingSymbol = instrument.Item1
-            instrumentToken = instrument.Item2
-        End If
-        If instrumentToken IsNot Nothing AndAlso instrumentToken <> "" Then
+        Dim instrumentToken As String = GetInstrumentToken(tableName, endDate, tradingSymbol)
+        If instrumentToken IsNot Nothing AndAlso instrumentToken.Trim <> "" Then
             Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
-            OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
             Dim historicalCandlesJSONDict As Dictionary(Of String, Object) = Nothing
-            Using sr As New StreamReader(HttpWebRequest.Create(historicalDataURL).GetResponseAsync().Result.GetResponseStream)
-                Dim jsonString = Await sr.ReadToEndAsync.ConfigureAwait(False)
-                historicalCandlesJSONDict = StringManipulation.JsonDeserialize(jsonString)
+
+            OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
+
+            ServicePointManager.Expect100Continue = False
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
+            ServicePointManager.ServerCertificateValidationCallback = Function(s, Ca, CaC, sslPE)
+                                                                          Return True
+                                                                      End Function
+
+            Dim proxyToBeUsed As HttpProxy = Nothing
+            Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), _cts)
+                AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                AddHandler browser.Heartbeat, AddressOf OnHeartbeat
+                AddHandler browser.WaitingFor, AddressOf OnWaitingFor
+                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+
+                Dim headers As New Dictionary(Of String, String)
+                headers.Add("Host", "kite.zerodha.com")
+                headers.Add("Accept", "*/*")
+                headers.Add("Accept-Encoding", "gzip, deflate")
+                headers.Add("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,ko;q=0.7")
+                headers.Add("Authorization", String.Format("enctoken {0}", "qnR38veoKUnyT7V+4dhvakUhPEOpAHq9sA2E7hPe8P8QGadgEzXXKZOz/+E8kOl9NlRaXQ+Vukqb/kunNMW6dED2lp9KmQ=="))
+                headers.Add("Referer", "https://kite.zerodha.com/static/build/chart.html?v=2.4.0")
+                headers.Add("sec-fetch-mode", "cors")
+                headers.Add("sec-fetch-site", "same-origin")
+                headers.Add("Connection", "keep-alive")
+
+                _cts.Token.ThrowIfCancellationRequested()
+                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
+                                                                                    HttpMethod.Get,
+                                                                                    Nothing,
+                                                                                    False,
+                                                                                    headers,
+                                                                                    True,
+                                                                                    "application/json").ConfigureAwait(False)
+                _cts.Token.ThrowIfCancellationRequested()
+                If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                    historicalCandlesJSONDict = l.Item2
+                End If
+
+                RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
+                RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
+                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             End Using
+
             If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
                 historicalCandlesJSONDict.ContainsKey("data") Then
                 Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")

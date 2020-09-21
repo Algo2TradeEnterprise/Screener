@@ -5,6 +5,7 @@ Public Class LowTurnoverOption
     Inherits StockSelection
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
+    Private ReadOnly _fetchDataFromLive As Boolean = False
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
@@ -33,15 +34,23 @@ Public Class LowTurnoverOption
         While tradingDate <= endDate
             _canceller.Token.ThrowIfCancellationRequested()
             Dim tradingDay As Boolean = Await IsTradableDay(tradingDate).ConfigureAwait(False)
-            If tradingDay Then
+            If tradingDay OrElse tradingDate.Date = Now.Date Then
                 Dim previousTradingDay As Date = _cmn.GetPreviousTradingDay(Common.DataBaseTable.EOD_Futures, tradingDate)
                 If previousTradingDay <> Date.MinValue Then
                     Dim futureTradingSymbol As String = _cmn.GetCurrentTradingSymbol(Common.DataBaseTable.Intraday_Futures, tradingDate, _stockName)
                     If futureTradingSymbol IsNot Nothing Then
                         Dim lotSize As Integer = _cmn.GetLotSize(Common.DataBaseTable.EOD_Futures, futureTradingSymbol, tradingDate)
                         If lotSize <> Integer.MinValue Then
-                            Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate)
-                            Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate)
+                            Dim intradayPayload As Dictionary(Of Date, Payload) = Nothing
+                            Dim eodPayload As Dictionary(Of Date, Payload) = Nothing
+                            If _fetchDataFromLive Then
+                                intradayPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate.AddDays(-7), tradingDate).ConfigureAwait(False)
+                                eodPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate).ConfigureAwait(False)
+                            Else
+                                intradayPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate.AddDays(-7), tradingDate)
+                                eodPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate)
+                            End If
+
                             If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 AndAlso
                                 eodPayload.ContainsKey(tradingDate.Date) AndAlso eodPayload.ContainsKey(previousTradingDay.Date) Then
                                 Dim hkPayload As Dictionary(Of Date, Payload) = Nothing
@@ -65,12 +74,17 @@ Public Class LowTurnoverOption
                                     End If
                                     If volumeCheckOptionContracts IsNot Nothing AndAlso volumeCheckOptionContracts.Count > 0 Then
                                         For Each runningContract In volumeCheckOptionContracts
-                                            Dim optionPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, runningContract.Value, previousTradingDay, previousTradingDay)
+                                            Dim optionPayload As Dictionary(Of Date, Payload) = Nothing
+                                            'If _fetchDataFromLive Then
+                                            '    optionPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Futures_Options, runningContract.Value, previousTradingDay, previousTradingDay).ConfigureAwait(False)
+                                            'Else
+                                            optionPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, runningContract.Value, previousTradingDay, previousTradingDay)
+                                            'End If
                                             If optionPayload IsNot Nothing AndAlso optionPayload.Count > 0 Then
                                                 Dim numberOfBlankCandle As Integer = optionPayload.Where(Function(x)
                                                                                                              Return x.Value.Volume = 0 OrElse (x.Value.High = x.Value.Low)
                                                                                                          End Function).Count
-                                                If (numberOfBlankCandle / 375) * 100 <= 20 Then
+                                                If (optionPayload.Count / 375) * 100 >= 80 AndAlso (numberOfBlankCandle / 375) * 100 <= 20 Then
                                                     If optionContracts Is Nothing Then optionContracts = New Dictionary(Of Decimal, String)
                                                     If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
                                                         If currentOptionContracts.ContainsKey(runningContract.Key) Then
@@ -87,7 +101,12 @@ Public Class LowTurnoverOption
                                     If optionContracts IsNot Nothing AndAlso optionContracts.Count > 0 Then
                                         Dim optionData As Dictionary(Of String, Dictionary(Of Date, Payload)) = Nothing
                                         For Each runningContract In optionContracts.Values
-                                            Dim optionPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, runningContract, tradingDate.AddDays(-7), tradingDate)
+                                            Dim optionPayload As Dictionary(Of Date, Payload) = Nothing
+                                            If _fetchDataFromLive Then
+                                                optionPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Futures_Options, runningContract, tradingDate.AddDays(-7), tradingDate).ConfigureAwait(False)
+                                            Else
+                                                optionPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, runningContract, tradingDate.AddDays(-7), tradingDate)
+                                            End If
                                             If optionData Is Nothing Then optionData = New Dictionary(Of String, Dictionary(Of Date, Payload))
                                             optionData.Add(runningContract, optionPayload)
                                         Next
@@ -254,14 +273,17 @@ Public Class LowTurnoverOption
             optionTradingSymbol = String.Format("{0}{1}%{2}", stockName.ToUpper, dateString.ToUpper, instrumentType)
         End If
 
-        Dim query As String = "SELECT DISTINCT(`TradingSymbol`) FROM `eod_prices_opt_futures` WHERE `TradingSymbol` LIKE '{0}' AND `SnapshotDate`='{1}'"
+        'Dim query As String = "SELECT DISTINCT(`TradingSymbol`) FROM `eod_prices_opt_futures` WHERE `TradingSymbol` LIKE '{0}' AND `SnapshotDate`='{1}'"
+        Dim query As String = "SELECT DISTINCT(`TRADING_SYMBOL`) FROM `active_instruments_futures` WHERE `TRADING_SYMBOL` LIKE '{0}' AND `AS_ON_DATE`='{1}'"
         query = String.Format(query, optionTradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
         Dim dt As DataTable = Await _cmn.RunSelectAsync(query).ConfigureAwait(False)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
             Dim i As Integer = 0
             While Not i = dt.Rows.Count()
-                If Not IsDBNull(dt.Rows(i).Item("TradingSymbol")) Then
-                    Dim tradingSymbol As String = dt.Rows(i).Item("TradingSymbol")
+                'If Not IsDBNull(dt.Rows(i).Item("TradingSymbol")) Then
+                If Not IsDBNull(dt.Rows(i).Item("TRADING_SYMBOL")) Then
+                    'Dim tradingSymbol As String = dt.Rows(i).Item("TradingSymbol")
+                    Dim tradingSymbol As String = dt.Rows(i).Item("TRADING_SYMBOL")
                     Dim strikePrice As String = Utilities.Strings.GetTextBetween(stockName, instrumentType, tradingSymbol)
                     strikePrice = strikePrice.Substring(5)
                     If strikePrice IsNot Nothing AndAlso IsNumeric(strikePrice) Then
@@ -302,14 +324,17 @@ Public Class LowTurnoverOption
             optionTradingSymbol = String.Format("{0}{1}%{2}", stockName.ToUpper, dateString.ToUpper, instrumentType)
         End If
 
-        Dim query As String = "SELECT DISTINCT(`TradingSymbol`) FROM `eod_prices_opt_futures` WHERE `TradingSymbol` LIKE '{0}' AND `SnapshotDate`='{1}'"
+        'Dim query As String = "SELECT DISTINCT(`TradingSymbol`) FROM `eod_prices_opt_futures` WHERE `TradingSymbol` LIKE '{0}' AND `SnapshotDate`='{1}'"
+        Dim query As String = "SELECT DISTINCT(`TRADING_SYMBOL`) FROM `active_instruments_futures` WHERE `TRADING_SYMBOL` LIKE '{0}' AND `AS_ON_DATE`='{1}'"
         query = String.Format(query, optionTradingSymbol, tradingDate.ToString("yyyy-MM-dd"))
         Dim dt As DataTable = Await _cmn.RunSelectAsync(query).ConfigureAwait(False)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
             Dim i As Integer = 0
             While Not i = dt.Rows.Count()
-                If Not IsDBNull(dt.Rows(i).Item("TradingSymbol")) Then
-                    Dim tradingSymbol As String = dt.Rows(i).Item("TradingSymbol")
+                'If Not IsDBNull(dt.Rows(i).Item("TradingSymbol")) Then
+                If Not IsDBNull(dt.Rows(i).Item("TRADING_SYMBOL")) Then
+                    'Dim tradingSymbol As String = dt.Rows(i).Item("TradingSymbol")
+                    Dim tradingSymbol As String = dt.Rows(i).Item("TRADING_SYMBOL")
                     Dim strikePrice As String = Utilities.Strings.GetTextBetween(stockName, instrumentType, tradingSymbol)
                     strikePrice = strikePrice.Substring(5)
                     If strikePrice IsNot Nothing AndAlso IsNumeric(strikePrice) Then
