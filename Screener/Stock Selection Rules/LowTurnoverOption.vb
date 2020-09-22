@@ -264,6 +264,37 @@ Public Class LowTurnoverOption
 
     Private Function GetBreakoutDirection(ByVal hkPayload As Dictionary(Of Date, Payload), ByVal previousTradingDay As Date) As Color
         Dim ret As Color = Color.White
+        Dim signalCandle As Payload = hkPayload(previousTradingDay)
+        While ret = Color.White
+            For Each runningCandle In hkPayload.OrderByDescending(Function(x)
+                                                                      Return x.Key
+                                                                  End Function)
+                If runningCandle.Key < signalCandle.PayloadDate Then
+                    If runningCandle.Value.CandleStrengthHeikenAshi = Payload.StrongCandle.Bullish Then
+                        signalCandle = runningCandle.Value
+                        Exit For
+                    ElseIf runningCandle.Value.CandleStrengthHeikenAshi = Payload.StrongCandle.Bearish Then
+                        signalCandle = runningCandle.Value
+                        Exit For
+                    End If
+                End If
+            Next
+            For Each runningCandle In hkPayload.OrderBy(Function(x)
+                                                            Return x.Key
+                                                        End Function)
+                If runningCandle.Key > signalCandle.PayloadDate AndAlso runningCandle.Key.Date <= previousTradingDay.Date Then
+                    If signalCandle.CandleStrengthHeikenAshi = Payload.StrongCandle.Bullish AndAlso
+                        runningCandle.Value.Low < signalCandle.Low AndAlso runningCandle.Value.CandleColor = Color.Red Then
+                        ret = Color.Red
+                        Exit For
+                    ElseIf signalCandle.CandleStrengthHeikenAshi = Payload.StrongCandle.Bearish AndAlso
+                        runningCandle.Value.High > signalCandle.High AndAlso runningCandle.Value.CandleColor = Color.Green Then
+                        ret = Color.Green
+                        Exit For
+                    End If
+                End If
+            Next
+        End While
 
         Return ret
     End Function
