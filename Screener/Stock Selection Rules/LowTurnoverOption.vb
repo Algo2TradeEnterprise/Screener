@@ -5,7 +5,7 @@ Public Class LowTurnoverOption
     Inherits StockSelection
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
-    Private ReadOnly _fetchDataFromLive As Boolean = True
+    Private ReadOnly _fetchDataFromLive As Boolean = False
     Private ReadOnly _timeframe As Integer = 1
     Private ReadOnly _maxBlankCandlePer As Decimal = 20
     Private ReadOnly _minTotalCandlePer As Decimal = 80
@@ -65,7 +65,7 @@ Public Class LowTurnoverOption
                             If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 AndAlso
                                 eodPayload.ContainsKey(tradingDate.Date) AndAlso eodPayload.ContainsKey(previousTradingDay.Date) Then
                                 Dim spotXMinPayload As Dictionary(Of Date, Payload) = Nothing
-                                If _timeframe > 1 Then
+                                If _timeframe = 1 Then
                                     spotXMinPayload = intradayPayload
                                 Else
                                     Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
@@ -129,7 +129,7 @@ Public Class LowTurnoverOption
                                             End If
 
                                             Dim optionXMinPayload As Dictionary(Of Date, Payload) = Nothing
-                                            If _timeframe > 1 Then
+                                            If _timeframe = 1 Then
                                                 optionXMinPayload = optionPayload
                                             Else
                                                 Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
