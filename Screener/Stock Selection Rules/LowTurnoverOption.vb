@@ -5,8 +5,11 @@ Public Class LowTurnoverOption
     Inherits StockSelection
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
+    Private ReadOnly _stockSpotName As String = "NIFTY BANK"
     Private ReadOnly _fetchDataFromLive As Boolean = False
     Private ReadOnly _timeframe As Integer = 1
+    Private ReadOnly _selectDirectionFromStrongHKBreakout As Boolean = False
+
     Private ReadOnly _maxBlankCandlePer As Decimal = 20
     Private ReadOnly _minTotalCandlePer As Decimal = 80
     Private ReadOnly _endTime As Date = New Date(Now.Year, Now.Month, Now.Day, 11, 15, 0)
@@ -55,11 +58,11 @@ Public Class LowTurnoverOption
                             Dim intradayPayload As Dictionary(Of Date, Payload) = Nothing
                             Dim eodPayload As Dictionary(Of Date, Payload) = Nothing
                             If _fetchDataFromLive Then
-                                intradayPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate, tradingDate).ConfigureAwait(False)
-                                eodPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate).ConfigureAwait(False)
+                                intradayPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Cash, _stockSpotName, tradingDate, tradingDate).ConfigureAwait(False)
+                                eodPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, _stockSpotName, tradingDate.AddYears(-1), tradingDate).ConfigureAwait(False)
                             Else
-                                intradayPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate, tradingDate)
-                                eodPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate)
+                                intradayPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, _stockSpotName, tradingDate, tradingDate)
+                                eodPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Cash, _stockSpotName, tradingDate.AddYears(-1), tradingDate)
                             End If
 
                             If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 AndAlso
@@ -76,9 +79,16 @@ Public Class LowTurnoverOption
                                 Indicator.HeikenAshi.ConvertToHeikenAshi(eodPayload, hkPayload)
 
                                 Dim instrumentType As String = Nothing
-                                If hkPayload(previousTradingDay.Date).CandleColor = Color.Green Then
+                                Dim direction As Color = Color.White
+                                If _selectDirectionFromStrongHKBreakout Then
+                                    direction = GetBreakoutDirection(hkPayload, previousTradingDay.Date)
+                                Else
+                                    direction = hkPayload(previousTradingDay.Date).CandleColor
+                                End If
+
+                                If direction = Color.Green Then
                                     instrumentType = "CE"
-                                ElseIf hkPayload(previousTradingDay.Date).CandleColor = Color.Red Then
+                                ElseIf direction = Color.Red Then
                                     instrumentType = "PE"
                                 End If
 
@@ -249,6 +259,12 @@ Public Class LowTurnoverOption
 
             tradingDate = tradingDate.AddDays(1)
         End While
+        Return ret
+    End Function
+
+    Private Function GetBreakoutDirection(ByVal hkPayload As Dictionary(Of Date, Payload), ByVal previousTradingDay As Date) As Color
+        Dim ret As Color = Color.White
+
         Return ret
     End Function
 
