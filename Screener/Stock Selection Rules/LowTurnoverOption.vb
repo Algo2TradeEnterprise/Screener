@@ -5,7 +5,17 @@ Public Class LowTurnoverOption
     Inherits StockSelection
 
     Private ReadOnly _stockName As String = "BANKNIFTY"
-    Private ReadOnly _fetchDataFromLive As Boolean = False
+    Private ReadOnly _fetchDataFromLive As Boolean = True
+    Private ReadOnly _timeframe As Integer = 1
+    Private ReadOnly _maxBlankCandlePer As Decimal = 20
+    Private ReadOnly _minTotalCandlePer As Decimal = 80
+    Private ReadOnly _endTime As Date = New Date(Now.Year, Now.Month, Now.Day, 11, 15, 0)
+    Private ReadOnly _strikePriceRangePer As Decimal = 10
+    Private ReadOnly _maxFracatalDiffPer As Decimal = 33
+    Private ReadOnly _minTargetPerTrade As Decimal = 500
+    Private ReadOnly _minTurnover As Decimal = 2000
+    Private ReadOnly _maxTurnover As Decimal = 10000
+    Private ReadOnly _minVolumePer As Decimal = 10
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
@@ -33,6 +43,7 @@ Public Class LowTurnoverOption
         Dim tradingDate As Date = startDate
         While tradingDate <= endDate
             _canceller.Token.ThrowIfCancellationRequested()
+            Dim endTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, _endTime.Hour, _endTime.Minute, _endTime.Second)
             Dim tradingDay As Boolean = Await IsTradableDay(tradingDate).ConfigureAwait(False)
             If tradingDay OrElse tradingDate.Date = Now.Date Then
                 Dim previousTradingDay As Date = _cmn.GetPreviousTradingDay(Common.DataBaseTable.EOD_Futures, tradingDate)
@@ -44,15 +55,23 @@ Public Class LowTurnoverOption
                             Dim intradayPayload As Dictionary(Of Date, Payload) = Nothing
                             Dim eodPayload As Dictionary(Of Date, Payload) = Nothing
                             If _fetchDataFromLive Then
-                                intradayPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate.AddDays(-7), tradingDate).ConfigureAwait(False)
+                                intradayPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate, tradingDate).ConfigureAwait(False)
                                 eodPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate).ConfigureAwait(False)
                             Else
-                                intradayPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate.AddDays(-7), tradingDate)
+                                intradayPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Cash, "NIFTY BANK", tradingDate, tradingDate)
                                 eodPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Cash, "NIFTY BANK", tradingDate.AddYears(-1), tradingDate)
                             End If
 
                             If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 AndAlso intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 AndAlso
                                 eodPayload.ContainsKey(tradingDate.Date) AndAlso eodPayload.ContainsKey(previousTradingDay.Date) Then
+                                Dim spotXMinPayload As Dictionary(Of Date, Payload) = Nothing
+                                If _timeframe > 1 Then
+                                    spotXMinPayload = intradayPayload
+                                Else
+                                    Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
+                                    spotXMinPayload = Common.ConvertPayloadsToXMinutes(intradayPayload, _timeframe, exchangeStartTime)
+                                End If
+
                                 Dim hkPayload As Dictionary(Of Date, Payload) = Nothing
                                 Indicator.HeikenAshi.ConvertToHeikenAshi(eodPayload, hkPayload)
 
@@ -84,7 +103,8 @@ Public Class LowTurnoverOption
                                                 Dim numberOfBlankCandle As Integer = optionPayload.Where(Function(x)
                                                                                                              Return x.Value.Volume = 0 OrElse (x.Value.High = x.Value.Low)
                                                                                                          End Function).Count
-                                                If (optionPayload.Count / 375) * 100 >= 80 AndAlso (numberOfBlankCandle / 375) * 100 <= 20 Then
+                                                If (optionPayload.Count / 375) * 100 >= _minTotalCandlePer AndAlso
+                                                    (numberOfBlankCandle / 375) * 100 <= _maxBlankCandlePer Then
                                                     If optionContracts Is Nothing Then optionContracts = New Dictionary(Of Decimal, String)
                                                     If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
                                                         If currentOptionContracts.ContainsKey(runningContract.Key) Then
@@ -107,111 +127,118 @@ Public Class LowTurnoverOption
                                             Else
                                                 optionPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.Intraday_Futures_Options, runningContract, tradingDate.AddDays(-7), tradingDate)
                                             End If
+
+                                            Dim optionXMinPayload As Dictionary(Of Date, Payload) = Nothing
+                                            If _timeframe > 1 Then
+                                                optionXMinPayload = optionPayload
+                                            Else
+                                                Dim exchangeStartTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
+                                                optionXMinPayload = Common.ConvertPayloadsToXMinutes(optionPayload, _timeframe, exchangeStartTime)
+                                            End If
+
                                             If optionData Is Nothing Then optionData = New Dictionary(Of String, Dictionary(Of Date, Payload))
-                                            optionData.Add(runningContract, optionPayload)
+                                            optionData.Add(runningContract, optionXMinPayload)
                                         Next
 
-                                        Dim startTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
-                                        Dim endTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 11, 15, 0)
-                                        Dim signalCandleTime As Date = startTime
 
                                         Dim previousDayMaxVolumePayloaod As Dictionary(Of Date, Long) = Nothing
-                                        While signalCandleTime <= endTime
-                                            OnHeartbeat(String.Format("Checking previous day highest volume for {0}", signalCandleTime.ToString("HH:mm:ss")))
-                                            Dim maxVolume As Long = Long.MinValue
-                                            Dim previousDaySignalTime As Date = New Date(previousTradingDay.Year, previousTradingDay.Month, previousTradingDay.Day, signalCandleTime.Hour, signalCandleTime.Minute, signalCandleTime.Second)
-                                            For Each runningContract In optionContracts.Values
-                                                Dim optionPayload As Dictionary(Of Date, Payload) = optionData(runningContract)
-                                                If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(signalCandleTime) Then
-                                                    Dim totalVolume As Long = optionPayload.Sum(Function(x)
-                                                                                                    If x.Key.Date = previousTradingDay.Date AndAlso x.Key <= previousDaySignalTime Then
-                                                                                                        Return x.Value.Volume
-                                                                                                    Else
-                                                                                                        Return 0
-                                                                                                    End If
-                                                                                                End Function)
-                                                    maxVolume = Math.Max(maxVolume, totalVolume)
-                                                End If
-                                            Next
-                                            If previousDayMaxVolumePayloaod Is Nothing Then previousDayMaxVolumePayloaod = New Dictionary(Of Date, Long)
-                                            previousDayMaxVolumePayloaod.Add(signalCandleTime, maxVolume)
+                                        For Each runningCandle In spotXMinPayload
+                                            Dim signalCandleTime As Date = runningCandle.Key
+                                            If signalCandleTime <= endTime Then
+                                                OnHeartbeat(String.Format("Checking previous day highest volume for {0}", signalCandleTime.ToString("HH:mm:ss")))
+                                                Dim maxVolume As Long = Long.MinValue
+                                                Dim previousDaySignalTime As Date = New Date(previousTradingDay.Year, previousTradingDay.Month, previousTradingDay.Day, signalCandleTime.Hour, signalCandleTime.Minute, signalCandleTime.Second)
+                                                For Each runningContract In optionContracts.Values
+                                                    Dim optionPayload As Dictionary(Of Date, Payload) = optionData(runningContract)
+                                                    If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(signalCandleTime) Then
+                                                        Dim totalVolume As Long = optionPayload.Sum(Function(x)
+                                                                                                        If x.Key.Date = previousTradingDay.Date AndAlso x.Key <= previousDaySignalTime Then
+                                                                                                            Return x.Value.Volume
+                                                                                                        Else
+                                                                                                            Return 0
+                                                                                                        End If
+                                                                                                    End Function)
+                                                        maxVolume = Math.Max(maxVolume, totalVolume)
+                                                    End If
+                                                Next
+                                                If previousDayMaxVolumePayloaod Is Nothing Then previousDayMaxVolumePayloaod = New Dictionary(Of Date, Long)
+                                                previousDayMaxVolumePayloaod.Add(signalCandleTime, maxVolume)
+                                            End If
+                                        Next
 
-                                            signalCandleTime = signalCandleTime.AddMinutes(1)
-                                        End While
+                                        For Each runningCandle In spotXMinPayload
+                                            Dim signalCandleTime As Date = runningCandle.Key
+                                            If signalCandleTime <= endTime Then
+                                                OnHeartbeat(String.Format("Checking signal for {0}", signalCandleTime.ToString("dd-MMM-yyyy HH:mm:ss")))
+                                                If intradayPayload.ContainsKey(signalCandleTime) Then
+                                                    Dim spotPrice As Decimal = intradayPayload(signalCandleTime).Close
+                                                    Dim tempStockList As Dictionary(Of String, Decimal()) = Nothing
+                                                    For Each runningContract In optionContracts
+                                                        If Math.Abs(runningContract.Key - spotPrice) <= spotPrice * _strikePriceRangePer / 100 Then
+                                                            Dim optionPayload As Dictionary(Of Date, Payload) = optionData(runningContract.Value)
+                                                            If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(signalCandleTime) Then
+                                                                Dim optionFractalHighPayload As Dictionary(Of Date, Decimal) = Nothing
+                                                                Dim optionFractalLowPayload As Dictionary(Of Date, Decimal) = Nothing
+                                                                Indicator.FractalBands.CalculateFractal(optionPayload, optionFractalHighPayload, optionFractalLowPayload)
+                                                                Dim optionFractalHigh As Decimal = optionFractalHighPayload(signalCandleTime)
+                                                                Dim optionFractalLow As Decimal = optionFractalLowPayload(signalCandleTime)
+                                                                Dim optionSignalCandle As Payload = optionPayload(signalCandleTime)
+                                                                If optionSignalCandle.Close < optionFractalLow AndAlso
+                                                                    optionFractalHigh > optionFractalLow AndAlso
+                                                                    (optionFractalHigh - optionFractalLow) <= optionFractalLow * _maxFracatalDiffPer / 100 AndAlso
+                                                                    IsFractalChanged(optionFractalLowPayload, signalCandleTime) Then
+                                                                    Dim potentialQuantity As Integer = Math.Ceiling((_minTurnover / optionFractalLow) / lotSize) * lotSize
+                                                                    Dim potentialPL As Decimal = CalculatePL(optionFractalLow, optionFractalHigh, potentialQuantity)
+                                                                    If potentialPL > 0 Then
+                                                                        Dim quantity As Integer = CalculateQuantityFromTarget(optionFractalLow, optionFractalHigh, _minTargetPerTrade, lotSize)
+                                                                        Dim turnover As Decimal = optionFractalLow * quantity
+                                                                        If turnover >= _minTurnover AndAlso turnover <= _maxTurnover Then
+                                                                            Dim totalVolume As Long = optionPayload.Sum(Function(x)
+                                                                                                                            If x.Key.Date = tradingDate.Date AndAlso x.Key <= signalCandleTime Then
+                                                                                                                                Return x.Value.Volume
+                                                                                                                            Else
+                                                                                                                                Return 0
+                                                                                                                            End If
+                                                                                                                        End Function)
 
-                                        signalCandleTime = startTime
-                                        While signalCandleTime <= endTime
-                                            OnHeartbeat(String.Format("Checking signal for {0}", signalCandleTime.ToString("dd-MMM-yyyy HH:mm:ss")))
-                                            If intradayPayload.ContainsKey(signalCandleTime) Then
-                                                Dim spotPrice As Decimal = intradayPayload(signalCandleTime).Close
-                                                Dim tempStockList As Dictionary(Of String, Decimal()) = Nothing
-                                                For Each runningContract In optionContracts
-                                                    If Math.Abs(runningContract.Key - spotPrice) <= spotPrice * 10 / 100 Then
-                                                        Dim optionPayload As Dictionary(Of Date, Payload) = optionData(runningContract.Value)
-                                                        If optionPayload IsNot Nothing AndAlso optionPayload.ContainsKey(signalCandleTime) Then
-                                                            Dim optionFractalHighPayload As Dictionary(Of Date, Decimal) = Nothing
-                                                            Dim optionFractalLowPayload As Dictionary(Of Date, Decimal) = Nothing
-                                                            Indicator.FractalBands.CalculateFractal(optionPayload, optionFractalHighPayload, optionFractalLowPayload)
-                                                            Dim optionFractalHigh As Decimal = optionFractalHighPayload(signalCandleTime)
-                                                            Dim optionFractalLow As Decimal = optionFractalLowPayload(signalCandleTime)
-                                                            Dim optionSignalCandle As Payload = optionPayload(signalCandleTime)
-                                                            If optionSignalCandle.Close < optionFractalLow AndAlso
-                                                                optionFractalHigh > optionFractalLow AndAlso
-                                                                (optionFractalHigh - optionFractalLow) <= optionFractalLow * 33 / 100 AndAlso
-                                                                IsFractalChanged(optionFractalLowPayload, signalCandleTime) Then
-                                                                Dim potentialQuantity As Integer = Math.Ceiling((2000 / optionFractalLow) / lotSize) * lotSize
-                                                                Dim potentialPL As Decimal = CalculatePL(optionFractalLow, optionFractalHigh, potentialQuantity)
-                                                                If potentialPL > 0 Then
-                                                                    Dim quantity As Integer = CalculateQuantityFromTarget(optionFractalLow, optionFractalHigh, 500, lotSize)
-                                                                    Dim turnover As Decimal = optionFractalLow * quantity
-                                                                    If turnover >= 2000 AndAlso turnover <= 10000 Then
-                                                                        Dim totalVolume As Long = optionPayload.Sum(Function(x)
-                                                                                                                        If x.Key.Date = tradingDate.Date AndAlso x.Key <= signalCandleTime Then
-                                                                                                                            Return x.Value.Volume
-                                                                                                                        Else
-                                                                                                                            Return 0
-                                                                                                                        End If
-                                                                                                                    End Function)
-
-                                                                        Dim volumePer As Decimal = Math.Round(totalVolume * 100 / previousDayMaxVolumePayloaod(signalCandleTime), 2)
-                                                                        If volumePer >= 10 Then
-                                                                            If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
-                                                                            tempStockList.Add(runningContract.Value, {optionFractalLow, optionFractalHigh, quantity, turnover, totalVolume, previousDayMaxVolumePayloaod(signalCandleTime), volumePer})
+                                                                            Dim volumePer As Decimal = Math.Round(totalVolume * 100 / previousDayMaxVolumePayloaod(signalCandleTime), 2)
+                                                                            If volumePer >= _minVolumePer Then
+                                                                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
+                                                                                tempStockList.Add(runningContract.Value, {optionFractalLow, optionFractalHigh, quantity, turnover, totalVolume, previousDayMaxVolumePayloaod(signalCandleTime), volumePer})
+                                                                            End If
                                                                         End If
                                                                     End If
                                                                 End If
                                                             End If
                                                         End If
-                                                    End If
-                                                Next
-                                                If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
-                                                    For Each runningStock In tempStockList.OrderBy(Function(x)
-                                                                                                       Return x.Value(3)
-                                                                                                   End Function)
-                                                        Dim row As DataRow = ret.NewRow
-                                                        row("Date") = tradingDate.ToString("dd-MMM-yyyy")
-                                                        row("Trading Symbol") = runningStock.Key
-                                                        row("Lot Size") = lotSize
-                                                        row("Puts_Calls") = instrumentType
-                                                        row("Time") = signalCandleTime.ToString("HH:mm:ss")
-                                                        row("Spot Price") = spotPrice
-                                                        row("Entry Price") = runningStock.Value(0)
-                                                        row("Target Price") = runningStock.Value(1)
-                                                        row("Quantity") = runningStock.Value(2)
-                                                        row("Turnover") = runningStock.Value(3)
-                                                        row("Total Volume") = runningStock.Value(4)
-                                                        row("Previous Day Highest Volume") = runningStock.Value(5)
-                                                        row("Volume %") = runningStock.Value(6)
-                                                        ret.Rows.Add(row)
-
-                                                        Exit For
                                                     Next
-                                                    Exit While
+                                                    If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
+                                                        For Each runningStock In tempStockList.OrderBy(Function(x)
+                                                                                                           Return x.Value(3)
+                                                                                                       End Function)
+                                                            Dim row As DataRow = ret.NewRow
+                                                            row("Date") = tradingDate.ToString("dd-MMM-yyyy")
+                                                            row("Trading Symbol") = runningStock.Key
+                                                            row("Lot Size") = lotSize
+                                                            row("Puts_Calls") = instrumentType
+                                                            row("Time") = signalCandleTime.ToString("HH:mm:ss")
+                                                            row("Spot Price") = spotPrice
+                                                            row("Entry Price") = runningStock.Value(0)
+                                                            row("Target Price") = runningStock.Value(1)
+                                                            row("Quantity") = runningStock.Value(2)
+                                                            row("Turnover") = runningStock.Value(3)
+                                                            row("Total Volume") = runningStock.Value(4)
+                                                            row("Previous Day Highest Volume") = runningStock.Value(5)
+                                                            row("Volume %") = runningStock.Value(6)
+                                                            ret.Rows.Add(row)
+
+                                                            Exit For
+                                                        Next
+                                                        Exit For
+                                                    End If
                                                 End If
                                             End If
-
-                                            signalCandleTime = signalCandleTime.AddMinutes(1)
-                                        End While
+                                        Next
                                     End If
                                 End If
                             End If
