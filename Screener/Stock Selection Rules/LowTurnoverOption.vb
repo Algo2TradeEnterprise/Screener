@@ -13,12 +13,13 @@ Public Class LowTurnoverOption
     Private ReadOnly _maxBlankCandlePer As Decimal = 20
     Private ReadOnly _minTotalCandlePer As Decimal = 80
     Private ReadOnly _endTime As Date = New Date(Now.Year, Now.Month, Now.Day, 11, 15, 0)
-    Private ReadOnly _strikePriceRangePer As Decimal = 10
+    Private ReadOnly _strikePriceRangePer As Decimal = 7
     Private ReadOnly _maxFracatalDiffPer As Decimal = 33
     Private ReadOnly _minTargetPerTrade As Decimal = 500
     Private ReadOnly _minTurnover As Decimal = 2000
     Private ReadOnly _maxTurnover As Decimal = 10000
     Private ReadOnly _minVolumePer As Decimal = 10
+    Private ReadOnly _minPreviousDayEODVolumePerWithRespectToAvgVol As Decimal = 1
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
@@ -93,7 +94,6 @@ Public Class LowTurnoverOption
                                 End If
 
                                 If instrumentType IsNot Nothing Then
-                                    Dim optionContracts As Dictionary(Of Decimal, String) = Nothing
                                     Dim currentOptionContracts As Dictionary(Of Decimal, String) = Await GetOptionTradingSymbols(_stockName, instrumentType, tradingDate)
                                     Dim volumeCheckOptionContracts As Dictionary(Of Decimal, String) = Nothing
                                     If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
@@ -101,7 +101,9 @@ Public Class LowTurnoverOption
                                     Else
                                         volumeCheckOptionContracts = currentOptionContracts
                                     End If
+                                    Dim optionContracts As Dictionary(Of Decimal, String) = Nothing
                                     If volumeCheckOptionContracts IsNot Nothing AndAlso volumeCheckOptionContracts.Count > 0 Then
+                                        Dim tempOptionContracts As Dictionary(Of Decimal, String) = Nothing
                                         For Each runningContract In volumeCheckOptionContracts
                                             Dim optionPayload As Dictionary(Of Date, Payload) = Nothing
                                             'If _fetchDataFromLive Then
@@ -115,17 +117,47 @@ Public Class LowTurnoverOption
                                                                                                          End Function).Count
                                                 If (optionPayload.Count / 375) * 100 >= _minTotalCandlePer AndAlso
                                                     (numberOfBlankCandle / 375) * 100 <= _maxBlankCandlePer Then
-                                                    If optionContracts Is Nothing Then optionContracts = New Dictionary(Of Decimal, String)
+                                                    If tempOptionContracts Is Nothing Then tempOptionContracts = New Dictionary(Of Decimal, String)
                                                     If tradingDate.DayOfWeek = DayOfWeek.Thursday Then
                                                         If currentOptionContracts.ContainsKey(runningContract.Key) Then
-                                                            optionContracts.Add(runningContract.Key, currentOptionContracts(runningContract.Key))
+                                                            tempOptionContracts.Add(runningContract.Key, currentOptionContracts(runningContract.Key))
                                                         End If
                                                     Else
-                                                        optionContracts.Add(runningContract.Key, runningContract.Value)
+                                                        tempOptionContracts.Add(runningContract.Key, runningContract.Value)
                                                     End If
                                                 End If
                                             End If
                                         Next
+
+                                        If tempOptionContracts IsNot Nothing AndAlso tempOptionContracts.Count > 0 Then
+                                            Dim eodVolumeCloseData As Dictionary(Of Decimal, Long) = Nothing
+                                            For Each runningContract In volumeCheckOptionContracts
+                                                If tempOptionContracts.ContainsKey(runningContract.Key) Then
+                                                    Dim optionPayload As Dictionary(Of Date, Payload) = Nothing
+                                                    'If _fetchDataFromLive Then
+                                                    '    optionPayload = Await _cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Futures_Options, runningContract.Value, previousTradingDay, previousTradingDay).ConfigureAwait(False)
+                                                    'Else
+                                                    optionPayload = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_Futures_Options, runningContract.Value, previousTradingDay, previousTradingDay)
+                                                    'End If
+                                                    If optionPayload IsNot Nothing AndAlso optionPayload.Count > 0 Then
+                                                        If eodVolumeCloseData Is Nothing Then eodVolumeCloseData = New Dictionary(Of Decimal, Long)
+                                                        eodVolumeCloseData.Add(runningContract.Key, optionPayload.LastOrDefault.Value.Volume * optionPayload.LastOrDefault.Value.Close)
+                                                    End If
+                                                End If
+                                            Next
+                                            If eodVolumeCloseData IsNot Nothing AndAlso eodVolumeCloseData.Count > 0 Then
+                                                Dim avgVolumeClose As Double = eodVolumeCloseData.Values.Average
+                                                For Each runningContract In tempOptionContracts
+                                                    If eodVolumeCloseData.ContainsKey(runningContract.Key) Then
+                                                        Dim eodVolPer As Double = Math.Round(eodVolumeCloseData(runningContract.Key) * 100 / avgVolumeClose, 4)
+                                                        If eodVolPer >= _minPreviousDayEODVolumePerWithRespectToAvgVol Then
+                                                            If optionContracts Is Nothing Then optionContracts = New Dictionary(Of Decimal, String)
+                                                            optionContracts.Add(runningContract.Key, runningContract.Value)
+                                                        End If
+                                                    End If
+                                                Next
+                                            End If
+                                        End If
                                     End If
 
                                     If optionContracts IsNot Nothing AndAlso optionContracts.Count > 0 Then
