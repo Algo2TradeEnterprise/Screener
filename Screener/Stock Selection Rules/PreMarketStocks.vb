@@ -92,7 +92,7 @@ Public Class PreMarketStocks
                                 row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Change %") = runningStock.Value(0)
-                                row("Value In Lakhs") = runningStock.Value(1)
+                                row("Value In Lakhs") = runningStock.Value(2)
 
                                 ret.Rows.Add(row)
                                 stockCounter += 1
