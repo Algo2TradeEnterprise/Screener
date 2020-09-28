@@ -28,6 +28,7 @@ Public Class PreMarketStocks
         ret.Columns.Add("Slab")
         ret.Columns.Add("Change %")
         ret.Columns.Add("Value In Lakhs")
+        ret.Columns.Add("Quantity")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -67,16 +68,17 @@ Public Class PreMarketStocks
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim instrumentName As String = dt.Rows(i).Item("SYMBOL").ToString.ToUpper
                             Dim valueInLakhs As Double = dt.Rows(i).Item("Value")
+                            Dim quantity As Double = dt.Rows(i).Item("Volume")
                             Dim changePer As String = Math.Round(((dt.Rows(i).Item("Price") / dt.Rows(i).Item("Prev Close")) - 1) * 100, 2)
                             If atrStockList.ContainsKey(instrumentName) Then
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
-                                tempStockList.Add(instrumentName, {changePer, dt.Rows(i).Item("Prev Close"), valueInLakhs})
+                                tempStockList.Add(instrumentName, {changePer, dt.Rows(i).Item("Prev Close"), valueInLakhs, quantity})
                             End If
                         Next
                         If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                             Dim stockCounter As Integer = 0
                             For Each runningStock In tempStockList.OrderByDescending(Function(x)
-                                                                                         Return Math.Abs(x.Value(2))
+                                                                                         Return Math.Abs(x.Value(3))
                                                                                      End Function)
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 Dim row As DataRow = ret.NewRow
@@ -93,6 +95,7 @@ Public Class PreMarketStocks
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Change %") = runningStock.Value(0)
                                 row("Value In Lakhs") = runningStock.Value(2)
+                                row("Quantity") = runningStock.Value(3)
 
                                 ret.Rows.Add(row)
                                 stockCounter += 1
