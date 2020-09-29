@@ -402,6 +402,8 @@ Public Class frmStockSelection
                     stock = New DayOpenAtTheMoneyOptions(_canceller, cmn, stockType)
                 Case 38
                     stock = New LowTurnoverOption(_canceller, cmn, stockType)
+                Case 39
+                    stock = New PreMarketOptions(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -534,6 +536,9 @@ Public Class frmStockSelection
             Case 38
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return BANKNIFTY option stocks. Give the date you want to trade if it is not the current date.")
+            Case 39
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return atm options for top n-Pre market stocks in quantity desc order. Give the date you want to trade. Current Date is also accepted if pre market backup is done.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select
