@@ -97,7 +97,7 @@ Public Class PreMarketOptions
 
                                             Dim row2 As DataRow = ret.NewRow
                                             row2("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                            row2("Trading Symbol") = ceTradingSymbols(strikePrice)
+                                            row2("Trading Symbol") = peTradingSymbols(strikePrice)
                                             row2("Lot Size") = atrStockList(runningStock.Key).LotSize
                                             row2("ATR %") = Math.Round(atrStockList(runningStock.Key).ATRPercentage, 4)
                                             row2("Blank Candle %") = atrStockList(runningStock.Key).BlankCandlePercentage
