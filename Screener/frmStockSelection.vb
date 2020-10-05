@@ -405,7 +405,7 @@ Public Class frmStockSelection
                 Case 39
                     stock = New PreMarketOptions(_canceller, cmn, stockType)
                 Case 40
-                    stock = New HighATRStocksWithTargetToStoplossMultiplier(_canceller, cmn, stockType)
+                    stock = New FractalConstriction(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
