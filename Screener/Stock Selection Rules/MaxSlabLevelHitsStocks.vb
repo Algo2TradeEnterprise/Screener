@@ -110,7 +110,7 @@ Public Class MaxSlabLevelHitsStocks
                                 Dim maxHitLevels As String = Nothing
                                 For Each runningSlab In slabData
                                     If runningSlab.Value = maxHit Then
-                                        maxHitLevels = String.Format("{0} {1},", maxHitLevels, runningSlab.Key)
+                                        maxHitLevels = String.Format("{0} {1};", maxHitLevels, runningSlab.Key)
                                     End If
                                 Next
                                 maxHitLevels = maxHitLevels.Substring(0, maxHitLevels.Count - 1).Trim
