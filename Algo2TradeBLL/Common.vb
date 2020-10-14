@@ -960,7 +960,7 @@ Public Class Common
                 headers.Add("Accept", "*/*")
                 headers.Add("Accept-Encoding", "gzip, deflate")
                 headers.Add("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,ko;q=0.7")
-                headers.Add("Authorization", String.Format("enctoken {0}", "d/9+qvWINY57qxQPth25aMtR3LOqUWucZGIg1aiF5+zsU3kQpy82Jeht9XNxZ9PpcTCrqlFdEAiR3/Xz+dPJXbFTfacoAA=="))
+                headers.Add("Authorization", String.Format("enctoken {0}", "h+o84lpGHdAMuIUg2i3z6hYLPiWUxsrZhuoKdoZEjLM2qsOcNtc852hfVGL4ivqJ16v4SA/gyGYuLLQRLMduDBv57Ivfvw=="))
                 headers.Add("Referer", "https://kite.zerodha.com/static/build/chart.html?v=2.4.0")
                 headers.Add("sec-fetch-mode", "cors")
                 headers.Add("sec-fetch-site", "same-origin")
