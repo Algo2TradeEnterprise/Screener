@@ -410,6 +410,8 @@ Public Class frmStockSelection
                     stock = New MaxSlabLevelHitsStocks(_canceller, cmn, stockType)
                 Case 42
                     stock = New HighATRStocksWithMultiplier(_canceller, cmn, stockType)
+                Case 43
+                    stock = New EODOutsideMAStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -554,6 +556,9 @@ Public Class frmStockSelection
             Case 42
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 43
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks where EOD Candle is not touching 20 SMA. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select
