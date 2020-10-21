@@ -51,14 +51,14 @@ Public Class EODOutsideEMAStocks
                     For Each runningStock In atrStockList.Keys
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate.AddDays(-200), tradingDate)
                         If eodPayload IsNot Nothing AndAlso eodPayload.Count > 30 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
-                            Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
-                            Indicator.SMA.CalculateSMA(20, Payload.PayloadFields.Close, eodPayload, smaPayload)
+                            Dim emaPayload As Dictionary(Of Date, Decimal) = Nothing
+                            Indicator.EMA.CalculateEMA(20, Payload.PayloadFields.Close, eodPayload, emaPayload)
 
                             Dim direction As String = Nothing
                             Dim currentDayCandle As Payload = eodPayload(tradingDate.Date)
-                            If currentDayCandle.PreviousCandlePayload.Low > smaPayload(currentDayCandle.PreviousCandlePayload.PayloadDate) Then
+                            If currentDayCandle.PreviousCandlePayload.Low > emaPayload(currentDayCandle.PreviousCandlePayload.PayloadDate) Then
                                 direction = "BUY"
-                            ElseIf currentDayCandle.PreviousCandlePayload.High < smaPayload(currentDayCandle.PreviousCandlePayload.PayloadDate) Then
+                            ElseIf currentDayCandle.PreviousCandlePayload.High < emaPayload(currentDayCandle.PreviousCandlePayload.PayloadDate) Then
                                 direction = "SELL"
                             End If
                             If direction IsNot Nothing AndAlso direction.Trim <> "" Then
