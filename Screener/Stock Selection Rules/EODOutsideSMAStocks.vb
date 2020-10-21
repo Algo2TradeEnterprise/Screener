@@ -2,7 +2,7 @@
 Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class EODOutsideMAStocks
+Public Class EODOutsideSMAStocks
     Inherits StockSelection
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
@@ -64,6 +64,15 @@ Public Class EODOutsideMAStocks
                                 direction = "SELL"
                                 If currentDayCandle.Open > currentDayCandle.PreviousCandlePayload.Close Then gap = True
                             End If
+                            'If currentDayCandle.PreviousCandlePayload.CandleBody > currentDayCandle.PreviousCandlePayload.CandleRange * 0.1 Then
+                            '    If currentDayCandle.PreviousCandlePayload.CandleColor = Color.Green Then
+                            '        direction = "BUY"
+                            '        If currentDayCandle.Open < currentDayCandle.PreviousCandlePayload.Close Then gap = True
+                            '    ElseIf currentDayCandle.PreviousCandlePayload.CandleColor = Color.Red Then
+                            '        direction = "SELL"
+                            '        If currentDayCandle.Open > currentDayCandle.PreviousCandlePayload.Close Then gap = True
+                            '    End If
+                            'End If
                             If direction IsNot Nothing AndAlso direction.Trim <> "" Then
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                 tempStockList.Add(runningStock, {direction, gap})
