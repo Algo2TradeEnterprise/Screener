@@ -421,7 +421,6 @@ Public Class frmStockSelection
 
             Dim dt As DataTable = Await stock.GetStockDataAsync(startDate.Date, endDate.Date).ConfigureAwait(False)
             SetDatagridBindDatatable_ThreadSafe(dgrvMain, dt)
-
         Catch oex As OperationCanceledException
             MsgBox(oex.Message)
         Catch ex As Exception

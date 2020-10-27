@@ -184,12 +184,18 @@ Public Class UserGivenStocks
                 If jString IsNot Nothing Then
                     Dim multiplierMap As String = Utilities.Strings.GetTextBetween("COMMODITY_MULTIPLIER_MAP=", "}", jString)
                     If multiplierMap IsNot Nothing Then
+                        If multiplierMap.EndsWith(",") Then
+                            multiplierMap = multiplierMap.Substring(0, multiplierMap.Count - 1)
+                        End If
                         multiplierMap = multiplierMap & "}"
                         ret = Utilities.Strings.JsonDeserialize(multiplierMap)
                     End If
 
                     'Dim groupMap As String = Utilities.Strings.GetTextBetween("COMMODITY_GROUP_MAP=", "}", jString)
                     'If groupMap IsNot Nothing Then
+                    '    If groupMap.EndsWith(",") Then
+                    '        groupMap = groupMap.Substring(0, groupMap.Count - 1)
+                    '    End If
                     '    groupMap = groupMap & "}"
                     '    GlobalVar.GroupMap = Utilities.Strings.JsonDeserialize(groupMap)
                     'End If
