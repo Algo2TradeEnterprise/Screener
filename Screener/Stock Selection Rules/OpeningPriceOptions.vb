@@ -61,6 +61,10 @@ Public Class OpeningPriceOptions
                                         Else
                                             strikePrice = upperStrike
                                         End If
+
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(currentTradingSymbol, {lotSize, atrPer, atr, lastDayPayload.Open, lastDayPayload.Low, lastDayPayload.High, lastDayPayload.Close, slab})
+
                                         For Each runningOption In optionContracts
                                             Dim strike As String = runningOption.Substring(10)
                                             strike = strike.Substring(0, strike.Count - 2)
