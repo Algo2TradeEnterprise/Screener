@@ -135,6 +135,7 @@
     <Compile Include="Stock Selection Rules\NarrowRangeStocks.vb" />
     <Compile Include="Stock Selection Rules\OHLStocks.vb" />
     <Compile Include="Stock Selection Rules\OpenAtHighLow.vb" />
+    <Compile Include="Stock Selection Rules\OpeningPriceOptions.vb" />
     <Compile Include="Stock Selection Rules\PreMarketOptions.vb" />
     <Compile Include="Stock Selection Rules\PreMarketStocks.vb" />
     <Compile Include="Stock Selection Rules\PreviousDayCloseATRSortVolumeFilterCEPEOptions.vb" />

@@ -416,6 +416,8 @@ Public Class frmStockSelection
                     stock = New EODOutsideEMAStocks(_canceller, cmn, stockType)
                 Case 45
                     stock = New EODVolumeEMAStocks(_canceller, cmn, stockType)
+                Case 46
+                    stock = New OpeningPriceOptions(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -568,6 +570,9 @@ Public Class frmStockSelection
             Case 45
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks where EOD Candle Volume is greater than 2 times of EMA of EOD Volume. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 46
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
             Case Else
                 Throw New NotImplementedException()
         End Select
