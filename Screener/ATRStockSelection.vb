@@ -47,6 +47,7 @@ Public Class ATRStockSelection
                                           ByVal tradingDate As Date,
                                           ByVal bannedStocks As List(Of String),
                                           ByVal immediatePreviousDay As Boolean) As Task(Of Dictionary(Of String, InstrumentDetails))
+        _AllStocks = Nothing
         Dim ret As Dictionary(Of String, InstrumentDetails) = Nothing
         Dim isTradingDay As Boolean = Await IsTradableDay(tradingDate).ConfigureAwait(False)
         If isTradingDay OrElse tradingDate.Date = Now.Date Then
