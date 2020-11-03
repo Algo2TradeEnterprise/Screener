@@ -31,6 +31,7 @@ Public Class FirstFavourableFractalTopGainerLooser
         ret.Columns.Add("Gainer_Looser")
         ret.Columns.Add("Change %")
         ret.Columns.Add("Position")
+        ret.Columns.Add("Nifty Change %")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -111,6 +112,7 @@ Public Class FirstFavourableFractalTopGainerLooser
                         Next
                         If topFractalBreakoutData IsNot Nothing AndAlso topFractalBreakoutData.Count > 0 AndAlso
                             bottomFractalBreakoutData IsNot Nothing AndAlso bottomFractalBreakoutData.Count > 0 Then
+                            Dim tempStockList As Dictionary(Of String, Tuple(Of Date, Date, String, Decimal, Integer)) = Nothing
                             For Each runningTime In topFractalBreakoutData.OrderBy(Function(x)
                                                                                        Return x.Key
                                                                                    End Function)
@@ -128,26 +130,8 @@ Public Class FirstFavourableFractalTopGainerLooser
                                             remarks = "Looser"
                                         End If
                                         If chngPer <> Decimal.MinValue AndAlso pos <> Integer.MinValue AndAlso remarks <> "" Then
-                                            Dim row As DataRow = ret.NewRow
-                                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                            row("Trading Symbol") = atrStockList(runningStock.Key).TradingSymbol
-                                            row("Lot Size") = atrStockList(runningStock.Key).LotSize
-                                            row("ATR %") = Math.Round(atrStockList(runningStock.Key).ATRPercentage, 4)
-                                            row("Blank Candle %") = atrStockList(runningStock.Key).BlankCandlePercentage
-                                            row("Day ATR") = Math.Round(atrStockList(runningStock.Key).DayATR, 4)
-                                            row("Previous Day Open") = atrStockList(runningStock.Key).PreviousDayOpen
-                                            row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
-                                            row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
-                                            row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
-                                            row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
-                                            row("Slab") = atrStockList(runningStock.Key).Slab
-                                            row("Breakout Time") = runningTime.Key.ToString("dd-MMM-yyyy HH:mm:ss")
-                                            row("Favourable Fractal Time") = runningStock.Value.ToString("dd-MMM-yyyy HH:mm:ss")
-                                            row("Gainer_Looser") = remarks
-                                            row("Change %") = Math.Round(chngPer, 2)
-                                            row("Position") = pos
-
-                                            ret.Rows.Add(row)
+                                            If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Tuple(Of Date, Date, String, Decimal, Integer))
+                                            tempStockList.Add(runningStock.Key, New Tuple(Of Date, Date, String, Decimal, Integer)(runningTime.Key, runningStock.Value, remarks, chngPer, pos))
                                         End If
                                     Next
                                 End If
@@ -169,30 +153,58 @@ Public Class FirstFavourableFractalTopGainerLooser
                                             remarks = "Gainer"
                                         End If
                                         If chngPer <> Decimal.MinValue AndAlso pos <> Integer.MinValue AndAlso remarks <> "" Then
-                                            Dim row As DataRow = ret.NewRow
-                                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                            row("Trading Symbol") = atrStockList(runningStock.Key).TradingSymbol
-                                            row("Lot Size") = atrStockList(runningStock.Key).LotSize
-                                            row("ATR %") = Math.Round(atrStockList(runningStock.Key).ATRPercentage, 4)
-                                            row("Blank Candle %") = atrStockList(runningStock.Key).BlankCandlePercentage
-                                            row("Day ATR") = Math.Round(atrStockList(runningStock.Key).DayATR, 4)
-                                            row("Previous Day Open") = atrStockList(runningStock.Key).PreviousDayOpen
-                                            row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
-                                            row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
-                                            row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
-                                            row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
-                                            row("Slab") = atrStockList(runningStock.Key).Slab
-                                            row("Breakout Time") = runningTime.Key.ToString("dd-MMM-yyyy HH:mm:ss")
-                                            row("Favourable Fractal Time") = runningStock.Value.ToString("dd-MMM-yyyy HH:mm:ss")
-                                            row("Gainer_Looser") = remarks
-                                            row("Change %") = Math.Round(chngPer, 2)
-                                            row("Position") = pos
-
-                                            ret.Rows.Add(row)
+                                            If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Tuple(Of Date, Date, String, Decimal, Integer))
+                                            tempStockList.Add(runningStock.Key, New Tuple(Of Date, Date, String, Decimal, Integer)(runningTime.Key, runningStock.Value, remarks, chngPer, pos))
                                         End If
                                     Next
                                 End If
                             Next
+                            If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
+                                Dim niftyChangePer As Dictionary(Of Date, Decimal) = Nothing
+                                Dim niftyEODPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.EOD_Futures, "NIFTY", tradingDate.AddDays(-15), tradingDate)
+                                If niftyEODPayload IsNot Nothing AndAlso niftyEODPayload.Count > 0 AndAlso niftyEODPayload.LastOrDefault.Key.Date = tradingDate.Date Then
+                                    If niftyEODPayload.LastOrDefault.Value.PreviousCandlePayload IsNot Nothing Then
+                                        Dim previousDayPayload As Payload = niftyEODPayload.LastOrDefault.Value.PreviousCandlePayload
+                                        Dim niftyIntradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.Intraday_Futures, "NIFTY", tradingDate, tradingDate)
+                                        If niftyIntradayPayload IsNot Nothing AndAlso niftyIntradayPayload.Count > 0 Then
+                                            For Each runningPaylod In niftyIntradayPayload
+                                                Dim candleToCheck As Payload = runningPaylod.Value
+                                                Dim niftyGainLossPercentage = Math.Round(((candleToCheck.Close - previousDayPayload.Close) / previousDayPayload.Close) * 100, 4)
+                                                If niftyChangePer Is Nothing Then niftyChangePer = New Dictionary(Of Date, Decimal)
+                                                niftyChangePer.Add(runningPaylod.Key, niftyGainLossPercentage)
+                                            Next
+                                        End If
+                                    End If
+                                End If
+
+                                If niftyChangePer IsNot Nothing AndAlso niftyChangePer.Count > 0 Then
+                                    For Each runningStock In tempStockList.OrderBy(Function(x)
+                                                                                       Return x.Value.Item1
+                                                                                   End Function)
+                                        Dim row As DataRow = ret.NewRow
+                                        row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                        row("Trading Symbol") = atrStockList(runningStock.Key).TradingSymbol
+                                        row("Lot Size") = atrStockList(runningStock.Key).LotSize
+                                        row("ATR %") = Math.Round(atrStockList(runningStock.Key).ATRPercentage, 4)
+                                        row("Blank Candle %") = atrStockList(runningStock.Key).BlankCandlePercentage
+                                        row("Day ATR") = Math.Round(atrStockList(runningStock.Key).DayATR, 4)
+                                        row("Previous Day Open") = atrStockList(runningStock.Key).PreviousDayOpen
+                                        row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
+                                        row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
+                                        row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
+                                        row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
+                                        row("Slab") = atrStockList(runningStock.Key).Slab
+                                        row("Breakout Time") = runningStock.Value.Item1.ToString("dd-MMM-yyyy HH:mm:ss")
+                                        row("Favourable Fractal Time") = runningStock.Value.Item2.ToString("dd-MMM-yyyy HH:mm:ss")
+                                        row("Gainer_Looser") = runningStock.Value.Item3
+                                        row("Change %") = Math.Round(runningStock.Value.Item4, 2)
+                                        row("Position") = runningStock.Value.Item5
+                                        row("Nifty Change %") = If(niftyChangePer.ContainsKey(runningStock.Value.Item1), niftyChangePer(runningStock.Value.Item1), "")
+
+                                        ret.Rows.Add(row)
+                                    Next
+                                End If
+                            End If
                         End If
                     End If
                 End If
