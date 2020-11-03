@@ -105,6 +105,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="ActiveInstrumentData.vb" />
     <Compile Include="Stock Selection Rules\CPRNarrowRangeStocks.vb" />
     <Compile Include="Stock Selection Rules\CurrentDayOpenATRSortVolumeFilterCEPEOptions.vb" />
     <Compile Include="Stock Selection Rules\CurrentDayOpenATRSortVolumeFilterTop2Options.vb" />
@@ -113,6 +114,7 @@
     <Compile Include="Stock Selection Rules\EODOutsideEMAStocks.vb" />
     <Compile Include="Stock Selection Rules\EODOutsideSMAStocks.vb" />
     <Compile Include="Stock Selection Rules\EODVolumeEMAStocks.vb" />
+    <Compile Include="Stock Selection Rules\FirstFavourableFractalTopGainerLooser.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocks.vb" />
     <Compile Include="Stock Selection Rules\FractalConstriction.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocksWithMultiplier.vb" />

@@ -36,32 +36,12 @@ Public Class ATRStockSelection
         AddHandler _common.Heartbeat, AddressOf OnHeartbeat
     End Sub
 
-#Region "Private Class & Enum"
-    Private Class ActiveInstrumentData
-        Public Property Token As Integer
-        Public Property TradingSymbol As String
-        Public Property Expiry As Date
-        Public Property LastDayOpen As Decimal
-        Public Property LastDayLow As Decimal
-        Public Property LastDayHigh As Decimal
-        Public Property LastDayClose As Decimal
-        Public Property CurrentDayOpen As Decimal
-        Public Property CurrentDayLow As Decimal
-        Public Property CurrentDayHigh As Decimal
-        Public Property CurrentDayClose As Decimal
-        Public ReadOnly Property RawInstrumentName As String
-            Get
-                If TradingSymbol.Contains("FUT") Then
-                    Return Me.TradingSymbol.Remove(Me.TradingSymbol.Count - 8)
-                Else
-                    Return TradingSymbol
-                End If
-            End Get
-        End Property
-        Public Property CashInstrumentName As String
-        Public Property CashInstrumentToken As String
-    End Class
-#End Region
+    Private _AllStocks As Dictionary(Of String, ActiveInstrumentData) = Nothing
+    Public ReadOnly Property AllStocks As Dictionary(Of String, ActiveInstrumentData)
+        Get
+            Return _AllStocks
+        End Get
+    End Property
 
     Public Async Function GetATRStockData(ByVal eodTableType As Common.DataBaseTable,
                                           ByVal tradingDate As Date,
@@ -238,7 +218,7 @@ Public Class ATRStockSelection
                                 lastDayPayload = previousDayPayloads.LastOrDefault.Value
                             End If
                         End If
-                        If lastDayPayload IsNot Nothing AndAlso lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
+                        If lastDayPayload IsNot Nothing Then
                             Dim rawCashInstrument As Tuple(Of String, String) = _common.GetCurrentTradingSymbolWithInstrumentToken(Common.DataBaseTable.EOD_Cash, previousTradingDay, runningInstrument.RawInstrumentName)
                             If rawCashInstrument IsNot Nothing Then
                                 runningInstrument.CashInstrumentName = rawCashInstrument.Item1
@@ -253,10 +233,14 @@ Public Class ATRStockSelection
                                     runningInstrument.CurrentDayHigh = currentDayPayload.High
                                     runningInstrument.CurrentDayClose = currentDayPayload.Close
                                 End If
-                                If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
+                                If lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
+                                    If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
                                     priceFilterdCurrentNFOInstruments.Add(runningInstrument)
                                 End If
+                                If _AllStocks Is Nothing Then _AllStocks = New Dictionary(Of String, ActiveInstrumentData)
+                                _AllStocks.Add(runningInstrument.CashInstrumentName, runningInstrument)
                             End If
+                        End If
                     Next
                     Dim highATRStocks As Concurrent.ConcurrentDictionary(Of String, Decimal()) = Nothing
                     Try
@@ -412,7 +396,7 @@ Public Class ATRStockSelection
                                 lastDayPayload = previousDayPayloads.LastOrDefault.Value
                             End If
                         End If
-                        If lastDayPayload IsNot Nothing AndAlso lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
+                        If lastDayPayload IsNot Nothing Then
                             Dim rawCashInstrument As Tuple(Of String, String) = _common.GetCurrentTradingSymbolWithInstrumentToken(Common.DataBaseTable.EOD_Cash, previousTradingDay, runningInstrument.RawInstrumentName)
                             If rawCashInstrument IsNot Nothing Then
                                 runningInstrument.CashInstrumentName = rawCashInstrument.Item1
@@ -427,8 +411,12 @@ Public Class ATRStockSelection
                                     runningInstrument.CurrentDayHigh = currentDayPayload.High
                                     runningInstrument.CurrentDayClose = currentDayPayload.Close
                                 End If
-                                If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
-                                priceFilterdCurrentNFOInstruments.Add(runningInstrument)
+                                If lastDayPayload.Close >= My.Settings.MinClose AndAlso lastDayPayload.Close <= My.Settings.MaxClose Then
+                                    If priceFilterdCurrentNFOInstruments Is Nothing Then priceFilterdCurrentNFOInstruments = New List(Of ActiveInstrumentData)
+                                    priceFilterdCurrentNFOInstruments.Add(runningInstrument)
+                                End If
+                                If _AllStocks Is Nothing Then _AllStocks = New Dictionary(Of String, ActiveInstrumentData)
+                                _AllStocks.Add(runningInstrument.CashInstrumentName, runningInstrument)
                             End If
                         End If
                     Next

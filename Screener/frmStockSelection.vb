@@ -418,6 +418,8 @@ Public Class frmStockSelection
                     stock = New EODVolumeEMAStocks(_canceller, cmn, stockType)
                 Case 46
                     stock = New OpeningPriceOptions(_canceller, cmn, stockType)
+                Case 47
+                    stock = New FirstFavourableFractalTopGainerLooser(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -573,6 +575,9 @@ Public Class frmStockSelection
             Case 46
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
+            Case 47
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return ATR stocks if the stock was in top 10 gainer/looser when there first favourable fractal breakout. Give the date you want to trade if it is not the current date.")
             Case Else
                 Throw New NotImplementedException()
         End Select
