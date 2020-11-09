@@ -6,6 +6,7 @@ Imports Utilities.Strings
 Imports NLog
 Imports Utilities.Network
 Imports System.Net.Http
+Imports System.Text.RegularExpressions
 
 Public Class Common
     Implements IDisposable
@@ -748,13 +749,19 @@ Public Class Common
         dt = New DataTable()
         adapter.Fill(dt)
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+            Dim pattern As String = "([0-9][0-9]JAN)|([0-9][0-9]FEB)|([0-9][0-9]MAR)|([0-9][0-9]APR)|([0-9][0-9]MAY)|([0-9][0-9]JUN)|([0-9][0-9]JUL)|([0-9][0-9]AUG)|([0-9][0-9]SEP)|([0-9][0-9]OCT)|([0-9][0-9]NOV)|([0-9][0-9]DEC)"
             For i = 0 To dt.Rows.Count - 1
-                Dim instrumentData As New ActiveInstrumentData With
+                Dim tradingSymbol As String = dt.Rows(i).Item(1).ToString.ToUpper
+                If Regex.Matches(tradingSymbol, pattern).Count >= 2 Then
+                    Console.WriteLine(tradingSymbol)
+                Else
+                    Dim instrumentData As New ActiveInstrumentData With
                         {.Token = dt.Rows(i).Item(0),
-                         .TradingSymbol = dt.Rows(i).Item(1).ToString.ToUpper,
+                         .TradingSymbol = tradingSymbol,
                          .Expiry = If(IsDBNull(dt.Rows(i).Item(2)), Date.MaxValue, dt.Rows(i).Item(2))}
-                If activeInstruments Is Nothing Then activeInstruments = New List(Of ActiveInstrumentData)
-                activeInstruments.Add(instrumentData)
+                    If activeInstruments Is Nothing Then activeInstruments = New List(Of ActiveInstrumentData)
+                    activeInstruments.Add(instrumentData)
+                End If
             Next
         End If
         If activeInstruments IsNot Nothing AndAlso activeInstruments.Count > 0 Then
