@@ -420,6 +420,8 @@ Public Class frmStockSelection
                     stock = New OpeningPriceOptions(_canceller, cmn, stockType)
                 Case 47
                     stock = New FirstFavourableFractalTopGainerLooser(_canceller, cmn, stockType)
+                Case 48
+                    stock = New EODEMACrossoverStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -578,6 +580,9 @@ Public Class frmStockSelection
             Case 47
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return ATR stocks if the stock was in top 10 gainer/looser when there first favourable fractal breakout. Give the date you want to trade if it is not the current date.")
+            Case 48
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("EOD Candle Close crosses above EMA(5) on High or EOD Candle Close crosses below EMA(5) on Low")
             Case Else
                 Throw New NotImplementedException()
         End Select

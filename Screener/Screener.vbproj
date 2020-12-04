@@ -110,6 +110,7 @@
     <Compile Include="Stock Selection Rules\CurrentDayOpenATRSortVolumeFilterCEPEOptions.vb" />
     <Compile Include="Stock Selection Rules\CurrentDayOpenATRSortVolumeFilterTop2Options.vb" />
     <Compile Include="Stock Selection Rules\DayOpenAtTheMoneyOptions.vb" />
+    <Compile Include="Stock Selection Rules\EODEMACrossoverStocks.vb" />
     <Compile Include="Stock Selection Rules\EODLowRangeStock.vb" />
     <Compile Include="Stock Selection Rules\EODOutsideEMAStocks.vb" />
     <Compile Include="Stock Selection Rules\EODOutsideSMAStocks.vb" />
