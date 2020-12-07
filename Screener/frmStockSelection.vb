@@ -422,6 +422,8 @@ Public Class frmStockSelection
                     stock = New FirstFavourableFractalTopGainerLooser(_canceller, cmn, stockType)
                 Case 48
                     stock = New EODEMACrossoverStocks(_canceller, cmn, stockType)
+                Case 49
+                    stock = New EODBTSTStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -583,6 +585,12 @@ Public Class frmStockSelection
             Case 48
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("EOD Candle Close crosses above EMA(5) on High or EOD Candle Close crosses below EMA(5) on Low")
+            Case 49
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
+            Case 50
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -593,6 +601,9 @@ Public Class frmStockSelection
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
             Case 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
                 cmbStockType.SelectedIndex = 3
+                SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
+            Case 49, 50
+                cmbStockType.SelectedIndex = 0
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
             Case Else
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, True)
