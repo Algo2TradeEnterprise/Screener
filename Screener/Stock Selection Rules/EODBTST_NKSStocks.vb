@@ -2,7 +2,7 @@
 Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class EODBTSTStocks
+Public Class EODBTST_NKSStocks
     Inherits StockSelection
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
@@ -48,7 +48,7 @@ Public Class EODBTSTStocks
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.EOD_POSITIONAL, runningStock, tradingDate.AddDays(-400), tradingDate)
-                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 30 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
+                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 200 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
                             Dim currentDayCandle As Payload = eodPayload(tradingDate.Date)
                             Dim weeklyPayload As Dictionary(Of Date, Payload) = Common.ConvertDayPayloadsToWeek(eodPayload)
                             Dim monthlyPayload As Dictionary(Of Date, Payload) = Common.ConvertDayPayloadsToMonth(eodPayload)
