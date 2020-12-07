@@ -424,6 +424,8 @@ Public Class frmStockSelection
                     stock = New EODEMACrossoverStocks(_canceller, cmn, stockType)
                 Case 49
                     stock = New EODBTST_NKSStocks(_canceller, cmn, stockType)
+                Case 50
+                    stock = New EODBTST_BullishEngulfingStocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
