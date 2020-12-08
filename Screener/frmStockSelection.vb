@@ -428,6 +428,8 @@ Public Class frmStockSelection
                     stock = New EODBTST_BullishEngulfingStocks(_canceller, cmn, stockType)
                 Case 51
                     stock = New EODBTST_DoubleTIIStocks(_canceller, cmn, stockType)
+                Case 52
+                    stock = New EODBTST_15Min23Stocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -596,6 +598,9 @@ Public Class frmStockSelection
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
             Case 51
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
+            Case 52
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
             Case Else

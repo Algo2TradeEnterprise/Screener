@@ -37,10 +37,10 @@ Public Class EODBTST_NKSStocks
                     If Not runningFile.Contains(tradingDate.ToString("ddMMyyyy")) Then File.Delete(runningFile)
                 Next
                 Dim bannedStockList As List(Of String) = Nothing
-                Using bannedStock As New BannedStockDataFetcher(_bannedStockFileName, _canceller)
-                    AddHandler bannedStock.Heartbeat, AddressOf OnHeartbeat
-                    bannedStockList = Await bannedStock.GetBannedStocksData(tradingDate).ConfigureAwait(False)
-                End Using
+                'Using bannedStock As New BannedStockDataFetcher(_bannedStockFileName, _canceller)
+                '    AddHandler bannedStock.Heartbeat, AddressOf OnHeartbeat
+                '    bannedStockList = Await bannedStock.GetBannedStocksData(tradingDate).ConfigureAwait(False)
+                'End Using
 
                 Dim atrStockList As Dictionary(Of String, InstrumentDetails) = Await atrStock.GetATRStockData(_eodTable, tradingDate, bannedStockList, False).ConfigureAwait(False)
                 If atrStockList IsNot Nothing AndAlso atrStockList.Count > 0 Then
