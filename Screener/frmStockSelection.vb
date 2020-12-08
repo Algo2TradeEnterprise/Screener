@@ -430,6 +430,8 @@ Public Class frmStockSelection
                     stock = New EODBTST_DoubleTIIStocks(_canceller, cmn, stockType)
                 Case 52
                     stock = New EODBTST_15Min23Stocks(_canceller, cmn, stockType)
+                Case 53
+                    stock = New EODBTST_15Min57Stocks(_canceller, cmn, stockType)
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -603,6 +605,9 @@ Public Class frmStockSelection
             Case 52
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
+            Case 53
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -614,7 +619,7 @@ Public Class frmStockSelection
             Case 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
                 cmbStockType.SelectedIndex = 3
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
-            Case 49, 50
+            Case 49, 50, 51, 52, 53
                 cmbStockType.SelectedIndex = 0
                 SetObjectEnableDisable_ThreadSafe(cmbStockType, False)
             Case Else
