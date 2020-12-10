@@ -48,60 +48,67 @@ Public Class EODBTST_15Min23Stocks
                     _canceller.Token.ThrowIfCancellationRequested()
                     Dim tempStockList As Dictionary(Of String, String()) = Nothing
                     For Each runningStock In atrStockList.Keys
-                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.Intraday_Cash, runningStock, tradingDate.AddDays(-8), tradingDate)
-                        If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 15 AndAlso intradayPayload.LastOrDefault.Key.Date = tradingDate.Date Then
-                            Dim xMinPayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 15, New Date(Now.Year, Now.Month, Now.Day, 9, 15, 0))
+                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.EOD_POSITIONAL, runningStock, tradingDate.AddDays(-400), tradingDate)
+                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 200 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
+                            Dim sma200payload As Dictionary(Of Date, Decimal) = Nothing
+                            Indicator.SMA.CalculateSMA(200, Payload.PayloadFields.Close, eodPayload, sma200payload)
+                            If eodPayload(tradingDate.Date).Close >= sma200payload(tradingDate.Date) Then
+                                Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(Common.DataBaseTable.Intraday_Cash, runningStock, tradingDate.AddDays(-8), tradingDate)
+                                If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 15 AndAlso intradayPayload.LastOrDefault.Key.Date = tradingDate.Date Then
+                                    Dim xMinPayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 15, New Date(Now.Year, Now.Month, Now.Day, 9, 15, 0))
 
-                            Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
-                            Indicator.SMA.CalculateSMA(15, Payload.PayloadFields.Volume, xMinPayload, smaPayload)
+                                    Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
+                                    Indicator.SMA.CalculateSMA(15, Payload.PayloadFields.Volume, xMinPayload, smaPayload)
 
-                            Dim currentCandle As Payload = xMinPayload.LastOrDefault.Value
-                            Dim allConditionSatisfiedForCandle As Integer = 0
-                            '3 Candle Check
-                            If currentCandle.CandleColor = Color.Green AndAlso
-                                currentCandle.PreviousCandlePayload.CandleColor = Color.Green AndAlso
-                                currentCandle.PreviousCandlePayload.PreviousCandlePayload.CandleColor = Color.Green Then
-                                If currentCandle.Close > currentCandle.PreviousCandlePayload.Close AndAlso
-                                    currentCandle.PreviousCandlePayload.Close > currentCandle.PreviousCandlePayload.PreviousCandlePayload.Close Then
-                                    If currentCandle.High > currentCandle.PreviousCandlePayload.High AndAlso
-                                        currentCandle.PreviousCandlePayload.High > currentCandle.PreviousCandlePayload.PreviousCandlePayload.High Then
-                                        If currentCandle.Low > currentCandle.PreviousCandlePayload.Low AndAlso
-                                            currentCandle.PreviousCandlePayload.Low > currentCandle.PreviousCandlePayload.PreviousCandlePayload.Low Then
-                                            If currentCandle.Volume > smaPayload(currentCandle.PayloadDate) AndAlso
-                                                currentCandle.PreviousCandlePayload.Volume > smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) AndAlso
-                                                currentCandle.PreviousCandlePayload.PreviousCandlePayload.Volume > smaPayload(currentCandle.PreviousCandlePayload.PreviousCandlePayload.PayloadDate) Then
-                                                If currentCandle.Volume >= 2 * smaPayload(currentCandle.PayloadDate) OrElse
-                                                    currentCandle.PreviousCandlePayload.Volume >= 2 * smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) OrElse
-                                                    currentCandle.PreviousCandlePayload.PreviousCandlePayload.Volume >= 2 * smaPayload(currentCandle.PreviousCandlePayload.PreviousCandlePayload.PayloadDate) Then
-                                                    allConditionSatisfiedForCandle = 3
-                                                End If
-                                            End If
-                                        End If
-                                    End If
-                                End If
-                            End If
-                            '2 Candle Check
-                            If allConditionSatisfiedForCandle = 0 Then
-                                If currentCandle.CandleColor = Color.Green AndAlso
-                                    currentCandle.PreviousCandlePayload.CandleColor = Color.Green Then
-                                    If currentCandle.Close > currentCandle.PreviousCandlePayload.Close Then
-                                        If currentCandle.High > currentCandle.PreviousCandlePayload.High Then
-                                            If currentCandle.Low > currentCandle.PreviousCandlePayload.Low Then
-                                                If currentCandle.Volume > smaPayload(currentCandle.PayloadDate) AndAlso
-                                                    currentCandle.PreviousCandlePayload.Volume > smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) Then
-                                                    If currentCandle.Volume >= 2 * smaPayload(currentCandle.PayloadDate) OrElse
-                                                        currentCandle.PreviousCandlePayload.Volume >= 2 * smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) Then
-                                                        allConditionSatisfiedForCandle = 2
+                                    Dim currentCandle As Payload = xMinPayload.LastOrDefault.Value
+                                    Dim allConditionSatisfiedForCandle As Integer = 0
+                                    '3 Candle Check
+                                    If currentCandle.CandleColor = Color.Green AndAlso
+                                    currentCandle.PreviousCandlePayload.CandleColor = Color.Green AndAlso
+                                    currentCandle.PreviousCandlePayload.PreviousCandlePayload.CandleColor = Color.Green Then
+                                        If currentCandle.Close > currentCandle.PreviousCandlePayload.Close AndAlso
+                                        currentCandle.PreviousCandlePayload.Close > currentCandle.PreviousCandlePayload.PreviousCandlePayload.Close Then
+                                            If currentCandle.High > currentCandle.PreviousCandlePayload.High AndAlso
+                                            currentCandle.PreviousCandlePayload.High > currentCandle.PreviousCandlePayload.PreviousCandlePayload.High Then
+                                                If currentCandle.Low > currentCandle.PreviousCandlePayload.Low AndAlso
+                                                currentCandle.PreviousCandlePayload.Low > currentCandle.PreviousCandlePayload.PreviousCandlePayload.Low Then
+                                                    If currentCandle.Volume > smaPayload(currentCandle.PayloadDate) AndAlso
+                                                    currentCandle.PreviousCandlePayload.Volume > smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) AndAlso
+                                                    currentCandle.PreviousCandlePayload.PreviousCandlePayload.Volume > smaPayload(currentCandle.PreviousCandlePayload.PreviousCandlePayload.PayloadDate) Then
+                                                        If currentCandle.Volume >= 2 * smaPayload(currentCandle.PayloadDate) OrElse
+                                                        currentCandle.PreviousCandlePayload.Volume >= 2 * smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) OrElse
+                                                        currentCandle.PreviousCandlePayload.PreviousCandlePayload.Volume >= 2 * smaPayload(currentCandle.PreviousCandlePayload.PreviousCandlePayload.PayloadDate) Then
+                                                            allConditionSatisfiedForCandle = 3
+                                                        End If
                                                     End If
                                                 End If
                                             End If
                                         End If
                                     End If
+                                    '2 Candle Check
+                                    If allConditionSatisfiedForCandle = 0 Then
+                                        If currentCandle.CandleColor = Color.Green AndAlso
+                                        currentCandle.PreviousCandlePayload.CandleColor = Color.Green Then
+                                            If currentCandle.Close > currentCandle.PreviousCandlePayload.Close Then
+                                                If currentCandle.High > currentCandle.PreviousCandlePayload.High Then
+                                                    If currentCandle.Low > currentCandle.PreviousCandlePayload.Low Then
+                                                        If currentCandle.Volume > smaPayload(currentCandle.PayloadDate) AndAlso
+                                                        currentCandle.PreviousCandlePayload.Volume > smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) Then
+                                                            If currentCandle.Volume >= 2 * smaPayload(currentCandle.PayloadDate) OrElse
+                                                            currentCandle.PreviousCandlePayload.Volume >= 2 * smaPayload(currentCandle.PreviousCandlePayload.PayloadDate) Then
+                                                                allConditionSatisfiedForCandle = 2
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End If
+                                            End If
+                                        End If
+                                    End If
+                                    If allConditionSatisfiedForCandle > 0 Then
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(runningStock, {allConditionSatisfiedForCandle})
+                                    End If
                                 End If
-                            End If
-                            If allConditionSatisfiedForCandle > 0 Then
-                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                tempStockList.Add(runningStock, {allConditionSatisfiedForCandle})
                             End If
                         End If
                     Next
