@@ -17,8 +17,7 @@ Namespace Indicator
                 For Each runninginputpayload In inputPayload.Keys
                     MACDPayload.Add(runninginputpayload, (fastEMA(runninginputpayload) - slowEMA(runninginputpayload)))
                 Next
-                Dim tempMACDPayload As Dictionary(Of Date, Payload) = Nothing
-                Common.ConvertDecimalToPayload(Payload.PayloadFields.Additional_Field, MACDPayload, tempMACDPayload)
+                Dim tempMACDPayload As Dictionary(Of Date, Payload) = Common.ConvertDecimalToPayload(Payload.PayloadFields.Additional_Field, MACDPayload)
                 EMA.CalculateEMA(signalPeriod, Payload.PayloadFields.Additional_Field, tempMACDPayload, signalPayload)
                 histogramPayload = New Dictionary(Of Date, Decimal)
                 For Each runninginputpayload In inputPayload.Keys

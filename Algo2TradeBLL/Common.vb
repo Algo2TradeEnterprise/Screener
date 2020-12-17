@@ -331,11 +331,10 @@ Public Class Common
         Return dt.AddDays(-1 * diff).Date
     End Function
 
-    Public Shared Function ConvertDecimalToPayload(ByVal targetfield As Payload.PayloadFields, ByVal inputpayload As Dictionary(Of Date, Decimal), ByRef outputpayload As Dictionary(Of Date, Payload))
-        Dim output As Payload
-        outputpayload = New Dictionary(Of Date, Payload)
+    Public Shared Function ConvertDecimalToPayload(ByVal targetfield As Payload.PayloadFields, ByVal inputpayload As Dictionary(Of Date, Decimal)) As Dictionary(Of Date, Payload)
+        Dim ret As Dictionary(Of Date, Payload) = Nothing
         For Each runningitem In inputpayload
-            output = New Payload(Payload.CandleDataSource.Chart)
+            Dim output As Payload = New Payload(Payload.CandleDataSource.Chart)
             output.PayloadDate = runningitem.Key
             Select Case targetfield
                 Case Payload.PayloadFields.Close
@@ -357,9 +356,10 @@ Public Class Common
                 Case Payload.PayloadFields.Additional_Field
                     output.Additional_Field = runningitem.Value
             End Select
-            outputpayload.Add(runningitem.Key, output)
+            If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+            ret.Add(runningitem.Key, output)
         Next
-        Return Nothing
+        Return ret
     End Function
 
     Public Shared Function ConvertDataTableToPayload(ByVal dt As DataTable,

@@ -102,6 +102,7 @@
     <Compile Include="Indicators\OutputGann.vb" />
     <Compile Include="Indicators\ParabolicSAR.vb" />
     <Compile Include="Indicators\Pivots.vb" />
+    <Compile Include="Indicators\RainbowMovingAverage.vb" />
     <Compile Include="Indicators\RangeIdentifier.vb" />
     <Compile Include="Indicators\RSI.vb" />
     <Compile Include="Indicators\SMA.vb" />

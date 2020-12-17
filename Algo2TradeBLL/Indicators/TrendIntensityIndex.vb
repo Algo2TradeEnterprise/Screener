@@ -35,8 +35,7 @@ Namespace Indicator
                     If TIIPayload Is Nothing Then TIIPayload = New Dictionary(Of Date, Decimal)
                     TIIPayload.Add(runningPayload, Math.Round(tii, 4))
                 Next
-                Dim emaInputPayload As Dictionary(Of Date, Payload) = Nothing
-                Common.ConvertDecimalToPayload(Payload.PayloadFields.Additional_Field, TIIPayload, emaInputPayload)
+                Dim emaInputPayload As Dictionary(Of Date, Payload) = Common.ConvertDecimalToPayload(Payload.PayloadFields.Additional_Field, TIIPayload)
                 Indicator.EMA.CalculateEMA(signalPeriod, Payload.PayloadFields.Additional_Field, emaInputPayload, signalLinePayload)
             End If
         End Sub
