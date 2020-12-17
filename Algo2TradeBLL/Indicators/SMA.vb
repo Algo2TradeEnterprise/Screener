@@ -1,8 +1,5 @@
-﻿Imports System.Threading
-
-Namespace Indicator
+﻿Namespace Indicator
     Public Module SMA
-        ReadOnly cts As New CancellationTokenSource
         Public Sub CalculateSMA(ByVal smaPeriod As Integer, ByVal smaField As Payload.PayloadFields, ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Decimal))
             If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
                 Dim finalPriceToBeAdded As Decimal = 0
@@ -25,6 +22,8 @@ Namespace Indicator
                                 finalPriceToBeAdded += runningInputPayload.Value.Open
                             Case Payload.PayloadFields.Volume
                                 finalPriceToBeAdded += runningInputPayload.Value.Volume
+                            Case Payload.PayloadFields.Additional_Field
+                                finalPriceToBeAdded += runningInputPayload.Value.Additional_Field
                             Case Else
                                 Throw New NotImplementedException
                         End Select
@@ -47,6 +46,9 @@ Namespace Indicator
                             Case Payload.PayloadFields.Volume
                                 totalOfAllPrices = runningInputPayload.Value.Volume
                                 totalOfAllPrices += previousNInputFieldPayload.Sum(Function(s) s.Value.Volume)
+                            Case Payload.PayloadFields.Additional_Field
+                                totalOfAllPrices = runningInputPayload.Value.Additional_Field
+                                totalOfAllPrices += previousNInputFieldPayload.Sum(Function(s) s.Value.Additional_Field)
                             Case Else
                                 Throw New NotImplementedException
                         End Select
@@ -69,6 +71,9 @@ Namespace Indicator
                             Case Payload.PayloadFields.Volume
                                 totalOfAllPrices = runningInputPayload.Value.Volume
                                 totalOfAllPrices += previousNInputFieldPayload.Sum(Function(s) s.Value.Volume)
+                            Case Payload.PayloadFields.Additional_Field
+                                totalOfAllPrices = runningInputPayload.Value.Additional_Field
+                                totalOfAllPrices += previousNInputFieldPayload.Sum(Function(s) s.Value.Additional_Field)
                             Case Else
                                 Throw New NotImplementedException
                         End Select
