@@ -33,11 +33,11 @@ Public Class TopGainerTopLosserOptions
         ret.Columns.Add("Previous Day Low")
         ret.Columns.Add("Previous Day High")
         ret.Columns.Add("Previous Day Close")
-        ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Gain Loss %")
         ret.Columns.Add("Close Price")
         ret.Columns.Add("Option Trading Symbol")
+        ret.Columns.Add("Signal Time")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -64,7 +64,7 @@ Public Class TopGainerTopLosserOptions
                         Dim currentDayGainLossPercentage As Tuple(Of Decimal, Decimal) = GetGainLossPercentage(tradingDate, runningStock, payloadTime, atrStockList(runningStock).PreviousDayClose)
                         If currentDayGainLossPercentage IsNot Nothing AndAlso currentDayGainLossPercentage.Item1 <> Decimal.MinValue Then
                             If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                            tempStockList.Add(runningStock, {Math.Round(currentDayGainLossPercentage.Item1, 4), Math.Round(currentDayGainLossPercentage.Item2, 4)})
+                            tempStockList.Add(runningStock, {Math.Round(currentDayGainLossPercentage.Item1, 4), Math.Round(currentDayGainLossPercentage.Item2, 4), payloadTime.ToString("dd-MMM-yyyy HH:mm:ss")})
                         End If
                     Next
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
@@ -97,10 +97,10 @@ Public Class TopGainerTopLosserOptions
                                 row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
                                 row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                                 row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
-                                row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Gain Loss %") = runningStock.Value(0)
                                 row("Close Price") = runningStock.Value(1)
+                                row("Signal Time") = runningStock.Value(2)
                                 row("Option Trading Symbol") = optionSymbol
 
 
@@ -139,10 +139,10 @@ Public Class TopGainerTopLosserOptions
                                     row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
                                     row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
                                     row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
-                                    row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                                     row("Slab") = atrStockList(runningStock.Key).Slab
                                     row("Gain Loss %") = runningStock.Value(0)
                                     row("Close Price") = runningStock.Value(1)
+                                    row("Signal Time") = runningStock.Value(2)
                                     row("Option Trading Symbol") = optionSymbol
 
 
@@ -152,7 +152,7 @@ Public Class TopGainerTopLosserOptions
                                 If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
                             Next
 
-                            ret = ret.DefaultView.ToTable(True, "Date", "Trading Symbol", "Lot Size", "ATR %", "Blank Candle %", "Day ATR", "Previous Day Open", "Previous Day Low", "Previous Day High", "Previous Day Close", "Slab", "Gain Loss %", "Close Price", "Option Trading Symbol")
+                            ret = ret.DefaultView.ToTable(True, "Date", "Trading Symbol", "Lot Size", "ATR %", "Blank Candle %", "Day ATR", "Previous Day Open", "Previous Day Low", "Previous Day High", "Previous Day Close", "Slab", "Gain Loss %", "Close Price", "Signal Time", "Option Trading Symbol")
                         End If
                     End If
                 End If
