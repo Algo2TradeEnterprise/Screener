@@ -76,56 +76,15 @@ Public Class TopGainerTopLosserOptions
                             Dim optionStocks As Dictionary(Of Decimal, String) = Await GetCurrentOptionContractsAsync(runningStock.Key, tradingDate, "CE")
                             If optionStocks IsNot Nothing AndAlso optionStocks.Count > 0 Then
                                 Dim closePrice As Decimal = runningStock.Value(1)
-                                Dim potentialStrike As Decimal = closePrice + closePrice * 1 / 100
+                                Dim potentialStrike1 As Decimal = closePrice + closePrice * 1 / 100
 
                                 Dim strikePrice As Decimal = optionStocks.Where(Function(x)
-                                                                                    Return x.Key >= potentialStrike
+                                                                                    Return x.Key >= potentialStrike1
                                                                                 End Function).OrderBy(Function(y)
                                                                                                           Return y.Key
                                                                                                       End Function).FirstOrDefault.Key
 
-                                Dim optionSymbol As String = optionStocks(strikePrice)
-
-                                Dim row As DataRow = ret.NewRow
-                                row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                                row("Trading Symbol") = atrStockList(runningStock.Key).TradingSymbol
-                                row("Lot Size") = atrStockList(runningStock.Key).LotSize
-                                row("ATR %") = Math.Round(atrStockList(runningStock.Key).ATRPercentage, 4)
-                                row("Blank Candle %") = atrStockList(runningStock.Key).BlankCandlePercentage
-                                row("Day ATR") = Math.Round(atrStockList(runningStock.Key).DayATR, 4)
-                                row("Previous Day Open") = atrStockList(runningStock.Key).PreviousDayOpen
-                                row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
-                                row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
-                                row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
-                                row("Slab") = atrStockList(runningStock.Key).Slab
-                                row("Gain Loss %") = runningStock.Value(0)
-                                row("Close Price") = runningStock.Value(1)
-                                row("Signal Time") = runningStock.Value(2)
-                                row("Option Trading Symbol") = optionSymbol
-
-
-                                ret.Rows.Add(row)
-                                stockCounter += 1
-                            End If
-                            If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
-                        Next
-                        If My.Settings.NumberOfStockPerDay < tempStockList.Count Then
-                            stockCounter = 0
-                            For Each runningStock In tempStockList.OrderBy(Function(x)
-                                                                               Return CDec(x.Value(0))
-                                                                           End Function)
-                                _canceller.Token.ThrowIfCancellationRequested()
-                                Dim optionStocks As Dictionary(Of Decimal, String) = Await GetCurrentOptionContractsAsync(runningStock.Key, tradingDate, "PE")
-                                If optionStocks IsNot Nothing AndAlso optionStocks.Count > 0 Then
-                                    Dim closePrice As Decimal = runningStock.Value(1)
-                                    Dim potentialStrike As Decimal = closePrice - closePrice * 1 / 100
-
-                                    Dim strikePrice As Decimal = optionStocks.Where(Function(x)
-                                                                                        Return x.Key <= potentialStrike
-                                                                                    End Function).OrderBy(Function(y)
-                                                                                                              Return y.Key
-                                                                                                          End Function).LastOrDefault.Key
-
+                                If optionStocks.ContainsKey(strikePrice) Then
                                     Dim optionSymbol As String = optionStocks(strikePrice)
 
                                     Dim row As DataRow = ret.NewRow
@@ -148,6 +107,51 @@ Public Class TopGainerTopLosserOptions
 
                                     ret.Rows.Add(row)
                                     stockCounter += 1
+                                End If
+                            End If
+                            If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
+                        Next
+                        If My.Settings.NumberOfStockPerDay < tempStockList.Count Then
+                            stockCounter = 0
+                            For Each runningStock In tempStockList.OrderBy(Function(x)
+                                                                               Return CDec(x.Value(0))
+                                                                           End Function)
+                                _canceller.Token.ThrowIfCancellationRequested()
+                                Dim optionStocks As Dictionary(Of Decimal, String) = Await GetCurrentOptionContractsAsync(runningStock.Key, tradingDate, "PE")
+                                If optionStocks IsNot Nothing AndAlso optionStocks.Count > 0 Then
+                                    Dim closePrice As Decimal = runningStock.Value(1)
+                                    Dim potentialStrike2 As Decimal = closePrice - closePrice * 1 / 100
+
+                                    Dim strikePrice As Decimal = optionStocks.Where(Function(x)
+                                                                                        Return x.Key <= potentialStrike2
+                                                                                    End Function).OrderBy(Function(y)
+                                                                                                              Return y.Key
+                                                                                                          End Function).LastOrDefault.Key
+
+                                    If optionStocks.ContainsKey(strikePrice) Then
+                                        Dim optionSymbol As String = optionStocks(strikePrice)
+
+                                        Dim row As DataRow = ret.NewRow
+                                        row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                        row("Trading Symbol") = atrStockList(runningStock.Key).TradingSymbol
+                                        row("Lot Size") = atrStockList(runningStock.Key).LotSize
+                                        row("ATR %") = Math.Round(atrStockList(runningStock.Key).ATRPercentage, 4)
+                                        row("Blank Candle %") = atrStockList(runningStock.Key).BlankCandlePercentage
+                                        row("Day ATR") = Math.Round(atrStockList(runningStock.Key).DayATR, 4)
+                                        row("Previous Day Open") = atrStockList(runningStock.Key).PreviousDayOpen
+                                        row("Previous Day Low") = atrStockList(runningStock.Key).PreviousDayLow
+                                        row("Previous Day High") = atrStockList(runningStock.Key).PreviousDayHigh
+                                        row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
+                                        row("Slab") = atrStockList(runningStock.Key).Slab
+                                        row("Gain Loss %") = runningStock.Value(0)
+                                        row("Close Price") = runningStock.Value(1)
+                                        row("Signal Time") = runningStock.Value(2)
+                                        row("Option Trading Symbol") = optionSymbol
+
+
+                                        ret.Rows.Add(row)
+                                        stockCounter += 1
+                                    End If
                                 End If
                                 If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
                             Next
