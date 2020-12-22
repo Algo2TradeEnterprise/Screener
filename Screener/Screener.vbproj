@@ -155,6 +155,7 @@
     <Compile Include="Stock Selection Rules\TopGainerTopLosser.vb" />
     <Compile Include="Stock Selection Rules\TopGainerTopLosserEveryMinute.vb" />
     <Compile Include="Stock Selection Rules\TopGainerTopLosserOfEverySlab.vb" />
+    <Compile Include="Stock Selection Rules\TopGainerTopLosserOptions.vb" />
     <Compile Include="Stock Selection Rules\TouchPreviousDayLastCandle.vb" />
     <Compile Include="Stock Selection Rules\UserGivenStocks.vb" />
     <Compile Include="Stock Selection Rules\VolumeSortCurrentDayOpenFilterCEPEOptions.vb" />
