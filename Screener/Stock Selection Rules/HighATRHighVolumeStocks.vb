@@ -53,7 +53,7 @@ Public Class HighATRHighVolumeStocks
                             Dim candle As Payload = eodPayload(tradingDate.Date)
                             If candle.Volume >= 500000 Then
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Long)
-                                tempStockList.Add(runningStock.Key, Math.Ceiling(candle.Volume / candle.CandleRange))
+                                tempStockList.Add(runningStock.Key, Math.Ceiling(candle.Volume / candle.Close))
                             End If
                         End If
                     Next
