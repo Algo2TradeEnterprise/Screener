@@ -51,7 +51,7 @@ Public Class HighATRHighVolumeStocks
                         Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_eodTable, runningStock.Value.TradingSymbol, tradingDate.AddDays(-8), tradingDate)
                         If eodPayload IsNot Nothing AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
                             Dim candle As Payload = eodPayload(tradingDate.Date)
-                            If candle.Volume >= 500000 Then
+                            If candle.Volume >= 1000000 Then
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Long)
                                 tempStockList.Add(runningStock.Key, Math.Ceiling(candle.Volume / candle.Close))
                             End If

@@ -622,7 +622,7 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return Top Gainer Losser stocks as 09:29 Close and their respective option with 1% devation. Give the date you want to trade if it is not the current date.")
             Case 56
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 500000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select
