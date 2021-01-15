@@ -69,9 +69,9 @@ Namespace My
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("server=103.57.246.210;database=local_stock;port=3306;user id=rio;password=speech1"& _ 
-            "23;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffecte"& _ 
-            "drows=False;allowuservariables=True")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("server=103.220.208.5;database=local_stock;port=3306;user id=rio;password=speech12"& _ 
+            "3;defaultcommandtimeout=180;pooling=True;minpoolsize=2;maxpoolsize=5;useaffected"& _ 
+            "rows=False;allowuservariables=True")>  _
         Public ReadOnly Property dbConnectionRemote() As String
             Get
                 Return CType(Me("dbConnectionRemote"),String)
@@ -80,7 +80,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("103.57.246.210")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("103.220.208.5")>  _
         Public Property Server() As String
             Get
                 Return CType(Me("Server"),String)

@@ -438,6 +438,22 @@ Public Class frmStockSelection
                     stock = New TopGainerTopLosserOptions(_canceller, cmn, stockType)
                 Case 56
                     stock = New HighATRHighVolumeStocks(_canceller, cmn, stockType)
+                Case 57
+                    Dim instrumentNames As String = Nothing
+                    Dim instrumentList As List(Of String) = Nothing
+                    If procedureToRun = 57 Then
+                        instrumentNames = GetTextBoxText_ThreadSafe(txtInstrumentList)
+                        Dim instruments() As String = instrumentNames.Trim.Split(vbCrLf)
+                        For Each runningInstrument In instruments
+                            Dim instrument As String = runningInstrument.Trim
+                            If instrumentList Is Nothing Then instrumentList = New List(Of String)
+                            instrumentList.Add(instrument.Trim.ToUpper)
+                        Next
+                        If instrumentList Is Nothing OrElse instrumentList.Count = 0 Then
+                            Throw New ApplicationException("No instrument available in user given list")
+                        End If
+                        stock = New NearestOptions(_canceller, cmn, stockType, instrumentList)
+                    End If
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -623,6 +639,9 @@ Public Class frmStockSelection
             Case 56
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 57
+                LoadSettings(pnlInstrumentList)
+                lblDescription.Text = String.Format("Return the user given stocks' nearest options based on previous day close with proper lotsize. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -642,7 +661,7 @@ Public Class frmStockSelection
         End Select
 
         Select Case index
-            Case 0, 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
+            Case 0, 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 57
                 lblMaxBlankCandlePercentage.Visible = False
                 txtMaxBlankCandlePercentage.Visible = False
                 chkbFOStock.Visible = False
