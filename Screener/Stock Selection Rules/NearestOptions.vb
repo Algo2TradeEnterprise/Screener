@@ -282,7 +282,7 @@ Public Class NearestOptions
                 If activeInstruments IsNot Nothing AndAlso activeInstruments.Count > 0 Then
                     _canceller.Token.ThrowIfCancellationRequested()
                     Dim minExpiry As Date = activeInstruments.Min(Function(x)
-                                                                      If x.Expiry.Date > tradingDate.Date Then
+                                                                      If x.Expiry.Date.AddDays(-2) > tradingDate.Date Then
                                                                           Return x.Expiry
                                                                       Else
                                                                           Return Date.MaxValue
