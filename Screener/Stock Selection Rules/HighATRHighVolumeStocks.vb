@@ -27,6 +27,7 @@ Public Class HighATRHighVolumeStocks
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Volume Per Price")
+        ret.Columns.Add("Target Left %")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -45,15 +46,88 @@ Public Class HighATRHighVolumeStocks
 
                 Dim atrStockList As Dictionary(Of String, InstrumentDetails) = Await atrStock.GetATRStockData(_eodTable, tradingDate, bannedStockList, False).ConfigureAwait(False)
                 If atrStockList IsNot Nothing AndAlso atrStockList.Count > 0 Then
-                    Dim tempStockList As Dictionary(Of String, Long) = Nothing
+                    Dim tempStockList As Dictionary(Of String, Decimal()) = Nothing
                     For Each runningStock In atrStockList
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_eodTable, runningStock.Value.TradingSymbol, tradingDate.AddDays(-8), tradingDate)
-                        If eodPayload IsNot Nothing AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
+                        Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_eodTable, runningStock.Value.TradingSymbol, tradingDate.AddDays(-300), tradingDate)
+                        If eodPayload IsNot Nothing AndAlso eodPayload.Count > 100 AndAlso eodPayload.ContainsKey(tradingDate.Date) Then
                             Dim candle As Payload = eodPayload(tradingDate.Date)
                             If candle.Volume >= 1000000 Then
-                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Long)
-                                tempStockList.Add(runningStock.Key, Math.Ceiling(candle.Volume / candle.Close))
+                                Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
+                                Dim pivotTrendPayload As Dictionary(Of Date, Color) = Nothing
+                                Indicator.ATR.CalculateATR(14, eodPayload, atrPayload)
+                                Indicator.PivotHighLow.CalculatePivotHighLowTrend(4, 3, eodPayload, Nothing, Nothing, pivotTrendPayload)
+
+                                Dim trendRolloverDate As Date = Date.MinValue
+                                Dim direction As Integer = 0
+                                Dim trend As Color = pivotTrendPayload(tradingDate.Date)
+                                Dim previousTrend As Color = pivotTrendPayload(eodPayload(tradingDate.Date).PreviousCandlePayload.PayloadDate)
+                                If trend = Color.Green Then
+                                    If previousTrend = Color.Red Then
+                                        trendRolloverDate = tradingDate.Date
+                                        direction = 1
+                                    Else
+                                        Dim rolloverDay As Date = GetRolloverDay(trend, eodPayload, pivotTrendPayload)
+                                        If rolloverDay <> Date.MinValue Then
+                                            trendRolloverDate = rolloverDay.Date
+                                            direction = 1
+                                        End If
+                                    End If
+                                ElseIf trend = Color.Red Then
+                                    If previousTrend = Color.Green Then
+                                        trendRolloverDate = tradingDate.Date
+                                        direction = -1
+                                    Else
+                                        Dim rolloverDay As Date = GetRolloverDay(trend, eodPayload, pivotTrendPayload)
+                                        If rolloverDay <> Date.MinValue Then
+                                            trendRolloverDate = rolloverDay.Date
+                                            direction = -1
+                                        End If
+                                    End If
+                                End If
+
+                                If trendRolloverDate <> Date.MinValue AndAlso direction <> 0 Then
+                                    Dim targetReached As Boolean = True
+                                    Dim targetLeftPercentage As Decimal = 0
+                                    If direction = 1 Then
+                                        Dim highestHigh As Decimal = eodPayload.Max(Function(x)
+                                                                                        If x.Key > trendRolloverDate AndAlso x.Key <= tradingDate Then
+                                                                                            Return x.Value.High
+                                                                                        Else
+                                                                                            Return Decimal.MinValue
+                                                                                        End If
+                                                                                    End Function)
+                                        Dim atr As Decimal = atrPayload(trendRolloverDate)
+                                        If highestHigh < eodPayload(trendRolloverDate).Close + atr Then
+                                            targetReached = False
+                                            If highestHigh <> Decimal.MinValue Then
+                                                targetLeftPercentage = ((highestHigh - eodPayload(trendRolloverDate).Close) / atr) * 100
+                                            Else
+                                                targetLeftPercentage = 100
+                                            End If
+                                        End If
+                                    ElseIf direction = -1 Then
+                                        Dim lowestLow As Decimal = eodPayload.Min(Function(x)
+                                                                                      If x.Key > trendRolloverDate AndAlso x.Key <= tradingDate Then
+                                                                                          Return x.Value.Low
+                                                                                      Else
+                                                                                          Return Decimal.MaxValue
+                                                                                      End If
+                                                                                  End Function)
+                                        Dim atr As Decimal = atrPayload(trendRolloverDate)
+                                        If lowestLow > eodPayload(trendRolloverDate).Close - atr Then
+                                            targetReached = False
+                                            If lowestLow <> Decimal.MaxValue Then
+                                                targetLeftPercentage = ((eodPayload(trendRolloverDate).Close - lowestLow) / atr) * 100
+                                            Else
+                                                targetLeftPercentage = 100
+                                            End If
+                                        End If
+                                    End If
+
+                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
+                                    tempStockList.Add(runningStock.Key, {Math.Ceiling(candle.Volume / candle.Close), Math.Round(targetLeftPercentage, 2)})
+                                End If
                             End If
                         End If
                     Next
@@ -61,7 +135,7 @@ Public Class HighATRHighVolumeStocks
                     If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                         Dim stockCounter As Integer = 0
                         For Each runningStock In tempStockList.OrderByDescending(Function(x)
-                                                                                     Return x.Value
+                                                                                     Return x.Value(0)
                                                                                  End Function)
                             _canceller.Token.ThrowIfCancellationRequested()
                             Dim row As DataRow = ret.NewRow
@@ -77,7 +151,8 @@ Public Class HighATRHighVolumeStocks
                             row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
                             row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
-                            row("Volume Per Price") = runningStock.Value
+                            row("Volume Per Price") = runningStock.Value(0)
+                            row("Target Left %") = runningStock.Value(1)
 
                             ret.Rows.Add(row)
 
@@ -93,35 +168,21 @@ Public Class HighATRHighVolumeStocks
         Return ret
     End Function
 
-    Public Function CalculateQuantityFromStoploss(ByVal buyPrice As Decimal, ByVal sellPrice As Decimal, ByVal netLossPerTrade As Decimal) As Integer
-        Dim ret As Integer = 1
-
-        Dim calculator As New Calculator.BrokerageCalculator(_canceller)
-        For quantity = 1 To Integer.MaxValue
-            Dim potentialBrokerage As Calculator.BrokerageAttributes = New Calculator.BrokerageAttributes
-            calculator.Intraday_Equity(buyPrice, sellPrice, quantity, potentialBrokerage)
-
-            If potentialBrokerage.NetProfitLoss < netLossPerTrade Then
-                Exit For
-            Else
-                ret = quantity
+    Private Function GetRolloverDay(ByVal currentTrend As Color,
+                                    ByVal eodPayload As Dictionary(Of Date, Payload),
+                                    ByVal pivotTrendPayload As Dictionary(Of Date, Color)) As Date
+        Dim ret As Date = Date.MinValue
+        For Each runningPayload In eodPayload.OrderByDescending(Function(x)
+                                                                    Return x.Key
+                                                                End Function)
+            If runningPayload.Value.PreviousCandlePayload IsNot Nothing Then
+                Dim trend As Color = pivotTrendPayload(runningPayload.Value.PreviousCandlePayload.PayloadDate)
+                If trend <> currentTrend Then
+                    ret = runningPayload.Key
+                    Exit For
+                End If
             End If
         Next
-        Return ret
-    End Function
-
-    Public Function CalculateTarget(ByVal entryPrice As Decimal, ByVal quantity As Integer, ByVal desiredProfitOfTrade As Decimal) As Decimal
-        Dim potentialBrokerage As Calculator.BrokerageAttributes = Nothing
-        Dim calculator As New Calculator.BrokerageCalculator(_canceller)
-
-        Dim ret As Decimal = entryPrice
-        potentialBrokerage = New Calculator.BrokerageAttributes
-        While Not potentialBrokerage.NetProfitLoss > desiredProfitOfTrade
-            calculator.Intraday_Equity(entryPrice, ret, quantity, potentialBrokerage)
-            If potentialBrokerage.NetProfitLoss > desiredProfitOfTrade Then Exit While
-            ret += 0.05
-        End While
-
         Return ret
     End Function
 End Class
