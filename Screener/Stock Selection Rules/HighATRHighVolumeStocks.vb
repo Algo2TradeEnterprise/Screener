@@ -28,6 +28,7 @@ Public Class HighATRHighVolumeStocks
         ret.Columns.Add("Slab")
         ret.Columns.Add("Volume Per Price")
         ret.Columns.Add("Target Left %")
+        ret.Columns.Add("Direction")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -126,7 +127,7 @@ Public Class HighATRHighVolumeStocks
                                     End If
 
                                     If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, Decimal())
-                                    tempStockList.Add(runningStock.Key, {Math.Ceiling(candle.Volume / candle.Close), Math.Round(targetLeftPercentage, 2)})
+                                    tempStockList.Add(runningStock.Key, {Math.Ceiling(candle.Volume / candle.Close), Math.Round(targetLeftPercentage, 2), direction})
                                 End If
                             End If
                         End If
@@ -153,6 +154,7 @@ Public Class HighATRHighVolumeStocks
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Volume Per Price") = runningStock.Value(0)
                             row("Target Left %") = runningStock.Value(1)
+                            row("Direction") = If(runningStock.Value(2) = 1, "BUY", "SELL")
 
                             ret.Rows.Add(row)
 
