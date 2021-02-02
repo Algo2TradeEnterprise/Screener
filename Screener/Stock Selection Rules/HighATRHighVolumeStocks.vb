@@ -102,7 +102,7 @@ Public Class HighATRHighVolumeStocks
                                         If highestHigh < eodPayload(trendRolloverDate).Close + atr Then
                                             targetReached = False
                                             If highestHigh <> Decimal.MinValue Then
-                                                targetLeftPercentage = ((highestHigh - eodPayload(trendRolloverDate).Close) / atr) * 100
+                                                targetLeftPercentage = ((atr - (highestHigh - eodPayload(trendRolloverDate).Close)) / atr) * 100
                                             Else
                                                 targetLeftPercentage = 100
                                             End If
@@ -119,7 +119,7 @@ Public Class HighATRHighVolumeStocks
                                         If lowestLow > eodPayload(trendRolloverDate).Close - atr Then
                                             targetReached = False
                                             If lowestLow <> Decimal.MaxValue Then
-                                                targetLeftPercentage = ((eodPayload(trendRolloverDate).Close - lowestLow) / atr) * 100
+                                                targetLeftPercentage = ((atr - (eodPayload(trendRolloverDate).Close - lowestLow)) / atr) * 100
                                             Else
                                                 targetLeftPercentage = 100
                                             End If
