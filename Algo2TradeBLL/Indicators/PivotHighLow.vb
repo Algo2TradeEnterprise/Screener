@@ -41,7 +41,7 @@ Namespace Indicator
                                                                                                Return x.Value.Low
                                                                                            End Function)
 
-                                If pivotCandle.High > highestHigh AndAlso pivotCandle.High > preHighestHigh Then
+                                If pivotCandle.High > highestHigh AndAlso pivotCandle.High >= preHighestHigh Then
                                     If pivotData Is Nothing Then pivotData = New Pivot
                                     pivotData.PivotHigh = pivotCandle.High
                                     pivotData.PivotHighTime = pivotCandle.PayloadDate
@@ -52,7 +52,7 @@ Namespace Indicator
                                         pivotData.PivotHighTime = outputPayload(inputPayload(runningPayload).PreviousCandlePayload.PayloadDate).PivotHighTime
                                     End If
                                 End If
-                                If pivotCandle.Low < lowestLow AndAlso pivotCandle.Low < preLowestLow Then
+                                If pivotCandle.Low < lowestLow AndAlso pivotCandle.Low <= preLowestLow Then
                                     If pivotData Is Nothing Then pivotData = New Pivot
                                     pivotData.PivotLow = pivotCandle.Low
                                     pivotData.PivotLowTime = pivotCandle.PayloadDate
