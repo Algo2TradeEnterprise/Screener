@@ -122,6 +122,7 @@
     <Compile Include="Stock Selection Rules\EODRainbowCrossover.vb" />
     <Compile Include="Stock Selection Rules\EODVolumeEMAStocks.vb" />
     <Compile Include="Stock Selection Rules\FirstFavourableFractalTopGainerLooser.vb" />
+    <Compile Include="Stock Selection Rules\HKMATrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\HKTrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\PivotTrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocks.vb" />

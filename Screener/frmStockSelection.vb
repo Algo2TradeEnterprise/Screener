@@ -456,6 +456,8 @@ Public Class frmStockSelection
                     End If
                 Case 58
                     stock = New HKTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                Case 59
+                    stock = New HKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
