@@ -122,13 +122,14 @@
     <Compile Include="Stock Selection Rules\EODRainbowCrossover.vb" />
     <Compile Include="Stock Selection Rules\EODVolumeEMAStocks.vb" />
     <Compile Include="Stock Selection Rules\FirstFavourableFractalTopGainerLooser.vb" />
-    <Compile Include="Stock Selection Rules\HKMATrendHighATRHighVolumeStocks.vb" />
-    <Compile Include="Stock Selection Rules\HKTrendHighATRHighVolumeStocks.vb" />
-    <Compile Include="Stock Selection Rules\PivotTrendHighATRHighVolumeStocks.vb" />
+    <Compile Include="Stock Selection Rules\EODHKMATrendHighATRHighVolumeStocks.vb" />
+    <Compile Include="Stock Selection Rules\EODHKTrendHighATRHighVolumeStocks.vb" />
+    <Compile Include="Stock Selection Rules\EODPivotTrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocks.vb" />
     <Compile Include="Stock Selection Rules\FractalConstriction.vb" />
     <Compile Include="Stock Selection Rules\HighATRStocksWithMultiplier.vb" />
     <Compile Include="Stock Selection Rules\HighestATRAtTheMoneyOptions.vb" />
+    <Compile Include="Stock Selection Rules\HourlyPivotTrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\LowATRCandleQuickEntryStocks.vb" />
     <Compile Include="Stock Selection Rules\LowerDeviationAtTheMoneyOptions.vb" />
     <Compile Include="Stock Selection Rules\LowerPriceNearestOptions.vb" />

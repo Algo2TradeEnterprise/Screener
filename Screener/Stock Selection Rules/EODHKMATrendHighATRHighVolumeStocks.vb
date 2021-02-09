@@ -2,7 +2,7 @@
 Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class HKTrendHighATRHighVolumeStocks
+Public Class EODHKMATrendHighATRHighVolumeStocks
     Inherits StockSelection
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
@@ -57,7 +57,7 @@ Public Class HKTrendHighATRHighVolumeStocks
                                 Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
                                 Dim hkTrendPayload As Dictionary(Of Date, Color) = Nothing
                                 Indicator.ATR.CalculateATR(14, eodPayload, atrPayload)
-                                CalculateHKTrend(eodPayload, hkTrendPayload)
+                                CalculateHKMATrend(eodPayload, hkTrendPayload)
 
                                 Dim trendRolloverDate As Date = Date.MinValue
                                 Dim direction As Integer = 0
@@ -188,34 +188,23 @@ Public Class HKTrendHighATRHighVolumeStocks
         Return ret
     End Function
 
-#Region "HK Trend Calculation"
-    Private Sub CalculateHKTrend(ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Color))
+#Region "HK MA Trend Calculation"
+    Private Sub CalculateHKMATrend(ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Color))
         If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
             Dim hkPayload As Dictionary(Of Date, Payload) = Nothing
             Indicator.HeikenAshi.ConvertToHeikenAshi(inputPayload, hkPayload)
+            Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
+            Indicator.SMA.CalculateSMA(50, Payload.PayloadFields.Close, hkPayload, smaPayload)
 
             Dim trend As Color = Color.White
-            Dim lastSignalCandle As Payload = Nothing
             For Each runningPayload In hkPayload
-                If runningPayload.Value.CandleColor = Color.Green Then
-                    Dim lastLowestHigh As Payload = GetPreviousLowestHighCandle(hkPayload, runningPayload.Key)
-                    If lastLowestHigh IsNot Nothing Then
-                        If lastSignalCandle Is Nothing OrElse lastSignalCandle.PayloadDate <> lastLowestHigh.PayloadDate Then
-                            If runningPayload.Value.Close > lastLowestHigh.High Then
-                                trend = Color.Green
-                                lastSignalCandle = lastLowestHigh
-                            End If
-                        End If
+                If runningPayload.Value.CandleStrengthHeikenAshi = Payload.StrongCandle.Bullish Then
+                    If runningPayload.Value.Close > smaPayload(runningPayload.Key) Then
+                        trend = Color.Green
                     End If
-                ElseIf runningPayload.Value.CandleColor = Color.Red Then
-                    Dim lastHighestLow As Payload = GetPreviousHighestLowCandle(hkPayload, runningPayload.Key)
-                    If lastHighestLow IsNot Nothing Then
-                        If lastSignalCandle Is Nothing OrElse lastSignalCandle.PayloadDate <> lastHighestLow.PayloadDate Then
-                            If runningPayload.Value.Close < lastHighestLow.Low Then
-                                trend = Color.Red
-                                lastSignalCandle = lastHighestLow
-                            End If
-                        End If
+                ElseIf runningPayload.Value.CandleStrengthHeikenAshi = Payload.StrongCandle.Bearish Then
+                    If runningPayload.Value.Close < smaPayload(runningPayload.Key) Then
+                        trend = Color.Red
                     End If
                 End If
 
@@ -224,71 +213,5 @@ Public Class HKTrendHighATRHighVolumeStocks
             Next
         End If
     End Sub
-
-    Private Function GetPreviousLowestHighCandle(ByVal hkPayload As Dictionary(Of Date, Payload), ByVal checkBeforeThisTime As Date) As Payload
-        Dim ret As Payload = Nothing
-        Dim colorStarted As Boolean = False
-        Dim checkingPayload As Dictionary(Of Date, Payload) = Nothing
-        For Each runningPayload In hkPayload.OrderByDescending(Function(x)
-                                                                   Return x.Key
-                                                               End Function)
-            If runningPayload.Key < checkBeforeThisTime Then
-                If runningPayload.Value.CandleColor = Color.Red Then
-                    colorStarted = True
-                    If checkingPayload Is Nothing Then checkingPayload = New Dictionary(Of Date, Payload)
-                    checkingPayload.Add(runningPayload.Key, runningPayload.Value)
-                ElseIf runningPayload.Value.CandleColor = Color.Green Then
-                    If colorStarted Then Exit For
-                End If
-            End If
-        Next
-        If checkingPayload IsNot Nothing AndAlso checkingPayload.Count > 0 Then
-            For Each runningPayload In checkingPayload.OrderBy(Function(x)
-                                                                   Return x.Key
-                                                               End Function)
-                If ret Is Nothing Then
-                    ret = runningPayload.Value
-                Else
-                    If runningPayload.Value.High < ret.High Then
-                        ret = runningPayload.Value
-                    End If
-                End If
-            Next
-        End If
-        Return ret
-    End Function
-
-    Private Function GetPreviousHighestLowCandle(ByVal hkPayload As Dictionary(Of Date, Payload), ByVal checkBeforeThisTime As Date) As Payload
-        Dim ret As Payload = Nothing
-        Dim colorStarted As Boolean = False
-        Dim checkingPayload As Dictionary(Of Date, Payload) = Nothing
-        For Each runningPayload In hkPayload.OrderByDescending(Function(x)
-                                                                   Return x.Key
-                                                               End Function)
-            If runningPayload.Key < checkBeforeThisTime Then
-                If runningPayload.Value.CandleColor = Color.Green Then
-                    colorStarted = True
-                    If checkingPayload Is Nothing Then checkingPayload = New Dictionary(Of Date, Payload)
-                    checkingPayload.Add(runningPayload.Key, runningPayload.Value)
-                ElseIf runningPayload.Value.CandleColor = Color.Red Then
-                    If colorStarted Then Exit For
-                End If
-            End If
-        Next
-        If checkingPayload IsNot Nothing AndAlso checkingPayload.Count > 0 Then
-            For Each runningPayload In checkingPayload.OrderBy(Function(x)
-                                                                   Return x.Key
-                                                               End Function)
-                If ret Is Nothing Then
-                    ret = runningPayload.Value
-                Else
-                    If runningPayload.Value.Low > ret.Low Then
-                        ret = runningPayload.Value
-                    End If
-                End If
-            Next
-        End If
-        Return ret
-    End Function
 #End Region
 End Class

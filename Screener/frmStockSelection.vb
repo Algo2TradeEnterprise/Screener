@@ -437,7 +437,7 @@ Public Class frmStockSelection
                 Case 55
                     stock = New TopGainerTopLosserOptions(_canceller, cmn, stockType)
                 Case 56
-                    stock = New PivotTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                    stock = New EODPivotTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 57
                     Dim instrumentNames As String = Nothing
                     Dim instrumentList As List(Of String) = Nothing
@@ -455,9 +455,11 @@ Public Class frmStockSelection
                         stock = New NearestOptions(_canceller, cmn, stockType, instrumentList)
                     End If
                 Case 58
-                    stock = New HKTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                    stock = New EODHKTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 59
-                    stock = New HKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                    stock = New EODHKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                Case 60
+                    stock = New HourlyPivotTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -652,6 +654,9 @@ Public Class frmStockSelection
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 59
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 60
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
