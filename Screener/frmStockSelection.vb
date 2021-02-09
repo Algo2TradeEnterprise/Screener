@@ -437,7 +437,7 @@ Public Class frmStockSelection
                 Case 55
                     stock = New TopGainerTopLosserOptions(_canceller, cmn, stockType)
                 Case 56
-                    stock = New HighATRHighVolumeStocks(_canceller, cmn, stockType)
+                    stock = New PivotTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 57
                     Dim instrumentNames As String = Nothing
                     Dim instrumentList As List(Of String) = Nothing
@@ -454,6 +454,10 @@ Public Class frmStockSelection
                         End If
                         stock = New NearestOptions(_canceller, cmn, stockType, instrumentList)
                     End If
+                Case 58
+                    stock = New HKTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                Case Else
+                    Throw New NotImplementedException
             End Select
             AddHandler stock.Heartbeat, AddressOf OnHeartbeat
 
@@ -642,6 +646,12 @@ Public Class frmStockSelection
             Case 57
                 LoadSettings(pnlInstrumentList)
                 lblDescription.Text = String.Format("Return the user given stocks' nearest options based on previous day close with proper lotsize. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 58
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 59
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select
