@@ -459,7 +459,7 @@ Public Class frmStockSelection
                 Case 59
                     stock = New EODHKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 60
-                    stock = New HourlyPivotTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                    stock = New EODCentralPivotTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
