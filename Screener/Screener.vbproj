@@ -117,6 +117,7 @@
     <Compile Include="Stock Selection Rules\EODBTST_NKSStocks.vb" />
     <Compile Include="Stock Selection Rules\EODCentralPivotTrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\EODEMACrossoverStocks.vb" />
+    <Compile Include="Stock Selection Rules\EODHKKeltnerTrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\EODLowRangeStock.vb" />
     <Compile Include="Stock Selection Rules\EODOutsideEMAStocks.vb" />
     <Compile Include="Stock Selection Rules\EODOutsideSMAStocks.vb" />

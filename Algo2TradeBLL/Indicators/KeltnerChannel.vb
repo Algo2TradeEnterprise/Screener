@@ -26,7 +26,7 @@
                 Dim atrPayload As Dictionary(Of Date, Decimal) = Nothing
                 Indicator.ATR.CalculateATR(period, inputPayload, atrPayload)
 
-                Indicator.SMA.CalculateSMA(period, Payload.PayloadFields.Close, inputPayload, outputEMAPayload)
+                Indicator.EMA.CalculateEMA(period, Payload.PayloadFields.Close, inputPayload, outputEMAPayload)
 
                 For Each runningPayload In inputPayload.Keys
                     Dim ema As Decimal = outputEMAPayload(runningPayload)
