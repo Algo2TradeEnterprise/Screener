@@ -2,7 +2,7 @@
 Imports System.Threading
 Imports Algo2TradeBLL
 
-Public Class HourlyPivotTrendHighATRHighVolumeStocks
+Public Class HourlyTIITrendHighATRHighVolumeStocks
     Inherits StockSelection
 
     Public Sub New(ByVal canceller As CancellationTokenSource,
@@ -59,10 +59,10 @@ Public Class HourlyPivotTrendHighATRHighVolumeStocks
 
                                 Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(_intradayTable, runningStock.Value.TradingSymbol, tradingDate.AddMonths(-6), tradingDate)
                                 If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                                    Dim xMinPayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 240, New Date(Now.Year, Now.Month, Now.Day, 9, 14, 0))
+                                    Dim xMinPayload As Dictionary(Of Date, Payload) = Common.ConvertPayloadsToXMinutes(intradayPayload, 60, New Date(Now.Year, Now.Month, Now.Day, 9, 15, 0))
                                     If xMinPayload IsNot Nothing AndAlso xMinPayload.Count > 0 Then
-                                        Dim pivotTrendPayload As Dictionary(Of Date, Color) = Nothing
-                                        Indicator.PivotHighLow.CalculatePivotHighLowTrend(4, 3, xMinPayload, Nothing, Nothing, pivotTrendPayload)
+                                        Dim trendPayload As Dictionary(Of Date, Color) = Nothing
+                                        CalculateTIITrend(xMinPayload, trendPayload)
 
                                         Dim currentDayPayload As Dictionary(Of Date, Payload) = Nothing
                                         For Each runningPayload In xMinPayload
@@ -76,14 +76,14 @@ Public Class HourlyPivotTrendHighATRHighVolumeStocks
                                             For Each runningPayload In currentDayPayload
                                                 Dim trendRolloverDate As Date = Date.MinValue
                                                 Dim direction As Integer = 0
-                                                Dim trend As Color = pivotTrendPayload(runningPayload.Key)
-                                                Dim previousTrend As Color = pivotTrendPayload(runningPayload.Value.PreviousCandlePayload.PayloadDate)
+                                                Dim trend As Color = trendPayload(runningPayload.Key)
+                                                Dim previousTrend As Color = trendPayload(runningPayload.Value.PreviousCandlePayload.PayloadDate)
                                                 If trend = Color.Green Then
                                                     If previousTrend = Color.Red Then
                                                         trendRolloverDate = runningPayload.Key
                                                         direction = 1
                                                     Else
-                                                        Dim rolloverDay As Date = GetRolloverDay(trend, xMinPayload, pivotTrendPayload, runningPayload.Key)
+                                                        Dim rolloverDay As Date = GetRolloverDay(trend, xMinPayload, trendPayload, runningPayload.Key)
                                                         If rolloverDay <> Date.MinValue Then
                                                             trendRolloverDate = rolloverDay
                                                             direction = 1
@@ -94,7 +94,7 @@ Public Class HourlyPivotTrendHighATRHighVolumeStocks
                                                         trendRolloverDate = runningPayload.Key
                                                         direction = -1
                                                     Else
-                                                        Dim rolloverDay As Date = GetRolloverDay(trend, xMinPayload, pivotTrendPayload, runningPayload.Key)
+                                                        Dim rolloverDay As Date = GetRolloverDay(trend, xMinPayload, trendPayload, runningPayload.Key)
                                                         If rolloverDay <> Date.MinValue Then
                                                             trendRolloverDate = rolloverDay
                                                             direction = -1
@@ -192,7 +192,7 @@ Public Class HourlyPivotTrendHighATRHighVolumeStocks
 
     Private Function GetRolloverDay(ByVal currentTrend As Color,
                                     ByVal xMinPayload As Dictionary(Of Date, Payload),
-                                    ByVal pivotTrendPayload As Dictionary(Of Date, Color),
+                                    ByVal trendPayload As Dictionary(Of Date, Color),
                                     ByVal checkBeforeThisTime As Date) As Date
         Dim ret As Date = Date.MinValue
         For Each runningPayload In xMinPayload.OrderByDescending(Function(x)
@@ -200,7 +200,7 @@ Public Class HourlyPivotTrendHighATRHighVolumeStocks
                                                                  End Function)
             If runningPayload.Value.PreviousCandlePayload IsNot Nothing AndAlso
                 runningPayload.Value.PreviousCandlePayload.PayloadDate < checkBeforeThisTime Then
-                Dim trend As Color = pivotTrendPayload(runningPayload.Value.PreviousCandlePayload.PayloadDate)
+                Dim trend As Color = trendPayload(runningPayload.Value.PreviousCandlePayload.PayloadDate)
                 If trend <> currentTrend Then
                     ret = runningPayload.Key
                     Exit For
@@ -209,4 +209,26 @@ Public Class HourlyPivotTrendHighATRHighVolumeStocks
         Next
         Return ret
     End Function
+
+#Region "TII Trend Calculation"
+    Private Sub CalculateTIITrend(ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Color))
+        If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
+            Dim tiiPayload As Dictionary(Of Date, Decimal) = Nothing
+            Dim signalPayload As Dictionary(Of Date, Decimal) = Nothing
+            Indicator.TrendIntensityIndex.CalculateTII(Payload.PayloadFields.Close, 50, 30, inputPayload, tiiPayload, signalPayload)
+
+            Dim trend As Color = Color.White
+            For Each runningPayload In inputPayload
+                If tiiPayload(runningPayload.Key) > signalPayload(runningPayload.Key) Then
+                    trend = Color.Green
+                ElseIf tiiPayload(runningPayload.Key) < signalPayload(runningPayload.Key) Then
+                    trend = Color.Red
+                End If
+
+                If outputPayload Is Nothing Then outputPayload = New Dictionary(Of Date, Color)
+                outputPayload.Add(runningPayload.Key, trend)
+            Next
+        End If
+    End Sub
+#End Region
 End Class
