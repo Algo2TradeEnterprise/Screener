@@ -466,6 +466,8 @@ Public Class frmStockSelection
                     stock = New EODIchimokuTrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 63
                     stock = New HourlyTIITrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                Case 64
+                    stock = New HourlyHKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -672,6 +674,9 @@ Public Class frmStockSelection
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 63
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 64
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
