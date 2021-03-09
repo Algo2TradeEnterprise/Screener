@@ -35,10 +35,9 @@ Public Class BannedStockDataFetcher
 
     Private Function GetBannedStockURL(ByVal tradingDate As Date) As String
         Dim ret As String = Nothing
-        'Dim bannedStockURL As String = "https://www.nseindia.com/archives/fo/sec_ban/fo_secban_{0}.csv"
-        Dim bannedStockURL As String = "https://www1.nseindia.com/archives/fo/sec_ban/fo_secban_{0}.csv"
+        Dim bannedStockURL As String = "https://www.nseindia.com/api/reports?archives=%5B%7B%22name%22%3A%22F%26O%20-%20Security%20in%20ban%20period%22%2C%22type%22%3A%22archives%22%2C%22category%22%3A%22derivatives%22%2C%22section%22%3A%22equity%22%7D%5D&date={0}&type=equity&mode=single"
         If tradingDate <> Date.MinValue Then
-            ret = String.Format(bannedStockURL, tradingDate.ToString("ddMMyyyy"))
+            ret = String.Format(bannedStockURL, tradingDate.ToString("dd-MMM-yyyy"))
         End If
         Return ret
     End Function
@@ -59,11 +58,17 @@ Public Class BannedStockDataFetcher
                 AddHandler browser.Heartbeat, AddressOf OnHeartbeat
 
                 browser.KeepAlive = True
+                HttpBrowser.KillCookies()
+
+                Dim parentSite As String = "https://www.nseindia.com/all-reports-derivatives"
+                Await browser.NonPOSTRequestAsync(parentSite, Net.Http.HttpMethod.Get, Nothing, False, Nothing, False, Nothing).ConfigureAwait(False)
+
+
                 Dim headersToBeSent As New Dictionary(Of String, String)
-                headersToBeSent.Add("Host", "www1.nseindia.com")
-                headersToBeSent.Add("Upgrade-Insecure-Requests", "1")
-                headersToBeSent.Add("Sec-Fetch-Mode", "navigate")
-                headersToBeSent.Add("Sec-Fetch-Site", "none")
+                headersToBeSent.Add("Accept", "*/*")
+                headersToBeSent.Add("Accept-Encoding", "gzip, deflate, br")
+                headersToBeSent.Add("Accept-Language", "en-US,en;q=0.9")
+                headersToBeSent.Add("Referer", "https://www.nseindia.com/all-reports-derivatives")
 
                 Dim targetURL As String = GetBannedStockURL(tradingDate)
                 If targetURL IsNot Nothing Then
