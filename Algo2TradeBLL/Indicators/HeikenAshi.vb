@@ -2,9 +2,9 @@
     Public Module HeikenAshi
         Public Sub ConvertToHeikenAshi(ByVal inputPayload As Dictionary(Of Date, Payload), ByRef outputPayload As Dictionary(Of Date, Payload))
             If inputPayload IsNot Nothing AndAlso inputPayload.Count > 0 Then
-                If inputPayload.Count < 30 Then
-                    Throw New ApplicationException("Can't Calculate Heikenshi Properly")
-                End If
+                'If inputPayload.Count < 30 Then
+                '    Throw New ApplicationException("Can't Calculate Heikenshi Properly")
+                'End If
 
                 Dim tempHAPayload As Payload = Nothing
                 Dim tempPreHAPayload As Payload = Nothing

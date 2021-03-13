@@ -468,6 +468,8 @@ Public Class frmStockSelection
                     stock = New HourlyTIITrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 64
                     stock = New HourlyHKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
+                Case 65
+                    stock = New MultiTimeframeHKSignal(_canceller, cmn, stockType, GetComboBoxItem_ThreadSafe(cmbMultiTFHKLTF), GetComboBoxItem_ThreadSafe(cmbMultiTFHKMTF), GetComboBoxItem_ThreadSafe(cmbMultiTFHKHTF))
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -679,6 +681,12 @@ Public Class frmStockSelection
             Case 64
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also eod volume >= 1000000. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 65
+                cmbMultiTFHKLTF.SelectedIndex = 6
+                cmbMultiTFHKMTF.SelectedIndex = 9
+                cmbMultiTFHKHTF.SelectedIndex = 11
+                LoadSettings(pnlMultiTFHKSignal)
+                lblDescription.Text = ""
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -734,6 +742,7 @@ Public Class frmStockSelection
         panelList.Add(pnlCPRNarrowRangeSettings)
         panelList.Add(pnlMultiTFSettings)
         panelList.Add(pnlLowRangeStocksOfXMinuteSettings)
+        panelList.Add(pnlMultiTFHKSignal)
 
         For Each runningPanel In panelList
             If panelName IsNot Nothing AndAlso runningPanel.Name = panelName.Name Then
