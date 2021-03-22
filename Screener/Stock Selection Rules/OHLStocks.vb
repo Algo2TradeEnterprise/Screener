@@ -26,6 +26,8 @@ Public Class OHLStocks
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Direction")
+        ret.Columns.Add("Next 5 Day High")
+        ret.Columns.Add("Next 5 Day Low")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -61,8 +63,22 @@ Public Class OHLStocks
                                 direction = "SELL"
                             End If
                             If direction IsNot Nothing Then
-                                If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                tempStockList.Add(runningStock, {direction})
+                                Dim tempEODPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate, tradingDate.AddDays(15))
+                                If tempEODPayload IsNot Nothing AndAlso tempEODPayload.Count > 0 Then
+                                    Dim highest5DayHigh As Decimal = Decimal.MinValue
+                                    Dim lowest5DayLow As Decimal = Decimal.MaxValue
+                                    Dim dayCtr As Integer = 0
+                                    For Each runningPayload In tempEODPayload.Values
+                                        dayCtr += 1
+                                        highest5DayHigh = Math.Max(highest5DayHigh, runningPayload.High)
+                                        lowest5DayLow = Math.Min(lowest5DayLow, runningPayload.Low)
+
+                                        If dayCtr >= 5 Then Exit For
+                                    Next
+
+                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                    tempStockList.Add(runningStock, {direction, highest5DayHigh, lowest5DayLow})
+                                End If
                             End If
                         End If
                     Next
@@ -83,6 +99,8 @@ Public Class OHLStocks
                             row("Previous Day Close") = atrStockList(runningStock.Key).PreviousDayClose
                             row("Slab") = atrStockList(runningStock.Key).Slab
                             row("Direction") = runningStock.Value(0)
+                            row("Next 5 Day High") = runningStock.Value(1)
+                            row("Next 5 Day Low") = runningStock.Value(2)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
