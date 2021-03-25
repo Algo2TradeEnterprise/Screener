@@ -470,6 +470,8 @@ Public Class frmStockSelection
                     stock = New HourlyHKMATrendHighATRHighVolumeStocks(_canceller, cmn, stockType)
                 Case 65
                     stock = New MultiTimeframeHKSignal(_canceller, cmn, stockType, GetComboBoxItem_ThreadSafe(cmbMultiTFHKLTF), GetComboBoxItem_ThreadSafe(cmbMultiTFHKMTF), GetComboBoxItem_ThreadSafe(cmbMultiTFHKHTF))
+                Case 66
+                    stock = New OneYearHighReachedStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -687,6 +689,9 @@ Public Class frmStockSelection
                 cmbMultiTFHKHTF.SelectedIndex = 11
                 LoadSettings(pnlMultiTFHKSignal)
                 lblDescription.Text = ""
+            Case 66
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
             Case Else
                 Throw New NotImplementedException()
         End Select
