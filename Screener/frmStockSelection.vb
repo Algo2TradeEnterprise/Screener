@@ -472,6 +472,8 @@ Public Class frmStockSelection
                     stock = New MultiTimeframeHKSignal(_canceller, cmn, stockType, GetComboBoxItem_ThreadSafe(cmbMultiTFHKLTF), GetComboBoxItem_ThreadSafe(cmbMultiTFHKMTF), GetComboBoxItem_ThreadSafe(cmbMultiTFHKHTF))
                 Case 66
                     stock = New OneYearHighReachedStocks(_canceller, cmn, stockType)
+                Case 67
+                    stock = New BelowFractalLowStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -692,6 +694,9 @@ Public Class frmStockSelection
             Case 66
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("")
+            Case 67
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("A Red candle open and close below fractal low")
             Case Else
                 Throw New NotImplementedException()
         End Select
