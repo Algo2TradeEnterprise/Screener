@@ -19,9 +19,9 @@ Public Class TopGainerTopLosser
         _checkingTime = checkingTime
         _niftyChangePercentage = niftyChangePercentage
         _onlyBankNiftyStocks = onlyBankNiftyStocks
-        _bankniftyStockList = New List(Of String) From {"AXISBANK",
+        _bankniftyStockList = New List(Of String) From {"AUBANK",
+                                                        "AXISBANK",
                                                         "BANDHANBNK",
-                                                        "BANKBARODA",
                                                         "FEDERALBNK",
                                                         "HDFCBANK",
                                                         "ICICIBANK",
@@ -51,7 +51,7 @@ Public Class TopGainerTopLosser
         ret.Columns.Add("Gain Loss %")
         ret.Columns.Add("Nifty Gain Loss %")
         ret.Columns.Add("Current Day Status")
-        ret.Columns.Add("Next Day Status")
+        'ret.Columns.Add("Next Day Status")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -124,21 +124,21 @@ Public Class TopGainerTopLosser
                                     currentStatus = "Flat"
                                 End If
 
-                                If nextTradingDay <> Date.MinValue Then
-                                    Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate, tradingDate)
-                                    If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
-                                        Dim nextDayGainLossPercentage As Decimal = GetGainLossPercentage(nextTradingDay, runningStock, payloadTime, eodPayload.LastOrDefault.Value.Close)
-                                        If nextDayGainLossPercentage <> Decimal.MinValue Then
-                                            If nextDayGainLossPercentage > 0 Then
-                                                nextDayStatus = "Up"
-                                            ElseIf nextDayGainLossPercentage < 0 Then
-                                                nextDayStatus = "Down"
-                                            Else
-                                                nextDayStatus = "Flat"
-                                            End If
-                                        End If
-                                    End If
-                                End If
+                                'If nextTradingDay <> Date.MinValue Then
+                                '    Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_eodTable, runningStock, tradingDate, tradingDate)
+                                '    If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
+                                '        Dim nextDayGainLossPercentage As Decimal = GetGainLossPercentage(nextTradingDay, runningStock, payloadTime, eodPayload.LastOrDefault.Value.Close)
+                                '        If nextDayGainLossPercentage <> Decimal.MinValue Then
+                                '            If nextDayGainLossPercentage > 0 Then
+                                '                nextDayStatus = "Up"
+                                '            ElseIf nextDayGainLossPercentage < 0 Then
+                                '                nextDayStatus = "Down"
+                                '            Else
+                                '                nextDayStatus = "Flat"
+                                '            End If
+                                '        End If
+                                '    End If
+                                'End If
 
                                 If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
                                 tempStockList.Add(runningStock, {Math.Round(currentDayGainLossPercentage, 4), Math.Round(niftyGainLossPercentage, 4), currentStatus, nextDayStatus})
@@ -167,7 +167,7 @@ Public Class TopGainerTopLosser
                             row("Gain Loss %") = runningStock.Value(0)
                             row("Nifty Gain Loss %") = runningStock.Value(1)
                             row("Current Day Status") = runningStock.Value(2)
-                            row("Next Day Status") = runningStock.Value(3)
+                            'row("Next Day Status") = runningStock.Value(3)
 
                             ret.Rows.Add(row)
                             stockCounter += 1
@@ -195,7 +195,7 @@ Public Class TopGainerTopLosser
                                 row("Gain Loss %") = runningStock.Value(0)
                                 row("Nifty Gain Loss %") = runningStock.Value(1)
                                 row("Current Day Status") = runningStock.Value(2)
-                                row("Next Day Status") = runningStock.Value(3)
+                                'row("Next Day Status") = runningStock.Value(3)
 
                                 ret.Rows.Add(row)
                                 stockCounter += 1
