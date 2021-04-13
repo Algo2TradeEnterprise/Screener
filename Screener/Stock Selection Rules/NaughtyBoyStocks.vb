@@ -56,22 +56,25 @@ Public Class NaughtyBoyStocks
                         _canceller.Token.ThrowIfCancellationRequested()
                         Dim tempStockList As Dictionary(Of String, String()) = Nothing
                         For Each runningStock In atrStockList.Keys
-                            If niftyCandle.Close > niftyCandle.Open Then
-                                If atrStockList(runningStock).PreviousDayClose < atrStockList(runningStock).PreviousDayOpen Then
-                                    Dim chng As Decimal = ((atrStockList(runningStock).PreviousDayOpen / atrStockList(runningStock).PreviousDayClose) - 1) * 100
+                            Dim eodPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayloadForSpecificTradingSymbol(Common.DataBaseTable.EOD_POSITIONAL, runningStock, niftyCandle.PayloadDate.AddDays(-7), niftyCandle.PayloadDate)
+                            If eodPayload IsNot Nothing AndAlso eodPayload.Count > 0 Then
+                                Dim candle As Payload = eodPayload.LastOrDefault.Value
+                                If niftyCandle.Close > niftyCandle.PreviousCandlePayload.Close Then
+                                    If candle.Close < candle.PreviousCandlePayload.Close Then
+                                        Dim chng As Decimal = ((candle.PreviousCandlePayload.Close / candle.Close) - 1) * 100
 
-                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                    tempStockList.Add(runningStock, {Math.Round(chng, 2), "Buy"})
-                                End If
-                            ElseIf niftyCandle.Close < niftyCandle.Open Then
-                                If atrStockList(runningStock).PreviousDayClose > atrStockList(runningStock).PreviousDayOpen Then
-                                    Dim chng As Decimal = (1 - (atrStockList(runningStock).PreviousDayOpen / atrStockList(runningStock).PreviousDayClose)) * 100
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(runningStock, {Math.Round(chng, 2), "Buy"})
+                                    End If
+                                ElseIf niftyCandle.Close < niftyCandle.PreviousCandlePayload.Close Then
+                                    If candle.Close > candle.PreviousCandlePayload.Close Then
+                                        Dim chng As Decimal = (1 - (candle.PreviousCandlePayload.Close / candle.Close)) * 100
 
-                                    If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                    tempStockList.Add(runningStock, {Math.Round(chng, 2), "Sell"})
+                                        If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
+                                        tempStockList.Add(runningStock, {Math.Round(chng, 2), "Sell"})
+                                    End If
                                 End If
                             End If
-
                         Next
                         If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                             Dim stockCounter As Integer = 0
