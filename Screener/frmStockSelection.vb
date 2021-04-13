@@ -474,6 +474,8 @@ Public Class frmStockSelection
                     stock = New OneYearHighReachedStocks(_canceller, cmn, stockType)
                 Case 67
                     stock = New BelowFractalLowStocks(_canceller, cmn, stockType)
+                Case 68
+                    stock = New NaughtyBoyStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -697,6 +699,9 @@ Public Class frmStockSelection
             Case 67
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("A Red candle open and close below fractal low")
+            Case 68
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also stock moves opposite to Nifty 50 direction. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select

@@ -152,6 +152,7 @@
     <Compile Include="Stock Selection Rules\MultiTimeframeHKSignal.vb" />
     <Compile Include="Stock Selection Rules\MultiTimeframeSignal.vb" />
     <Compile Include="Stock Selection Rules\NarrowRangeStocks.vb" />
+    <Compile Include="Stock Selection Rules\NaughtyBoyStocks.vb" />
     <Compile Include="Stock Selection Rules\NearestOptions.vb" />
     <Compile Include="Stock Selection Rules\OHLStocks.vb" />
     <Compile Include="Stock Selection Rules\OneYearHighReachedStocks.vb" />
