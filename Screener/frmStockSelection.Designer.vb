@@ -82,6 +82,9 @@ Partial Class frmStockSelection
         Me.Label10 = New System.Windows.Forms.Label()
         Me.Label8 = New System.Windows.Forms.Label()
         Me.Label6 = New System.Windows.Forms.Label()
+        Me.pnlLastCandleNaughtyBoy = New System.Windows.Forms.Panel()
+        Me.lblTFLastCandleNaughtyBoy = New System.Windows.Forms.Label()
+        Me.nmrcLastCandleNaughtyBoyTF = New System.Windows.Forms.NumericUpDown()
         Me.Panel1.SuspendLayout()
         CType(Me.dgrvMain, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTopGainerLooserSettings.SuspendLayout()
@@ -92,6 +95,8 @@ Partial Class frmStockSelection
         Me.pnlMultiTFSettings.SuspendLayout()
         Me.pnlLowRangeStocksOfXMinuteSettings.SuspendLayout()
         Me.pnlMultiTFHKSignal.SuspendLayout()
+        Me.pnlLastCandleNaughtyBoy.SuspendLayout()
+        CType(Me.nmrcLastCandleNaughtyBoyTF, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'Panel1
@@ -353,7 +358,7 @@ Partial Class frmStockSelection
         Me.cmbProcedure.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbProcedure.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.cmbProcedure.FormattingEnabled = True
-        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab", "CPR Narrow Range Stocks", "Lowest Range Stock Of Every Minute", "Lowest Range Stock Of X Minute", "Lower Price Options With Volume OI", "Lower Price Options With OI Change%", "Strong Moved Stocks", "Low ATR Candle Quick Entry Stocks", "EOD Low Range Stocks", "Previous Day Strong HK Stocks", "Volume Sort PreviousDayClose Filter CEPE Options", "Volume Sort PreviousDayClose Filter Top2 Options", "Volume Sort CurrentDayOpen Filter CEPE Options", "Volume Sort CurrentDayOpen Filter Top2 Options", "PreviousDayCloseATR Sort Volume Filter CEPE Options", "PreviousDayCloseATR Sort Volume Filter Top2 Options", "CurrentDayOpen ATR Sort Volume Filter CEPE Options", "CurrentDayOpen ATR Sort Volume Filter Top2 Options", "Lowest Price At The Money Options", "Highest ATR At The Money Options", "Lower Deviation At The Money Options", "Lower Price Nearest Options", "Day Open At The Money Option", "Low Turnover Option", "Pre Market Options", "Fractal Constriction", "Max Slab Level Hits Stock", "ATR Based All Stock With Multiplier", "EOD Outside SMA Stocks", "EOD Outside EMA Stocks", "EOD Volume EMA Stocks", "Opening Price Options", "First Favourable Fracatal Top Gainer Looser", "EOD EMA Crossover Stocks", "EOD BTST NKS Stocks", "EOD BTST Bullish Engulfing Stocks", "EOD BTST Double TII Stocks", "EOD BTST 15 Min 23 Stocks", "EOD BTST 15 Min 57 Stocks", "EOD Rainbow Crossover", "Top Gainer Top Looser Options", "EOD Pivot Trend High ATR High Volume Stocks", "Nearest Options", "EOD HK Trend High ATR High Volume Stocks", "EOD HK MA Trend High ATR High Volume Stocks", "EOD Central Pivot Trend High ATR High Volume Stocks", "EOD HK Keltner Trend High ATR High Volume Stocks", "EOD Ichimoku Trend High ATR High Volume Stocks", "Hourly TII Trend High ATR High Volume Stocks", "Hourly HK MA Trend High ATR High Volume Stocks", "Multitimeframe HK Signal", "1 Year High Reached Stocks", "Below Fractal Low Stocks", "Naughty Boy Stocks"})
+        Me.cmbProcedure.Items.AddRange(New Object() {"User Given", "ATR Based All Stock", "Pre Market Stock", "Intraday Volume Spike Stock", "OHL ATR Stock", "Touch Previous Day Last Candle", "Top Gainer Top Looser", "High Low Gap Stock", "Spot Future Arbritrage", "High Turnover Stock", "Top Gainer Top Looser Of Every Minute", "High Slab Level Moved Stocks", "Open At High Low", "Multi Timeframe Signal", "Narrow Range Stocks", "Top Gainer Losser of Every Slab", "CPR Narrow Range Stocks", "Lowest Range Stock Of Every Minute", "Lowest Range Stock Of X Minute", "Lower Price Options With Volume OI", "Lower Price Options With OI Change%", "Strong Moved Stocks", "Low ATR Candle Quick Entry Stocks", "EOD Low Range Stocks", "Previous Day Strong HK Stocks", "Volume Sort PreviousDayClose Filter CEPE Options", "Volume Sort PreviousDayClose Filter Top2 Options", "Volume Sort CurrentDayOpen Filter CEPE Options", "Volume Sort CurrentDayOpen Filter Top2 Options", "PreviousDayCloseATR Sort Volume Filter CEPE Options", "PreviousDayCloseATR Sort Volume Filter Top2 Options", "CurrentDayOpen ATR Sort Volume Filter CEPE Options", "CurrentDayOpen ATR Sort Volume Filter Top2 Options", "Lowest Price At The Money Options", "Highest ATR At The Money Options", "Lower Deviation At The Money Options", "Lower Price Nearest Options", "Day Open At The Money Option", "Low Turnover Option", "Pre Market Options", "Fractal Constriction", "Max Slab Level Hits Stock", "ATR Based All Stock With Multiplier", "EOD Outside SMA Stocks", "EOD Outside EMA Stocks", "EOD Volume EMA Stocks", "Opening Price Options", "First Favourable Fracatal Top Gainer Looser", "EOD EMA Crossover Stocks", "EOD BTST NKS Stocks", "EOD BTST Bullish Engulfing Stocks", "EOD BTST Double TII Stocks", "EOD BTST 15 Min 23 Stocks", "EOD BTST 15 Min 57 Stocks", "EOD Rainbow Crossover", "Top Gainer Top Looser Options", "EOD Pivot Trend High ATR High Volume Stocks", "Nearest Options", "EOD HK Trend High ATR High Volume Stocks", "EOD HK MA Trend High ATR High Volume Stocks", "EOD Central Pivot Trend High ATR High Volume Stocks", "EOD HK Keltner Trend High ATR High Volume Stocks", "EOD Ichimoku Trend High ATR High Volume Stocks", "Hourly TII Trend High ATR High Volume Stocks", "Hourly HK MA Trend High ATR High Volume Stocks", "Multitimeframe HK Signal", "1 Year High Reached Stocks", "Below Fractal Low Stocks", "Naughty Boy Stocks", "Last Candle Naughty Boy Stocks"})
         Me.cmbProcedure.Location = New System.Drawing.Point(87, 14)
         Me.cmbProcedure.Margin = New System.Windows.Forms.Padding(4)
         Me.cmbProcedure.Name = "cmbProcedure"
@@ -677,11 +682,40 @@ Partial Class frmStockSelection
         Me.Label6.TabIndex = 4
         Me.Label6.Text = "LTF:"
         '
+        'pnlLastCandleNaughtyBoy
+        '
+        Me.pnlLastCandleNaughtyBoy.Controls.Add(Me.nmrcLastCandleNaughtyBoyTF)
+        Me.pnlLastCandleNaughtyBoy.Controls.Add(Me.lblTFLastCandleNaughtyBoy)
+        Me.pnlLastCandleNaughtyBoy.Location = New System.Drawing.Point(493, 6)
+        Me.pnlLastCandleNaughtyBoy.Name = "pnlLastCandleNaughtyBoy"
+        Me.pnlLastCandleNaughtyBoy.Size = New System.Drawing.Size(456, 84)
+        Me.pnlLastCandleNaughtyBoy.TabIndex = 68
+        '
+        'lblTFLastCandleNaughtyBoy
+        '
+        Me.lblTFLastCandleNaughtyBoy.AutoSize = True
+        Me.lblTFLastCandleNaughtyBoy.Location = New System.Drawing.Point(8, 12)
+        Me.lblTFLastCandleNaughtyBoy.Name = "lblTFLastCandleNaughtyBoy"
+        Me.lblTFLastCandleNaughtyBoy.Size = New System.Drawing.Size(29, 17)
+        Me.lblTFLastCandleNaughtyBoy.TabIndex = 4
+        Me.lblTFLastCandleNaughtyBoy.Text = "TF:"
+        '
+        'nmrcLastCandleNaughtyBoyTF
+        '
+        Me.nmrcLastCandleNaughtyBoyTF.Location = New System.Drawing.Point(44, 11)
+        Me.nmrcLastCandleNaughtyBoyTF.Maximum = New Decimal(New Integer() {180, 0, 0, 0})
+        Me.nmrcLastCandleNaughtyBoyTF.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.nmrcLastCandleNaughtyBoyTF.Name = "nmrcLastCandleNaughtyBoyTF"
+        Me.nmrcLastCandleNaughtyBoyTF.Size = New System.Drawing.Size(120, 22)
+        Me.nmrcLastCandleNaughtyBoyTF.TabIndex = 5
+        Me.nmrcLastCandleNaughtyBoyTF.Value = New Decimal(New Integer() {15, 0, 0, 0})
+        '
         'frmStockSelection
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1300, 661)
+        Me.Controls.Add(Me.pnlLastCandleNaughtyBoy)
         Me.Controls.Add(Me.pnlMultiTFHKSignal)
         Me.Controls.Add(Me.pnlLowRangeStocksOfXMinuteSettings)
         Me.Controls.Add(Me.pnlMultiTFSettings)
@@ -722,6 +756,9 @@ Partial Class frmStockSelection
         Me.pnlLowRangeStocksOfXMinuteSettings.PerformLayout()
         Me.pnlMultiTFHKSignal.ResumeLayout(False)
         Me.pnlMultiTFHKSignal.PerformLayout()
+        Me.pnlLastCandleNaughtyBoy.ResumeLayout(False)
+        Me.pnlLastCandleNaughtyBoy.PerformLayout()
+        CType(Me.nmrcLastCandleNaughtyBoyTF, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -786,4 +823,7 @@ Partial Class frmStockSelection
     Friend WithEvents Label8 As Label
     Friend WithEvents cmbMultiTFHKHTF As ComboBox
     Friend WithEvents cmbMultiTFHKMTF As ComboBox
+    Friend WithEvents pnlLastCandleNaughtyBoy As Panel
+    Friend WithEvents nmrcLastCandleNaughtyBoyTF As NumericUpDown
+    Friend WithEvents lblTFLastCandleNaughtyBoy As Label
 End Class

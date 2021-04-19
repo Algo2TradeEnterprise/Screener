@@ -476,6 +476,8 @@ Public Class frmStockSelection
                     stock = New BelowFractalLowStocks(_canceller, cmn, stockType)
                 Case 68
                     stock = New NaughtyBoyStocks(_canceller, cmn, stockType)
+                Case 69
+                    stock = New LastCandleNaughtyBoyStocks(_canceller, cmn, stockType, GetNumericUpDownValue_ThreadSafe(nmrcLastCandleNaughtyBoyTF))
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -702,6 +704,9 @@ Public Class frmStockSelection
             Case 68
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also stock moves opposite to Nifty 50 direction. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 69
+                LoadSettings(pnlLastCandleNaughtyBoy)
+                lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also stock moves opposite to Nifty 50 direction on last X-Min candle. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case Else
                 Throw New NotImplementedException()
         End Select
@@ -758,6 +763,7 @@ Public Class frmStockSelection
         panelList.Add(pnlMultiTFSettings)
         panelList.Add(pnlLowRangeStocksOfXMinuteSettings)
         panelList.Add(pnlMultiTFHKSignal)
+        panelList.Add(pnlLastCandleNaughtyBoy)
 
         For Each runningPanel In panelList
             If panelName IsNot Nothing AndAlso runningPanel.Name = panelName.Name Then

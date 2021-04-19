@@ -135,6 +135,7 @@
     <Compile Include="Stock Selection Rules\HighestATRAtTheMoneyOptions.vb" />
     <Compile Include="Stock Selection Rules\HourlyHKMATrendHighATRHighVolumeStocks.vb" />
     <Compile Include="Stock Selection Rules\HourlyTIITrendHighATRHighVolumeStocks.vb" />
+    <Compile Include="Stock Selection Rules\LastCandleNaughtyBoyStocks.vb" />
     <Compile Include="Stock Selection Rules\LowATRCandleQuickEntryStocks.vb" />
     <Compile Include="Stock Selection Rules\LowerDeviationAtTheMoneyOptions.vb" />
     <Compile Include="Stock Selection Rules\LowerPriceNearestOptions.vb" />
