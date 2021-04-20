@@ -30,7 +30,6 @@ Public Class LastCandleNaughtyBoyStocks
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Change %")
-        ret.Columns.Add("Direction")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -64,17 +63,17 @@ Public Class LastCandleNaughtyBoyStocks
                                 Dim candle As Payload = xMinPayload.LastOrDefault.Value
                                 If niftyCandle.Close > niftyCandle.Open Then
                                     If candle.Close < candle.Open Then
-                                        Dim chng As Decimal = ((candle.Open / candle.Close) - 1) * 100
+                                        Dim chng As Decimal = (1 - (candle.Open / candle.Close)) * 100
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock, {Math.Round(chng, 2), "Buy"})
+                                        tempStockList.Add(runningStock, {Math.Round(chng, 2)})
                                     End If
                                 ElseIf niftyCandle.Close < niftyCandle.Open Then
                                     If candle.Close > candle.Open Then
                                         Dim chng As Decimal = (1 - (candle.Open / candle.Close)) * 100
 
                                         If tempStockList Is Nothing Then tempStockList = New Dictionary(Of String, String())
-                                        tempStockList.Add(runningStock, {Math.Round(chng, 2), "Sell"})
+                                        tempStockList.Add(runningStock, {Math.Round(chng, 2)})
                                     End If
                                 End If
                             End If
@@ -82,7 +81,7 @@ Public Class LastCandleNaughtyBoyStocks
                         If tempStockList IsNot Nothing AndAlso tempStockList.Count > 0 Then
                             Dim stockCounter As Integer = 0
                             For Each runningStock In tempStockList.OrderByDescending(Function(x)
-                                                                                         Return CDec(x.Value(0))
+                                                                                         Return Math.Abs(CDec(x.Value(0)))
                                                                                      End Function)
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 Dim row As DataRow = ret.NewRow
@@ -99,7 +98,6 @@ Public Class LastCandleNaughtyBoyStocks
                                 row("Current Day Close") = atrStockList(runningStock.Key).CurrentDayClose
                                 row("Slab") = atrStockList(runningStock.Key).Slab
                                 row("Change %") = runningStock.Value(0)
-                                row("Direction") = runningStock.Value(1)
 
                                 ret.Rows.Add(row)
                                 stockCounter += 1
