@@ -77,7 +77,7 @@ Public Class LowRangeATRStocks
                                 row("Slab") = runningStock.Value.Slab
                                 row("First Candle Range") = firstCandle.CandleRange
                                 row("First Candle ATR") = atrPayload(firstCandle.PayloadDate)
-                                row("Target Day ATR %") = ((firstCandle.CandleRange + 2 * buffer) / runningStock.Value.DayATR) * 100
+                                row("Target Day ATR %") = ((firstCandle.CandleRange + 2 * buffer) * 4 / runningStock.Value.DayATR) * 100
 
                                 ret.Rows.Add(row)
                             End If
