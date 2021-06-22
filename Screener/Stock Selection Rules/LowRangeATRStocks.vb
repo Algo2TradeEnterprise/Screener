@@ -26,7 +26,9 @@ Public Class LowRangeATRStocks
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Current Day Close")
         ret.Columns.Add("Slab")
-        ret.Columns.Add("ATR Range %")
+        ret.Columns.Add("First Candle Range")
+        ret.Columns.Add("First Candle ATR")
+        ret.Columns.Add("Target Day ATR %")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -58,6 +60,8 @@ Public Class LowRangeATRStocks
                                                                                End Function).FirstOrDefault.Value
 
                             If firstCandle.CandleRange < atrPayload(firstCandle.PayloadDate) Then
+                                Dim buffer As Decimal = CalculateBuffer(firstCandle.Open, Utilities.Numbers.NumberManipulation.RoundOfType.Floor)
+
                                 Dim row As DataRow = ret.NewRow
                                 row("Date") = tradingDate.ToString("dd-MM-yyyy")
                                 row("Trading Symbol") = runningStock.Value.TradingSymbol
@@ -71,7 +75,9 @@ Public Class LowRangeATRStocks
                                 row("Previous Day Close") = runningStock.Value.PreviousDayClose
                                 row("Current Day Close") = runningStock.Value.CurrentDayClose
                                 row("Slab") = runningStock.Value.Slab
-                                row("ATR Range %") = Math.Round(atrPayload(firstCandle.PayloadDate) / firstCandle.Close, 3)
+                                row("First Candle Range") = firstCandle.CandleRange
+                                row("First Candle ATR") = atrPayload(firstCandle.PayloadDate)
+                                row("Target Day ATR %") = ((firstCandle.CandleRange + 2 * buffer) / runningStock.Value.DayATR) * 100
 
                                 ret.Rows.Add(row)
                             End If
