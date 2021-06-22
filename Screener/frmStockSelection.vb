@@ -478,6 +478,8 @@ Public Class frmStockSelection
                     stock = New NaughtyBoyStocks(_canceller, cmn, stockType)
                 Case 69
                     stock = New LastCandleNaughtyBoyStocks(_canceller, cmn, stockType, GetNumericUpDownValue_ThreadSafe(nmrcLastCandleNaughtyBoyTF))
+                Case 70
+                    stock = New LowRangeATRStocks(_canceller, cmn, stockType)
                 Case Else
                     Throw New NotImplementedException
             End Select
@@ -707,6 +709,9 @@ Public Class frmStockSelection
             Case 69
                 LoadSettings(pnlLastCandleNaughtyBoy)
                 lblDescription.Text = String.Format("Return High ATR Stocks between price range which are greater than ATR% and satisfies the volume criteria and also stock moves opposite to Nifty 50 direction on last X-Min candle. If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
+            Case 70
+                LoadSettings(Nothing)
+                lblDescription.Text = String.Format("")
             Case Else
                 Throw New NotImplementedException()
         End Select

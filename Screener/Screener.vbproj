@@ -148,6 +148,7 @@
     <Compile Include="Stock Selection Rules\LowerPriceOptionsWithOIChange.vb" />
     <Compile Include="Stock Selection Rules\LowestRangeStockOfXMinute.vb" />
     <Compile Include="Stock Selection Rules\LowestRangeStocksOfEveryMinute.vb" />
+    <Compile Include="Stock Selection Rules\LowRangeATRStocks.vb" />
     <Compile Include="Stock Selection Rules\LowTurnoverOption.vb" />
     <Compile Include="Stock Selection Rules\MaxSlabLevelHitsStocks.vb" />
     <Compile Include="Stock Selection Rules\MultiTimeframeHKSignal.vb" />
