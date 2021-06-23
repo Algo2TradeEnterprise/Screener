@@ -28,7 +28,7 @@ Public Class LowRangeATRStocks
         ret.Columns.Add("Slab")
         ret.Columns.Add("First Candle Range")
         ret.Columns.Add("First Candle ATR")
-        ret.Columns.Add("Range ATR %")
+        ret.Columns.Add("Range Day ATR %")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -59,29 +59,32 @@ Public Class LowRangeATRStocks
                                                                                    Return x.Key.Date = tradingDate.Date
                                                                                End Function).FirstOrDefault.Value
 
-                            Dim buffer As Decimal = CalculateBuffer(firstCandle.Open, Utilities.Numbers.NumberManipulation.RoundOfType.Floor)
+                            If firstCandle IsNot Nothing AndAlso firstCandle.CandleRange > 0.05 Then
+                                Dim buffer As Decimal = CalculateBuffer(firstCandle.Open, Utilities.Numbers.NumberManipulation.RoundOfType.Floor)
 
-                            Dim row As DataRow = ret.NewRow
-                            row("Date") = tradingDate.ToString("dd-MM-yyyy")
-                            row("Trading Symbol") = runningStock.Value.TradingSymbol
-                            row("Lot Size") = runningStock.Value.LotSize
-                            row("ATR %") = Math.Round(runningStock.Value.ATRPercentage, 4)
-                            row("Blank Candle %") = runningStock.Value.BlankCandlePercentage
-                            row("Day ATR") = Math.Round(runningStock.Value.DayATR, 4)
-                            row("Previous Day Open") = runningStock.Value.PreviousDayOpen
-                            row("Previous Day Low") = runningStock.Value.PreviousDayLow
-                            row("Previous Day High") = runningStock.Value.PreviousDayHigh
-                            row("Previous Day Close") = runningStock.Value.PreviousDayClose
-                            row("Current Day Close") = runningStock.Value.CurrentDayClose
-                            row("Slab") = runningStock.Value.Slab
-                            row("First Candle Range") = firstCandle.CandleRange
-                            row("First Candle ATR") = Math.Round(atrPayload(firstCandle.PayloadDate), 4)
-                            row("Range ATR %") = Math.Round((firstCandle.CandleRange / atrPayload(firstCandle.PayloadDate)) * 100, 4)
+                                Dim row As DataRow = ret.NewRow
+                                row("Date") = tradingDate.ToString("dd-MM-yyyy")
+                                row("Trading Symbol") = runningStock.Value.TradingSymbol
+                                row("Lot Size") = runningStock.Value.LotSize
+                                row("ATR %") = Math.Round(runningStock.Value.ATRPercentage, 4)
+                                row("Blank Candle %") = runningStock.Value.BlankCandlePercentage
+                                row("Day ATR") = Math.Round(runningStock.Value.DayATR, 4)
+                                row("Previous Day Open") = runningStock.Value.PreviousDayOpen
+                                row("Previous Day Low") = runningStock.Value.PreviousDayLow
+                                row("Previous Day High") = runningStock.Value.PreviousDayHigh
+                                row("Previous Day Close") = runningStock.Value.PreviousDayClose
+                                row("Current Day Close") = runningStock.Value.CurrentDayClose
+                                row("Slab") = runningStock.Value.Slab
+                                row("First Candle Range") = firstCandle.CandleRange
+                                row("First Candle ATR") = Math.Round(atrPayload(firstCandle.PayloadDate), 4)
+                                row("Range ATR %") = Math.Round((firstCandle.CandleRange / atrPayload(firstCandle.PayloadDate)) * 100, 4)
+                                row("Range Day ATR %") = Math.Round((firstCandle.CandleRange / runningStock.Value.DayATR) * 100, 4)
 
-                            ret.Rows.Add(row)
+                                ret.Rows.Add(row)
 
-                            stockCounter += 1
-                            If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
+                                stockCounter += 1
+                                If stockCounter = My.Settings.NumberOfStockPerDay Then Exit For
+                            End If
                         End If
                     Next
                 End If
