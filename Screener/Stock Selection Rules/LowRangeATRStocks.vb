@@ -28,6 +28,7 @@ Public Class LowRangeATRStocks
         ret.Columns.Add("Slab")
         ret.Columns.Add("First Candle Range")
         ret.Columns.Add("First Candle ATR")
+        ret.Columns.Add("Range ATR %")
         ret.Columns.Add("Range Day ATR %")
 
         Using atrStock As New ATRStockSelection(_canceller)
