@@ -556,7 +556,7 @@ Public Class frmStockSelection
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with high turnover (5 day average of volume X close). If you want to trade today give today's date.(Expecting that previous day data is there in the database)")
             Case 10
                 LoadSettings(Nothing)
-                lblDescription.Text = String.Format("Return High ATR Cash Stocks with every minute top gainer losser. Give the date you want to trade if it is not the current date.")
+                lblDescription.Text = String.Format("Return High ATR Cash Stocks with every 15 minute top gainer losser. Give the date you want to trade if it is not the current date.")
             Case 11
                 LoadSettings(Nothing)
                 lblDescription.Text = String.Format("Return High ATR Cash Stocks with high slab lavel moved. Give the date you want to trade if it is not the current date.")
