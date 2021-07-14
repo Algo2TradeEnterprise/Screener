@@ -24,13 +24,15 @@ Public Class TopGainerTopLosserEveryMinute
         ret.Columns.Add("Avg Volume")
         ret.Columns.Add("Blank Candle %")
         ret.Columns.Add("Day ATR")
-        ret.Columns.Add("Previous Day Open")
-        ret.Columns.Add("Previous Day Low")
-        ret.Columns.Add("Previous Day High")
-        ret.Columns.Add("Previous Day Close")
+        'ret.Columns.Add("Previous Day Open")
+        'ret.Columns.Add("Previous Day Low")
+        'ret.Columns.Add("Previous Day High")
+        'ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Gain Loss %")
         ret.Columns.Add("Remarks")
+        ret.Columns.Add("Next Open")
+        ret.Columns.Add("Next Close")
 
         Using atrStock As New ATRStockSelection(_canceller)
             AddHandler atrStock.Heartbeat, AddressOf OnHeartbeat
@@ -74,14 +76,20 @@ Public Class TopGainerTopLosserEveryMinute
                                     If stockData(runningStock) IsNot Nothing AndAlso stockData(runningStock).Count > 0 Then
                                         If stockData(runningStock).ContainsKey(payloadTime) Then
                                             Dim candleToCheck As Payload = stockData(runningStock)(payloadTime)
+                                            Dim nextCandle As Payload = stockData(runningStock).Where(Function(x)
+                                                                                                          Return x.Key >= candleToCheck.PayloadDate
+                                                                                                      End Function).OrderBy(Function(y)
+                                                                                                                                Return y.Key
+                                                                                                                            End Function).FirstOrDefault.Value
+
                                             If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
                                                 Dim closeGainLossPercentage As Decimal = ((candleToCheck.Close - candleToCheck.PreviousCandlePayload.Close) / candleToCheck.PreviousCandlePayload.Close) * 100
                                                 If tempCloseStockList Is Nothing Then tempCloseStockList = New Dictionary(Of String, String())
-                                                tempCloseStockList.Add(runningStock, {Math.Round(closeGainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Previous Close"})
+                                                tempCloseStockList.Add(runningStock, {Math.Round(closeGainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Previous Close", nextCandle.Open, nextCandle.Close})
 
                                                 Dim openGainLossPercentage As Decimal = ((candleToCheck.Close - candleToCheck.Open) / candleToCheck.Open) * 100
                                                 If tempOpenStockList Is Nothing Then tempOpenStockList = New Dictionary(Of String, String())
-                                                tempOpenStockList.Add(runningStock, {Math.Round(openGainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Current Open"})
+                                                tempOpenStockList.Add(runningStock, {Math.Round(openGainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Current Open", nextCandle.Open, nextCandle.Close})
                                             End If
                                         End If
                                     End If
@@ -99,14 +107,16 @@ Public Class TopGainerTopLosserEveryMinute
                                 row1("Avg Volume") = Math.Round(atrStockList(topGainer.Key).AverageVolume, 4)
                                 row1("Blank Candle %") = atrStockList(topGainer.Key).BlankCandlePercentage
                                 row1("Day ATR") = Math.Round(atrStockList(topGainer.Key).DayATR, 4)
-                                row1("Previous Day Open") = atrStockList(topGainer.Key).PreviousDayOpen
-                                row1("Previous Day Low") = atrStockList(topGainer.Key).PreviousDayLow
-                                row1("Previous Day High") = atrStockList(topGainer.Key).PreviousDayHigh
-                                row1("Previous Day Close") = atrStockList(topGainer.Key).PreviousDayClose
+                                'row1("Previous Day Open") = atrStockList(topGainer.Key).PreviousDayOpen
+                                'row1("Previous Day Low") = atrStockList(topGainer.Key).PreviousDayLow
+                                'row1("Previous Day High") = atrStockList(topGainer.Key).PreviousDayHigh
+                                'row1("Previous Day Close") = atrStockList(topGainer.Key).PreviousDayClose
                                 row1("Slab") = atrStockList(topGainer.Key).Slab
                                 row1("Gain Loss %") = topGainer.Value(0)
                                 row1("Time") = topGainer.Value(1)
                                 row1("Remarks") = topGainer.Value(2)
+                                row1("Next Open") = topGainer.Value(3)
+                                row1("Next Close") = topGainer.Value(4)
 
                                 ret.Rows.Add(row1)
 
@@ -121,14 +131,16 @@ Public Class TopGainerTopLosserEveryMinute
                                 row2("Avg Volume") = Math.Round(atrStockList(topLosser.Key).AverageVolume, 4)
                                 row2("Blank Candle %") = atrStockList(topLosser.Key).BlankCandlePercentage
                                 row2("Day ATR") = Math.Round(atrStockList(topLosser.Key).DayATR, 4)
-                                row2("Previous Day Open") = atrStockList(topLosser.Key).PreviousDayOpen
-                                row2("Previous Day Low") = atrStockList(topLosser.Key).PreviousDayLow
-                                row2("Previous Day High") = atrStockList(topLosser.Key).PreviousDayHigh
-                                row2("Previous Day Close") = atrStockList(topLosser.Key).PreviousDayClose
+                                'row2("Previous Day Open") = atrStockList(topLosser.Key).PreviousDayOpen
+                                'row2("Previous Day Low") = atrStockList(topLosser.Key).PreviousDayLow
+                                'row2("Previous Day High") = atrStockList(topLosser.Key).PreviousDayHigh
+                                'row2("Previous Day Close") = atrStockList(topLosser.Key).PreviousDayClose
                                 row2("Slab") = atrStockList(topLosser.Key).Slab
                                 row2("Gain Loss %") = topLosser.Value(0)
                                 row2("Time") = topLosser.Value(1)
                                 row2("Remarks") = topLosser.Value(2)
+                                row2("Next Open") = topLosser.Value(3)
+                                row2("Next Close") = topLosser.Value(4)
 
                                 ret.Rows.Add(row2)
                             End If
@@ -144,14 +156,16 @@ Public Class TopGainerTopLosserEveryMinute
                                 row1("Avg Volume") = Math.Round(atrStockList(topGainer.Key).AverageVolume, 4)
                                 row1("Blank Candle %") = atrStockList(topGainer.Key).BlankCandlePercentage
                                 row1("Day ATR") = Math.Round(atrStockList(topGainer.Key).DayATR, 4)
-                                row1("Previous Day Open") = atrStockList(topGainer.Key).PreviousDayOpen
-                                row1("Previous Day Low") = atrStockList(topGainer.Key).PreviousDayLow
-                                row1("Previous Day High") = atrStockList(topGainer.Key).PreviousDayHigh
-                                row1("Previous Day Close") = atrStockList(topGainer.Key).PreviousDayClose
+                                'row1("Previous Day Open") = atrStockList(topGainer.Key).PreviousDayOpen
+                                'row1("Previous Day Low") = atrStockList(topGainer.Key).PreviousDayLow
+                                'row1("Previous Day High") = atrStockList(topGainer.Key).PreviousDayHigh
+                                'row1("Previous Day Close") = atrStockList(topGainer.Key).PreviousDayClose
                                 row1("Slab") = atrStockList(topGainer.Key).Slab
                                 row1("Gain Loss %") = topGainer.Value(0)
                                 row1("Time") = topGainer.Value(1)
                                 row1("Remarks") = topGainer.Value(2)
+                                row1("Next Open") = topGainer.Value(3)
+                                row1("Next Close") = topGainer.Value(4)
 
                                 ret.Rows.Add(row1)
 
@@ -166,14 +180,16 @@ Public Class TopGainerTopLosserEveryMinute
                                 row2("Avg Volume") = Math.Round(atrStockList(topLosser.Key).AverageVolume, 4)
                                 row2("Blank Candle %") = atrStockList(topLosser.Key).BlankCandlePercentage
                                 row2("Day ATR") = Math.Round(atrStockList(topLosser.Key).DayATR, 4)
-                                row2("Previous Day Open") = atrStockList(topLosser.Key).PreviousDayOpen
-                                row2("Previous Day Low") = atrStockList(topLosser.Key).PreviousDayLow
-                                row2("Previous Day High") = atrStockList(topLosser.Key).PreviousDayHigh
-                                row2("Previous Day Close") = atrStockList(topLosser.Key).PreviousDayClose
+                                'row2("Previous Day Open") = atrStockList(topLosser.Key).PreviousDayOpen
+                                'row2("Previous Day Low") = atrStockList(topLosser.Key).PreviousDayLow
+                                'row2("Previous Day High") = atrStockList(topLosser.Key).PreviousDayHigh
+                                'row2("Previous Day Close") = atrStockList(topLosser.Key).PreviousDayClose
                                 row2("Slab") = atrStockList(topLosser.Key).Slab
                                 row2("Gain Loss %") = topLosser.Value(0)
                                 row2("Time") = topLosser.Value(1)
                                 row2("Remarks") = topLosser.Value(2)
+                                row2("Next Open") = topLosser.Value(3)
+                                row2("Next Close") = topLosser.Value(4)
 
                                 ret.Rows.Add(row2)
                             End If
