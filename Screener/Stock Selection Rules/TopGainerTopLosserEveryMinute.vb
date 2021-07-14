@@ -77,7 +77,7 @@ Public Class TopGainerTopLosserEveryMinute
                                         If stockData(runningStock).ContainsKey(payloadTime) Then
                                             Dim candleToCheck As Payload = stockData(runningStock)(payloadTime)
                                             Dim nextCandle As Payload = stockData(runningStock).Where(Function(x)
-                                                                                                          Return x.Key >= candleToCheck.PayloadDate
+                                                                                                          Return x.Key = candleToCheck.PayloadDate
                                                                                                       End Function).OrderBy(Function(y)
                                                                                                                                 Return y.Key
                                                                                                                             End Function).FirstOrDefault.Value
