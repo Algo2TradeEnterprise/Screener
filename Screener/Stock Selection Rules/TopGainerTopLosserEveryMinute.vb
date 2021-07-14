@@ -5,6 +5,8 @@ Imports Algo2TradeBLL
 Public Class TopGainerTopLosserEveryMinute
     Inherits StockSelection
 
+    Private ReadOnly _timeframe As Integer = 15
+
     Public Sub New(ByVal canceller As CancellationTokenSource,
                    ByVal cmn As Common,
                    ByVal stockType As Integer)
@@ -15,9 +17,11 @@ Public Class TopGainerTopLosserEveryMinute
         Await Task.Delay(0).ConfigureAwait(False)
         Dim ret As New DataTable
         ret.Columns.Add("Date")
+        ret.Columns.Add("Time")
         ret.Columns.Add("Trading Symbol")
         ret.Columns.Add("Lot Size")
         ret.Columns.Add("ATR %")
+        ret.Columns.Add("Avg Volume")
         ret.Columns.Add("Blank Candle %")
         ret.Columns.Add("Day ATR")
         ret.Columns.Add("Previous Day Open")
@@ -26,7 +30,6 @@ Public Class TopGainerTopLosserEveryMinute
         ret.Columns.Add("Previous Day Close")
         ret.Columns.Add("Slab")
         ret.Columns.Add("Gain Loss %")
-        ret.Columns.Add("Time")
         ret.Columns.Add("Remarks")
 
         Using atrStock As New ATRStockSelection(_canceller)
@@ -47,17 +50,17 @@ Public Class TopGainerTopLosserEveryMinute
                 Dim atrStockList As Dictionary(Of String, InstrumentDetails) = Await atrStock.GetATRStockData(_eodTable, tradingDate, bannedStockList, False).ConfigureAwait(False)
                 If atrStockList IsNot Nothing AndAlso atrStockList.Count > 0 Then
                     _canceller.Token.ThrowIfCancellationRequested()
-                    Dim startTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 19, 0)
-                    Dim endTime As Date = startTime.AddHours(2)
+                    Dim startTime As Date = New Date(tradingDate.Year, tradingDate.Month, tradingDate.Day, 9, 15, 0)
+                    Dim endTime As Date = startTime.AddHours(5)
                     Dim payloadTime As Date = startTime
                     _canceller.Token.ThrowIfCancellationRequested()
                     Dim stockData As Dictionary(Of String, Dictionary(Of Date, Payload)) = Nothing
                     For Each runningStock In atrStockList.Keys
                         _canceller.Token.ThrowIfCancellationRequested()
-                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate, tradingDate)
+                        Dim intradayPayload As Dictionary(Of Date, Payload) = _cmn.GetRawPayload(_intradayTable, runningStock, tradingDate.AddDays(-8), tradingDate)
                         If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
                             If stockData Is Nothing Then stockData = New Dictionary(Of String, Dictionary(Of Date, Payload))
-                            stockData.Add(runningStock, intradayPayload)
+                            stockData.Add(runningStock, Common.ConvertPayloadsToXMinutes(intradayPayload, _timeframe, startTime))
                         End If
                     Next
                     Dim topGainerLosserStockList As Dictionary(Of String, String()) = Nothing
@@ -68,23 +71,18 @@ Public Class TopGainerTopLosserEveryMinute
                             For Each runningStock In atrStockList.Keys
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 If stockData.ContainsKey(runningStock) Then
-                                    Dim intradayPayload As Dictionary(Of Date, Payload) = stockData(runningStock)
-                                    If intradayPayload IsNot Nothing AndAlso intradayPayload.Count > 0 Then
-                                        Dim candleToCheck As Payload = Nothing
-                                        If intradayPayload.ContainsKey(payloadTime) Then
-                                            candleToCheck = intradayPayload(payloadTime)
-                                        End If
-                                        If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
-                                            Dim previousClose As Decimal = atrStockList(runningStock).PreviousDayClose
-                                            Dim gainLossPercentage As Decimal = ((candleToCheck.Close - previousClose) / previousClose) * 100
-                                            If tempCloseStockList Is Nothing Then tempCloseStockList = New Dictionary(Of String, String())
-                                            tempCloseStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Previous Close"})
-                                        End If
-                                        If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
-                                            Dim currentOpen As Decimal = intradayPayload.FirstOrDefault.Value.Open
-                                            Dim gainLossPercentage As Decimal = ((candleToCheck.Close - currentOpen) / currentOpen) * 100
-                                            If tempOpenStockList Is Nothing Then tempOpenStockList = New Dictionary(Of String, String())
-                                            tempOpenStockList.Add(runningStock, {Math.Round(gainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Current Open"})
+                                    If stockData(runningStock) IsNot Nothing AndAlso stockData(runningStock).Count > 0 Then
+                                        If stockData(runningStock).ContainsKey(payloadTime) Then
+                                            Dim candleToCheck As Payload = stockData(runningStock)(payloadTime)
+                                            If candleToCheck IsNot Nothing AndAlso candleToCheck.PreviousCandlePayload IsNot Nothing Then
+                                                Dim closeGainLossPercentage As Decimal = ((candleToCheck.Close - candleToCheck.PreviousCandlePayload.Close) / candleToCheck.PreviousCandlePayload.Close) * 100
+                                                If tempCloseStockList Is Nothing Then tempCloseStockList = New Dictionary(Of String, String())
+                                                tempCloseStockList.Add(runningStock, {Math.Round(closeGainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Previous Close"})
+
+                                                Dim openGainLossPercentage As Decimal = ((candleToCheck.Close - candleToCheck.Open) / candleToCheck.Open) * 100
+                                                If tempOpenStockList Is Nothing Then tempOpenStockList = New Dictionary(Of String, String())
+                                                tempOpenStockList.Add(runningStock, {Math.Round(openGainLossPercentage, 4), payloadTime.ToString("HH:mm:ss"), "Current Open"})
+                                            End If
                                         End If
                                     End If
                                 End If
@@ -98,6 +96,7 @@ Public Class TopGainerTopLosserEveryMinute
                                 row1("Trading Symbol") = atrStockList(topGainer.Key).TradingSymbol
                                 row1("Lot Size") = atrStockList(topGainer.Key).LotSize
                                 row1("ATR %") = Math.Round(atrStockList(topGainer.Key).ATRPercentage, 4)
+                                row1("Avg Volume") = Math.Round(atrStockList(topGainer.Key).AverageVolume, 4)
                                 row1("Blank Candle %") = atrStockList(topGainer.Key).BlankCandlePercentage
                                 row1("Day ATR") = Math.Round(atrStockList(topGainer.Key).DayATR, 4)
                                 row1("Previous Day Open") = atrStockList(topGainer.Key).PreviousDayOpen
@@ -119,6 +118,7 @@ Public Class TopGainerTopLosserEveryMinute
                                 row2("Trading Symbol") = atrStockList(topLosser.Key).TradingSymbol
                                 row2("Lot Size") = atrStockList(topLosser.Key).LotSize
                                 row2("ATR %") = Math.Round(atrStockList(topLosser.Key).ATRPercentage, 4)
+                                row2("Avg Volume") = Math.Round(atrStockList(topLosser.Key).AverageVolume, 4)
                                 row2("Blank Candle %") = atrStockList(topLosser.Key).BlankCandlePercentage
                                 row2("Day ATR") = Math.Round(atrStockList(topLosser.Key).DayATR, 4)
                                 row2("Previous Day Open") = atrStockList(topLosser.Key).PreviousDayOpen
@@ -141,6 +141,7 @@ Public Class TopGainerTopLosserEveryMinute
                                 row1("Trading Symbol") = atrStockList(topGainer.Key).TradingSymbol
                                 row1("Lot Size") = atrStockList(topGainer.Key).LotSize
                                 row1("ATR %") = Math.Round(atrStockList(topGainer.Key).ATRPercentage, 4)
+                                row1("Avg Volume") = Math.Round(atrStockList(topGainer.Key).AverageVolume, 4)
                                 row1("Blank Candle %") = atrStockList(topGainer.Key).BlankCandlePercentage
                                 row1("Day ATR") = Math.Round(atrStockList(topGainer.Key).DayATR, 4)
                                 row1("Previous Day Open") = atrStockList(topGainer.Key).PreviousDayOpen
@@ -162,6 +163,7 @@ Public Class TopGainerTopLosserEveryMinute
                                 row2("Trading Symbol") = atrStockList(topLosser.Key).TradingSymbol
                                 row2("Lot Size") = atrStockList(topLosser.Key).LotSize
                                 row2("ATR %") = Math.Round(atrStockList(topLosser.Key).ATRPercentage, 4)
+                                row2("Avg Volume") = Math.Round(atrStockList(topLosser.Key).AverageVolume, 4)
                                 row2("Blank Candle %") = atrStockList(topLosser.Key).BlankCandlePercentage
                                 row2("Day ATR") = Math.Round(atrStockList(topLosser.Key).DayATR, 4)
                                 row2("Previous Day Open") = atrStockList(topLosser.Key).PreviousDayOpen
@@ -176,7 +178,7 @@ Public Class TopGainerTopLosserEveryMinute
                                 ret.Rows.Add(row2)
                             End If
 
-                            payloadTime = payloadTime.AddMinutes(1)
+                            payloadTime = payloadTime.AddMinutes(_timeframe)
                         End While
                     End If
                 End If

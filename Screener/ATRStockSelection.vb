@@ -73,6 +73,7 @@ Public Class ATRStockSelection
                                 Dim instrumentData As New InstrumentDetails With
                                 {.TradingSymbol = tradingSymbol,
                                  .ATRPercentage = stockList(stock).ATRPercentage,
+                                 .AverageVolume = stockList(stock).AverageVolume,
                                  .LotSize = stockList(stock).LotSize,
                                  .DayATR = stockList(stock).DayATR,
                                  .PreviousDayOpen = stockList(stock).PreviousDayOpen,
@@ -129,7 +130,6 @@ Public Class ATRStockSelection
         End If
         Return ret
     End Function
-
 
     Private Async Function GetATRBasedFOStockDataAsync(ByVal tradingDate As Date, ByVal tableType As Common.DataBaseTable) As Task(Of Dictionary(Of String, InstrumentDetails))
         Await Task.Delay(1, _cts.Token).ConfigureAwait(False)
@@ -352,8 +352,9 @@ Public Class ATRStockSelection
             End If
             _cts.Token.ThrowIfCancellationRequested()
             OnHeartbeat("Fetching all cash instrument")
-            Dim cm As MySqlCommand = New MySqlCommand("SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_cash` WHERE `AS_ON_DATE`=@sd AND `SEGMENT`<>'INDICES'", _conn)
-            cm.Parameters.AddWithValue("@sd", tradingDate.ToString("yyyy-MM-dd"))
+            Dim cm As MySqlCommand = New MySqlCommand("SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`EXPIRY` FROM `active_instruments_cash` WHERE `AS_ON_DATE`>=@sd AND `AS_ON_DATE`<=@ed AND `SEGMENT`<>'INDICES'", _conn)
+            cm.Parameters.AddWithValue("@sd", tradingDate.AddDays(-5).ToString("yyyy-MM-dd"))
+            cm.Parameters.AddWithValue("@ed", tradingDate.ToString("yyyy-MM-dd"))
             _cts.Token.ThrowIfCancellationRequested()
             Dim adapter As New MySqlDataAdapter(cm)
             adapter.SelectCommand.CommandTimeout = 300
@@ -384,7 +385,7 @@ Public Class ATRStockSelection
                     Dim priceFilterdCurrentNFOInstruments As List(Of ActiveInstrumentData) = Nothing
                     For Each runningInstrument In currentInstruments
                         _cts.Token.ThrowIfCancellationRequested()
-                        Dim previousDayPayloads As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_Cash, runningInstrument.RawInstrumentName, previousTradingDay.AddDays(-10), tradingDate)
+                        Dim previousDayPayloads As Dictionary(Of Date, Payload) = _common.GetRawPayload(Common.DataBaseTable.EOD_POSITIONAL, runningInstrument.RawInstrumentName, previousTradingDay.AddDays(-10), tradingDate)
                         Dim lastDayPayload As Payload = Nothing
                         Dim currentDayPayload As Payload = Nothing
                         If previousDayPayloads IsNot Nothing AndAlso previousDayPayloads.Count > 0 Then
@@ -438,27 +439,22 @@ Public Class ATRStockSelection
                                                                                                                        _cts.Token.ThrowIfCancellationRequested()
                                                                                                                        Dim ATRPayload As Dictionary(Of Date, Decimal) = Nothing
                                                                                                                        Indicator.ATR.CalculateATR(14, eodHistoricalData, ATRPayload)
+                                                                                                                       Dim smaPayload As Dictionary(Of Date, Decimal) = Nothing
+                                                                                                                       Indicator.SMA.CalculateSMA(5, Payload.PayloadFields.Volume, eodHistoricalData, smaPayload)
                                                                                                                        _cts.Token.ThrowIfCancellationRequested()
                                                                                                                        If ATRPayload IsNot Nothing AndAlso ATRPayload.Count > 0 Then
                                                                                                                            Dim lastDayClosePrice As Decimal = eodHistoricalData.LastOrDefault.Value.Close
                                                                                                                            Dim atrPercentage As Decimal = (ATRPayload(eodHistoricalData.LastOrDefault.Key) / lastDayClosePrice) * 100
                                                                                                                            If atrPercentage >= My.Settings.ATRPercentage Then
                                                                                                                                _cts.Token.ThrowIfCancellationRequested()
-                                                                                                                               'Dim volumePayload As IEnumerable(Of KeyValuePair(Of Date, Payload)) = eodHistoricalData.OrderByDescending(Function(z)
-                                                                                                                               '                                                                                                              Return z.Key
-                                                                                                                               '                                                                                                          End Function).Take(5)
-                                                                                                                               '_cts.Token.ThrowIfCancellationRequested()
-                                                                                                                               'If volumePayload IsNot Nothing AndAlso volumePayload.Count > 0 Then
-                                                                                                                               '    _cts.Token.ThrowIfCancellationRequested()
-                                                                                                                               '    Dim avgVolume As Decimal = volumePayload.Average(Function(z)
-                                                                                                                               '                                                         Return z.Value.Volume
-                                                                                                                               '                                                     End Function)
-                                                                                                                               '    _cts.Token.ThrowIfCancellationRequested()
-                                                                                                                               '    If avgVolume >= (My.Settings.PotentialAmount / 100) * lastDayClosePrice Then
-                                                                                                                               If highATRStocks Is Nothing Then highATRStocks = New Concurrent.ConcurrentDictionary(Of String, Decimal())
-                                                                                                                               highATRStocks.TryAdd(x.CashInstrumentName, {atrPercentage, ATRPayload(eodHistoricalData.LastOrDefault.Key), x.LastDayOpen, x.LastDayLow, x.LastDayHigh, x.LastDayClose, x.CurrentDayOpen, x.CurrentDayLow, x.CurrentDayHigh, x.CurrentDayClose})
-                                                                                                                               '    End If
-                                                                                                                               'End If
+                                                                                                                               If smaPayload IsNot Nothing AndAlso smaPayload.Count > 0 Then
+                                                                                                                                   Dim avgVolume As Decimal = smaPayload((eodHistoricalData.LastOrDefault.Key))
+                                                                                                                                   _cts.Token.ThrowIfCancellationRequested()
+                                                                                                                                   If avgVolume >= My.Settings.MaxAvgEODVolume Then
+                                                                                                                                       If highATRStocks Is Nothing Then highATRStocks = New Concurrent.ConcurrentDictionary(Of String, Decimal())
+                                                                                                                                       highATRStocks.TryAdd(x.CashInstrumentName, {atrPercentage, ATRPayload(eodHistoricalData.LastOrDefault.Key), x.LastDayOpen, x.LastDayLow, x.LastDayHigh, x.LastDayClose, x.CurrentDayOpen, x.CurrentDayLow, x.CurrentDayHigh, x.CurrentDayClose, avgVolume})
+                                                                                                                                   End If
+                                                                                                                               End If
                                                                                                                            End If
                                                                                                                            'End If
                                                                                                                        End If
@@ -505,7 +501,8 @@ Public Class ATRStockSelection
                                          .CurrentDayOpen = runningStock.Value(6),
                                          .CurrentDayLow = runningStock.Value(7),
                                          .CurrentDayHigh = runningStock.Value(8),
-                                         .CurrentDayClose = runningStock.Value(9)})
+                                         .CurrentDayClose = runningStock.Value(9),
+                                         .AverageVolume = runningStock.Value(10)})
                             End If
                         Next
                     End If

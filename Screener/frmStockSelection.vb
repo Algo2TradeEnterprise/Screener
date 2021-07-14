@@ -221,17 +221,19 @@ Public Class frmStockSelection
     Private Sub frmStockSelection_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
         SetObjectEnableDisable_ThreadSafe(btnExport, False)
+        cmbProcedure.SelectedIndex = My.Settings.ProcedureNumber
+        txtInstrumentList.Text = My.Settings.InstrumentList
         If My.Settings.StartDate <> Date.MinValue Then dtpckrFromDate.Value = My.Settings.StartDate
         If My.Settings.EndDate <> Date.MinValue Then dtpckrToDate.Value = My.Settings.EndDate
-        cmbProcedure.SelectedIndex = My.Settings.ProcedureNumber
-        txtMaxBlankCandlePercentage.Text = My.Settings.MaxBlankCandlePercentage
-        txtInstrumentList.Text = My.Settings.InstrumentList
-        txtNumberOfStock.Text = My.Settings.NumberOfStockPerDay
         cmbStockType.SelectedIndex = My.Settings.StockType
+        chkbFOStock.Checked = My.Settings.OnlyFOStocks
+        txtMaxBlankCandlePercentage.Text = My.Settings.MaxBlankCandlePercentage
+        txtMaxAvgEODVolume.Text = My.Settings.MaxAvgEODVolume
         txtMinPrice.Text = My.Settings.MinClose
         txtMaxPrice.Text = My.Settings.MaxClose
         txtATRPercentage.Text = My.Settings.ATRPercentage
-        chkbFOStock.Checked = My.Settings.OnlyFOStocks
+        txtNumberOfStock.Text = My.Settings.NumberOfStockPerDay
+        chkbFOStock_CheckedChanged(sender, e)
     End Sub
 
     Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
@@ -271,6 +273,21 @@ Public Class frmStockSelection
                 chkbFOStock.Checked = True
                 chkbFOStock.Enabled = False
         End Select
+        chkbFOStock_CheckedChanged(sender, e)
+    End Sub
+
+    Private Sub chkbFOStock_CheckedChanged(sender As Object, e As EventArgs) Handles chkbFOStock.CheckedChanged
+        If chkbFOStock.Checked Then
+            txtMaxBlankCandlePercentage.Text = My.Settings.MaxBlankCandlePercentage
+            txtMaxBlankCandlePercentage.Enabled = True
+            txtMaxAvgEODVolume.Text = 0
+            txtMaxAvgEODVolume.Enabled = False
+        Else
+            txtMaxBlankCandlePercentage.Text = 100
+            txtMaxBlankCandlePercentage.Enabled = False
+            txtMaxAvgEODVolume.Text = My.Settings.MaxAvgEODVolume
+            txtMaxAvgEODVolume.Enabled = True
+        End If
     End Sub
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
@@ -280,17 +297,18 @@ Public Class frmStockSelection
         SetObjectEnableDisable_ThreadSafe(btnStart, False)
         SetObjectEnableDisable_ThreadSafe(btnExport, False)
         SetObjectEnableDisable_ThreadSafe(btnStop, True)
+        My.Settings.ProcedureNumber = cmbProcedure.SelectedIndex
+        My.Settings.InstrumentList = txtInstrumentList.Text
         My.Settings.StartDate = dtpckrFromDate.Value
         My.Settings.EndDate = dtpckrToDate.Value
-        My.Settings.ProcedureNumber = cmbProcedure.SelectedIndex
-        My.Settings.MaxBlankCandlePercentage = txtMaxBlankCandlePercentage.Text
-        My.Settings.InstrumentList = txtInstrumentList.Text
         My.Settings.StockType = cmbStockType.SelectedIndex
-        My.Settings.NumberOfStockPerDay = txtNumberOfStock.Text
+        My.Settings.OnlyFOStocks = chkbFOStock.Checked
+        My.Settings.MaxBlankCandlePercentage = txtMaxBlankCandlePercentage.Text
+        My.Settings.MaxAvgEODVolume = txtMaxAvgEODVolume.Text
         My.Settings.MinClose = txtMinPrice.Text
         My.Settings.MaxClose = txtMaxPrice.Text
         My.Settings.ATRPercentage = txtATRPercentage.Text
-        My.Settings.OnlyFOStocks = chkbFOStock.Checked
+        My.Settings.NumberOfStockPerDay = txtNumberOfStock.Text
         My.Settings.Save()
 
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)

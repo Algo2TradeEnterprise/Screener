@@ -2,6 +2,7 @@
     Public Property TradingSymbol As String
     Public Property InstrumentIdentifier As Integer
     Public Property ATRPercentage As Decimal
+    Public Property AverageVolume As Decimal
     Public Property LotSize As Integer
     Public Property DayATR As Decimal
     Public Property PreviousDayOpen As Decimal
